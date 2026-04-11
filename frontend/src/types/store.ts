@@ -10,11 +10,11 @@ export interface AuthState {
   setUser: (user: User) => void;
   clearState: () => void;
   signUp: (
-    username: string,
-    password: string,
-    email: string,
     firstName: string,
     lastName: string,
+    username: string,
+    email: string,
+    password: string,
   ) => Promise<void>;
   signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -26,5 +26,24 @@ export interface AuthState {
     resetToken: string,
     newPassword: string,
     confirmPassword: string,
+  ) => Promise<void>;
+}
+
+export interface AdminState {
+  accessToken: string | null;
+  user: User | null;
+  loading: boolean;
+  clearState: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+export interface UserState {
+  uploadAvatar: (formData: FormData) => Promise<void>;
+  updateInfo: (
+    displayName: string,
+    username: string,
+    email: string,
+    phone: string,
   ) => Promise<void>;
 }

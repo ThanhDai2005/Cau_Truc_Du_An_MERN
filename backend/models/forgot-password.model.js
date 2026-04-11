@@ -5,10 +5,14 @@ const forgotPasswordSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
     },
     otp: {
       type: String,
       required: true,
+      unique: true,
     },
     expireAt: {
       type: Date,

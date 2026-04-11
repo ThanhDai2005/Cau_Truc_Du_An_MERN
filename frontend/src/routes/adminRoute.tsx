@@ -1,6 +1,7 @@
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import AdminRouter from "@/components/auth/AdminRouter";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { Navigate } from "react-router-dom";
 
 import DashboardPage from "@/pages/admin/DashboardPage";
 import UserManagementPage from "@/pages/admin/UserManagementPage";
@@ -9,7 +10,11 @@ const adminRoute = {
   path: "/admin",
   children: [
     {
-      path: "/login",
+      index: true,
+      element: <Navigate to="login" replace />,
+    },
+    {
+      path: "login",
       element: <AdminLoginPage />,
     },
 
@@ -20,11 +25,11 @@ const adminRoute = {
           element: <AdminLayout />,
           children: [
             {
-              path: "/dashboard",
+              path: "dashboard",
               element: <DashboardPage />,
             },
             {
-              path: "/users",
+              path: "user",
               element: <UserManagementPage />,
             },
           ],

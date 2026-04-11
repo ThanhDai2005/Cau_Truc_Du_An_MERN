@@ -36,11 +36,11 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     avatarUrl: {
-      type: String, // link CDN để hiên thị hình
+      type: String,
     },
     phone: {
       type: String,
-      sparse: true, // cho phép null, nhưng không được trùng
+      sparse: true,
     },
   },
   { timestamps: true },

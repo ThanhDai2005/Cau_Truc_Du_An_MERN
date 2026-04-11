@@ -28,15 +28,15 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   });
 
-  const { login } = useAuthStore();
+  const { signIn } = useAuthStore();
   const navigate = useNavigate();
 
   const onSubmit = async (data: loginForm) => {
     const { username, password } = data;
 
-    const res = await login(username, password);
+    const res = await signIn(username, password);
 
-    if (res.message) {
+    if (res?.accessToken) {
       navigate("/admin/dashboard");
     }
   };
@@ -80,20 +80,12 @@ export function LoginForm({
                 )}
               </div>
               <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <Label
-                    className="block text-sm font-semibold"
-                    htmlFor="password"
-                  >
-                    Mật khẩu
-                  </Label>
-                  <Link
-                    className="block hover:underline hover:underline-offset-2"
-                    to="/forgot-password"
-                  >
-                    Quên mật khẩu?
-                  </Link>
-                </div>
+                <Label
+                  className="block text-sm font-semibold"
+                  htmlFor="password"
+                >
+                  Mật khẩu
+                </Label>
                 <Input
                   type="password"
                   id="password"

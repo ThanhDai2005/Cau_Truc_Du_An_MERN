@@ -36,7 +36,7 @@ export function SignInForm({
 
     const res = await signIn(username, password);
 
-    if (res.accessToken) {
+    if (res?.accessToken) {
       navigate("/");
     }
   };
@@ -57,7 +57,7 @@ export function SignInForm({
                 </a>
                 <h2 className="text-2xl font-bold">Chào mừng quay lại</h2>
                 <p className="text-[#6C6C93]">
-                  Đăng nhập vào tài khoản PingMe của bạn
+                  Đăng nhập vào tài khoản CAU_TRUC của bạn
                 </p>
               </div>
               <div className="flex flex-col gap-3">
@@ -70,7 +70,7 @@ export function SignInForm({
                 <Input
                   type="text"
                   id="username"
-                  placeholder="pingme"
+                  placeholder="CAU_TRUC_DU_AN_MERN"
                   {...register("username")}
                 />
                 {errors.username && (

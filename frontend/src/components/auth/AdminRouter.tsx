@@ -8,9 +8,9 @@ const AdminRouter = () => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  // if (user.role != "admin") {
-  //   return <Navigate to="/" />;
-  // }
+  if (user.role != "admin") {
+    return <Navigate to="/admin/login" replace />;
+  }
 
   return (
     <>

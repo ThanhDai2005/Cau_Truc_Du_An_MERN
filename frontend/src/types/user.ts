@@ -3,8 +3,9 @@ export interface User {
   username: string;
   email: string;
   displayName: string;
+  role: "user" | "admin";
+  status: "active" | "inactive";
   avatarUrl?: string;
-  bio?: string;
   phone?: string;
   createdAt?: string;
   updatedAt?: string;

@@ -39,7 +39,7 @@ export function SignupForm({
 
     const res = await signUp(firstName, lastName, username, email, password);
 
-    if (res.message) {
+    if (res?.message) {
       navigate("/signin");
     }
   };
@@ -54,7 +54,7 @@ export function SignupForm({
                 <a className="inline-block mx-auto text-center" href="/">
                   <img className="object-contain w-12 h-12" src="/logo.png" />
                 </a>
-                <h2 className="text-2xl font-bold">Tạo tài khoản PingMe</h2>
+                <h2 className="text-2xl font-bold">Tạo tài khoản CAU_TRUC</h2>
                 <p className="text-[#6C6C93]">
                   Chào mừng bạn! Hãy đăng ký để bắt đầu!
                 </p>
@@ -94,7 +94,7 @@ export function SignupForm({
                 <Input
                   type="text"
                   id="username"
-                  placeholder="pingme"
+                  placeholder="CAU_TRUC_DU_AN_MERN"
                   {...register("username")}
                 />
                 {errors.username && (
@@ -120,7 +120,7 @@ export function SignupForm({
                 )}
               </div>
               <div className="flex flex-col gap-3">
-                <Label className="block text-sm" htmlFor="email">
+                <Label className="block text-sm" htmlFor="password">
                   Mật khẩu
                 </Label>
                 <Input

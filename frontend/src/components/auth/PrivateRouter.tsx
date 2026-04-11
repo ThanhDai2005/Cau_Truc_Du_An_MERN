@@ -5,7 +5,7 @@ import { Navigate, Outlet } from "react-router";
 
 const PrivateRouter = () => {
   const { accessToken, user, loading, refresh, getDetail } = useAuthStore();
-  const [staring, setStaring] = useState(true);
+  const [starting, setStarting] = useState(true);
 
   const init = async () => {
     if (!accessToken) {
@@ -16,14 +16,14 @@ const PrivateRouter = () => {
       await getDetail();
     }
 
-    setStaring(false);
+    setStarting(false);
   };
 
   useEffect(() => {
     init();
   }, []);
 
-  if (staring || loading) {
+  if (starting || loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-background">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
@@ -39,7 +39,7 @@ const PrivateRouter = () => {
   }
 
   if (!accessToken) {
-    return <Navigate to="signin" replace />;
+    return <Navigate to="/signin" replace />;
   }
 
   return (

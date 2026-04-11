@@ -1,13 +1,13 @@
-import User from "../models/user.model.js";
-import Session from "../models/session.model.js";
-import ForgotPassword from "../models/forgot-password.model.js";
+import User from "../../../../models/user.model.js";
+import Session from "../../../../models/session.model.js";
+import ForgotPassword from "../../../../models/forgot-password.model.js";
 import { sendEmail } from "../../../../helpers/mailer.js";
 import { forgotPasswordTemplate } from "../../../../helpers/forgotPasswordTemplate.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
-const ACCESS_TOKEN_TIME = "30m"; // thường là dưới 15m
+const ACCESS_TOKEN_TIME = "30m";
 const REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000; // 14 ngày
 
 // [POST] /api/v1/auth/signup
@@ -22,10 +22,7 @@ export const signUp = async (req, res) => {
       });
     }
 
-    // kiểm tra username tồn tại chưa
-    const existUserName = await User.findOne({
-      username: username,
-    });
+    const existUserName = await User.findOne({ username: username });
 
     if (existUserName) {
       return res.status(400).json({
@@ -33,9 +30,7 @@ export const signUp = async (req, res) => {
       });
     }
 
-    const existEmail = await User.findOne({
-      email: email,
-    });
+    const existEmail = await User.findOne({ email: email });
 
     if (existEmail) {
       return res.status(400).json({
@@ -46,17 +41,15 @@ export const signUp = async (req, res) => {
     // mã hóa password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // tạo user mới
     const user = new User({
-      username: username,
-      hashedPassword: hashedPassword,
-      email: email,
       displayName: `${firstName} ${lastName}`,
+      username: username,
+      email: email,
+      hashedPassword: hashedPassword,
     });
 
     await user.save();
 
-    // return
     res.status(201).json({
       message: "Đăng ký thành công",
     });
@@ -79,9 +72,7 @@ export const signIn = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({
-      username: username,
-    });
+    const user = await User.findOne({ username: username });
 
     if (!user) {
       return res.status(401).json({
@@ -99,7 +90,7 @@ export const signIn = async (req, res) => {
 
     // nếu khớp, tạo accessToken với JWT
     const accessToken = jwt.sign(
-      { userId: user._id },
+      { userId: user._id, role: user.role },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: ACCESS_TOKEN_TIME },
     );
@@ -124,7 +115,6 @@ export const signIn = async (req, res) => {
 
     await session.save();
 
-    // trả access token về trong res
     res.status(200).json({
       message: `User ${user.displayName} đã logged`,
       accessToken: accessToken,
@@ -144,11 +134,7 @@ export const signOut = async (req, res) => {
     const refreshToken = req.cookies?.refreshToken;
 
     if (refreshToken) {
-      // xóa refresh token trong session
-      await Session.deleteOne({
-        refreshToken: refreshToken,
-      });
-      // Xóa cookie
+      await Session.deleteOne({ refreshToken: refreshToken });
       res.clearCookie("refreshToken");
     }
 
@@ -174,10 +160,7 @@ export const refreshToken = async (req, res) => {
       });
     }
 
-    // so với refresh token trong db
-    const session = await Session.findOne({
-      refreshToken: refreshToken,
-    });
+    const session = await Session.findOne({ refreshToken: refreshToken });
 
     if (!session) {
       return res.status(401).json({
@@ -185,18 +168,14 @@ export const refreshToken = async (req, res) => {
       });
     }
 
-    // kiểm tra hết hạn chưa
     if (session.expireAt < new Date()) {
       return res.status(401).json({
         message: "Token đã hết hạn",
       });
     }
 
-    // tạo accessToken mới
     const accessToken = jwt.sign(
-      {
-        userId: session.userId,
-      },
+      { userId: session.userId },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: ACCESS_TOKEN_TIME },
     );
@@ -223,9 +202,7 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    const existEmail = await User.findOne({
-      email: email,
-    });
+    const existEmail = await User.findOne({ email: email });
 
     if (!existEmail) {
       return res.status(400).json({
@@ -292,25 +269,21 @@ export const verifyOtp = async (req, res) => {
     }
 
     const resetToken = jwt.sign(
-      {
-        email: email,
-      },
+      { email: email },
       process.env.ACCESS_TOKEN_SECRET,
       {
         expiresIn: "10m",
       },
     );
 
-    await ForgotPassword.deleteOne({
-      _id: existOtp._id,
-    });
+    await ForgotPassword.deleteOne({ _id: existOtp._id });
 
     res.status(200).json({
-      message: "Mã otp chính xác",
+      message: "Mã Otp chính xác",
       resetToken: resetToken,
     });
   } catch (error) {
-    console.log("Lỗi khi gọi verifyCode", error);
+    console.log("Lỗi khi gọi verifyOtp", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
@@ -349,9 +322,7 @@ export const resetPassword = async (req, res) => {
 
     await User.findOneAndUpdate(
       { email: email },
-      {
-        hashedPassword: hashedPassword,
-      },
+      { hashedPassword: hashedPassword },
       { new: true },
     );
 

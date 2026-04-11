@@ -16,14 +16,12 @@ export const userService = {
     username: string,
     email: string,
     phone: string,
-    bio: string,
   ) => {
     const res = await api.patch("/user/profile", {
       displayName,
       username,
       email,
       phone,
-      bio,
     });
 
     return res.data;

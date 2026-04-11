@@ -1,7 +1,10 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.model.js";
+import User from "../../../../models/user.model.js";
 
 // authorization - xác minh user là ai
+// - verify token
+// - kiểm tra user tồn tại
+// - kiểm tra role user
 export const requireAuth = async (req, res, next) => {
   try {
     // lấy accessToken từ header
@@ -14,36 +17,36 @@ export const requireAuth = async (req, res, next) => {
       });
     }
 
-    // xác nhận token hợp lệ
-    jwt.verify(
-      accessToken,
-      process.env.ACCESS_TOKEN_SECRET,
-      async (err, user) => {
-        if (err) {
-          console.log(err);
+    let decoded;
+    try {
+      decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        message: "Access token hết hạn hoặc không đúng",
+      });
+    }
 
-          return res.status(401).json({
-            message: "Access token hết hạn hoặc không đúng",
-          });
-        }
-
-        const userDetail = await User.findOne({
-          _id: user.userId,
-        }).select("-hashedPassword");
-
-        if (!userDetail) {
-          return res.status(404).json({
-            message: "người dùng không tồn tại",
-          });
-        }
-
-        req.userDetail = userDetail;
-        next();
-      },
+    const user = await User.findOne({ _id: decoded.userId }).select(
+      "-hashedPassword",
     );
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Người dùng không tồn tại",
+      });
+    }
+
+    if (user.status != "active") {
+      return res.status(403).json({
+        message: "Tài khoản đã bị vô hiệu hóa",
+      });
+    }
+
+    req.user = user;
+    next();
   } catch (error) {
-    console.log("Lỗi khi xác minh JWT trong authMiddleware", error);
-    res.status(500).json({
+    console.error("Lỗi khi xác minh client auth:", error);
+    return res.status(500).json({
       message: "Lỗi hệ thống",
     });
   }

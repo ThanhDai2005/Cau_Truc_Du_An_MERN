@@ -1,7 +1,7 @@
-import Layout from "@/components/client";
+import ClientLayout from "@/components/client/ClientLayout";
 import HomePage from "@/pages/client/HomePage";
-import SignUpPage from "../pages/client/SignUpPage";
-import SignInPage from "../pages/client/SignInPage";
+import SignUpPage from "@/pages/client/SignUpPage";
+import SignInPage from "@/pages/client/SignInPage";
 import PrivateRouter from "@/components/auth/PrivateRouter";
 import ForgotPassword from "@/pages/client/ForgotPassword";
 import VerifyOtp from "@/pages/client/VerifyOtp";
@@ -11,30 +11,30 @@ import ProfilePage from "@/pages/client/ProfilePage";
 
 const clientRoute = {
   path: "/",
-  element: <Layout />,
+  element: <ClientLayout />,
   children: [
     {
-      path: "",
+      index: true,
       element: <HomePage />,
     },
     {
-      path: "/signup",
+      path: "signup",
       element: <SignUpPage />,
     },
     {
-      path: "/signin",
+      path: "signin",
       element: <SignInPage />,
     },
     {
-      path: "/forgot-password",
+      path: "forgot-password",
       element: <ForgotPassword />,
     },
     {
-      path: "/verify-otp",
+      path: "verify-otp",
       element: <VerifyOtp />,
     },
     {
-      path: "/reset-password",
+      path: "reset-password",
       element: <ResetPassword />,
     },
 
@@ -42,7 +42,7 @@ const clientRoute = {
       element: <PrivateRouter />,
       children: [
         {
-          path: "/profile",
+          path: "profile",
           element: <ProfilePage />,
         },
       ],

@@ -1,4 +1,4 @@
-import User from "../models/user.model.js";
+import User from "../../../../models/user.model.js";
 
 // [GET] /api/v1/user/detail
 export const getDetail = async (req, res) => {
@@ -25,16 +25,11 @@ export const uploadAvatar = async (req, res) => {
     }
 
     const user = await User.findOneAndUpdate(
-      {
-        _id: userId,
-      },
+      { _id: userId },
       {
         avatarUrl: req.body.avatar,
-        avatarId: req.body.avatar_id,
       },
-      {
-        new: true,
-      },
+      { new: true },
     ).select("avatarUrl");
 
     res.json({
@@ -52,12 +47,12 @@ export const uploadAvatar = async (req, res) => {
 // [PATCH] /api/v1/user/profile
 export const updateInfo = async (req, res) => {
   try {
-    const { displayName, username, email, phone, bio } = req.body;
+    const { displayName, username, email, phone } = req.body;
     const userId = req.user._id;
 
     if (!displayName || !username || !email) {
       return res.status(400).json({
-        message: "Không thể thiếu displayName, username, email, phone và bio",
+        message: "Không thể thiếu displayName, username và email",
       });
     }
 
@@ -73,20 +68,15 @@ export const updateInfo = async (req, res) => {
     }
 
     const user = await User.findOneAndUpdate(
-      {
-        _id: userId,
-      },
+      { _id: userId },
       {
         displayName: displayName,
         username: username,
         email: email,
-        phone: phone,
-        bio: bio,
+        phone: phone || "",
       },
-      {
-        new: true,
-      },
-    );
+      { new: true },
+    ).select("-hashedPassword");
 
     res.json({
       message: "Cập nhật user thành công",

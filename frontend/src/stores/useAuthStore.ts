@@ -27,16 +27,16 @@ export const useAuthStore = create<AuthState>()(
         sessionStorage.clear();
       },
 
-      signUp: async (username, password, email, firstName, lastName) => {
+      signUp: async (firstName, lastName, username, email, password) => {
         try {
           set({ loading: true });
 
           const res = await authService.signUp(
-            username,
-            password,
-            email,
             firstName,
             lastName,
+            username,
+            email,
+            password,
           );
 
           toast.success(
@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
           return res;
         } catch (error) {
           console.error(error);
-          toast.error(error?.response?.data?.message);
+          toast.error(error?.response?.data?.message || "Đăng ký thất bại");
         } finally {
           set({ loading: false });
         }
@@ -60,13 +60,12 @@ export const useAuthStore = create<AuthState>()(
           const res = await authService.signIn(username, password);
           get().setAccessToken(res.accessToken);
           await get().getDetail();
-          // useProductStore.getState().getListProduct();
 
-          toast.success("Chào mừng bạn quay lại với Dac San 3 Mien 🎉");
+          toast.success("Chào mừng bạn quay lại 🎉");
           return res;
         } catch (error) {
           console.error(error);
-          toast.error(error?.response?.data?.message);
+          toast.error(error?.response?.data?.message || "Đăng nhập thất bại");
         } finally {
           set({ loading: false });
         }
