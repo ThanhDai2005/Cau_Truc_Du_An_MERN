@@ -33,9 +33,13 @@ export interface AdminState {
   accessToken: string | null;
   user: User | null;
   loading: boolean;
+
+  setAccessToken: (accessToken: string) => void;
   clearState: () => void;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  getDetail: () => Promise<void>;
+  refreshToken: () => Promise<void>;
 }
 
 export interface UserState {

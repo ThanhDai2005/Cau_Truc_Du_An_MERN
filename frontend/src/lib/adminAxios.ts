@@ -1,17 +1,17 @@
-import { useAuthStore } from "@/stores/useAuthStore";
+import { useAdminStore } from "../stores/useAdminStore";
 import axios from "axios";
 
 const api = axios.create({
   baseURL:
     import.meta.env.MODE == "development"
       ? "http://localhost:3000/api/v1/"
-      : "/api/v1",
+      : "/api/v1/",
   withCredentials: true, // giúp gửi cookie lên server
 });
 
 // Tự động gắn token vào header cho mọi request
 api.interceptors.request.use((config) => {
-  const { accessToken } = useAuthStore.getState();
+  const { accessToken } = useAdminStore.getState();
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -29,11 +29,8 @@ api.interceptors.response.use(
 
     // Bỏ qua các API Auth tránh vòng lặp vô hạn
     if (
-      originalRequest.url.includes("/auth/signup") ||
-      originalRequest.url.includes("/auth/signin") ||
-      originalRequest.url.includes("/auth/refresh") ||
-      originalRequest.url.includes("/forgot-password") ||
-      originalRequest.url.includes("/verify-otp")
+      originalRequest.url.includes("/auth/login") ||
+      originalRequest.url.includes("/auth/refresh")
     ) {
       return Promise.reject(error);
     }
@@ -52,13 +49,13 @@ api.interceptors.response.use(
           { withCredentials: true },
         );
         const newAccessToken = res.data.accessToken;
-        useAuthStore.getState().setAccessToken(newAccessToken);
+        useAdminStore.getState().setAccessToken(newAccessToken);
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest); //Request cũ: api.get("/users/me"); Sau khi refresh xong: return api({url: "/users/me", method: "get", headers: { Authorization: "Bearer NEW_TOKEN" }});
       } catch (error) {
         console.log(error);
-        useAuthStore.getState().clearState();
+        useAdminStore.getState().clearState();
         return Promise.reject(error);
       }
     }

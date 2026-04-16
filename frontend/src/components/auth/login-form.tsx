@@ -6,8 +6,8 @@ import { Label } from "@radix-ui/react-label";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuthStore } from "@/stores/useAuthStore";
-import { Link, useNavigate } from "react-router";
+import { useAdminStore } from "@/stores/useAdminStore";
+import { useNavigate } from "react-router";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
@@ -28,13 +28,13 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   });
 
-  const { signIn } = useAuthStore();
+  const { login } = useAdminStore();
   const navigate = useNavigate();
 
   const onSubmit = async (data: loginForm) => {
     const { username, password } = data;
 
-    const res = await signIn(username, password);
+    const res = await login(username, password);
 
     if (res?.accessToken) {
       navigate("/admin/dashboard");

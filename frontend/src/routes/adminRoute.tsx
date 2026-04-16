@@ -29,7 +29,7 @@ const adminRoute = {
               element: <DashboardPage />,
             },
             {
-              path: "user",
+              path: "users",
               element: <UserManagementPage />,
             },
           ],

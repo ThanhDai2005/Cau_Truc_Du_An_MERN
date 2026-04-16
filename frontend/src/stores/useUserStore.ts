@@ -19,7 +19,9 @@ export const useUserStore = create<UserState>((set, get) => ({
       }
     } catch (error) {
       console.log("Lỗi khi upload Avatar", error);
-      toast.error(error?.response?.data?.message || "Upload Avatar không thành công!");
+      toast.error(
+        error?.response?.data?.message || "Upload Avatar không thành công!",
+      );
     }
   },
 

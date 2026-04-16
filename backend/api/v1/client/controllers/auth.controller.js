@@ -90,7 +90,7 @@ export const signIn = async (req, res) => {
 
     // nếu khớp, tạo accessToken với JWT
     const accessToken = jwt.sign(
-      { userId: user._id, role: user.role },
+      { userId: user._id },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: ACCESS_TOKEN_TIME },
     );
@@ -106,7 +106,7 @@ export const signIn = async (req, res) => {
     });
 
     // trả refresh token về trong cookie
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("clientRefreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none", // backend, frontend deploy riêng
@@ -131,11 +131,11 @@ export const signIn = async (req, res) => {
 export const signOut = async (req, res) => {
   try {
     // lấy refresh token từ cookie
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.cookies?.clientRefreshToken;
 
     if (refreshToken) {
       await Session.deleteOne({ refreshToken: refreshToken });
-      res.clearCookie("refreshToken");
+      res.clearCookie("clientRefreshToken");
     }
 
     res.status(200).json({
@@ -153,7 +153,7 @@ export const signOut = async (req, res) => {
 export const refreshToken = async (req, res) => {
   try {
     // lấy refresh token từ cookie
-    const refreshToken = req.cookies.refreshToken;
+    const refreshToken = req.cookies.clientRefreshToken;
     if (!refreshToken) {
       return res.status(401).json({
         message: "Token không tồn tại",

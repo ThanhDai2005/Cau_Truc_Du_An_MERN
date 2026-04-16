@@ -1,4 +1,4 @@
-// [GET] /admin/dashboard
+// [GET] /api/v1/admin/dashboard
 export const dashboard = (req, res) => {
   try {
     res.status(200).json({

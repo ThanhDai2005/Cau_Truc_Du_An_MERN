@@ -2,6 +2,7 @@ import { requireAuth } from "../middlewares/auth.middleware.js";
 import authRoute from "./auth.route.js";
 import dashboardRoute from "./dashboard.route.js";
 import userRoute from "./user.route.js";
+import usersRoute from "./users.route.js";
 
 export const adminV1Routes = (app) => {
   const version = "/api/v1/admin";
@@ -11,4 +12,6 @@ export const adminV1Routes = (app) => {
   app.use(version + "/dashboard", requireAuth, dashboardRoute);
 
   app.use(version + "/user", requireAuth, userRoute);
+
+  app.use(version + "/users", requireAuth, usersRoute);
 };

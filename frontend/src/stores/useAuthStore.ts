@@ -13,7 +13,7 @@ export const useAuthStore = create<AuthState>()(
       forgotPasswordLoading: false,
 
       setAccessToken: (accessToken) => {
-        set({ accessToken });
+        set({ accessToken: accessToken });
       },
 
       setUser: (user) => {
@@ -23,8 +23,8 @@ export const useAuthStore = create<AuthState>()(
       clearState: () => {
         set({ accessToken: null, user: null, loading: false });
         // useProductStore.getState().reset();
-        localStorage.clear();
-        sessionStorage.clear();
+        localStorage.removeItem("authStorage");
+        sessionStorage.removeItem("authStorage");
       },
 
       signUp: async (firstName, lastName, username, email, password) => {
@@ -101,9 +101,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ loading: true });
           const { user, getDetail, setAccessToken } = get();
-          const accessToken = await authService.refresh();
+          const res = await authService.refresh();
 
-          setAccessToken(accessToken);
+          get().setAccessToken(res.accessToken);
 
           if (!user) {
             await getDetail();
