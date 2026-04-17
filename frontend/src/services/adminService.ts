@@ -1,9 +1,9 @@
 import api from "@/lib/adminAxios";
 
 export const adminService = {
-  login: async (username: string, password: string) => {
+  login: async (phone: string, password: string) => {
     const res = await api.post("/admin/auth/login", {
-      username: username,
+      phone: phone,
       password: password,
     });
 

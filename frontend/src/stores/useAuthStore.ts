@@ -27,14 +27,14 @@ export const useAuthStore = create<AuthState>()(
         sessionStorage.removeItem("authStorage");
       },
 
-      signUp: async (firstName, lastName, username, email, password) => {
+      signUp: async (firstName, lastName, phone, email, password) => {
         try {
           set({ loading: true });
 
           const res = await authService.signUp(
             firstName,
             lastName,
-            username,
+            phone,
             email,
             password,
           );
@@ -52,12 +52,12 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signIn: async (username, password) => {
+      signIn: async (phone, password) => {
         try {
           get().clearState();
           set({ loading: true });
 
-          const res = await authService.signIn(username, password);
+          const res = await authService.signIn(phone, password);
           get().setAccessToken(res.accessToken);
           await get().getDetail();
 
@@ -103,7 +103,7 @@ export const useAuthStore = create<AuthState>()(
           const { user, getDetail, setAccessToken } = get();
           const res = await authService.refresh();
 
-          get().setAccessToken(res.accessToken);
+          setAccessToken(res.accessToken);
 
           if (!user) {
             await getDetail();
@@ -121,7 +121,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ forgotPasswordLoading: true });
           const res = await authService.forgotPassword(email);
-
           return res;
         } catch (error) {
           console.log(error);
@@ -135,7 +134,6 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ loading: true });
           const res = await authService.verifyOtp(email, otp);
-
           return res;
         } catch (error) {
           console.log(error);
@@ -153,7 +151,6 @@ export const useAuthStore = create<AuthState>()(
             newPassword,
             confirmPassword,
           );
-
           return res;
         } catch (error) {
           console.log(error);

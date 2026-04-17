@@ -2,12 +2,11 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    username: {
+    phone: {
       type: String,
       required: true,
       unique: true,
       trim: true,
-      lowercase: true,
     },
     hashedPassword: {
       type: String,
@@ -22,7 +21,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin", "staff"],
       default: "user",
     },
     status: {
@@ -37,10 +36,6 @@ const userSchema = new mongoose.Schema(
     },
     avatarUrl: {
       type: String,
-    },
-    phone: {
-      type: String,
-      sparse: true,
     },
   },
   { timestamps: true },

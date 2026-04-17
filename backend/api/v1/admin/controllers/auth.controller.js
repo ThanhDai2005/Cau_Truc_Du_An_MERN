@@ -6,25 +6,32 @@ import crypto from "crypto";
 
 const ACCESS_TOKEN_TIME = "30m";
 const REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000;
+const PHONE_REGEX = /^(03|05|07|08|09)\d{8}$/;
 
 // [POST] /api/v1/admin/auth/login
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { phone, password } = req.body;
 
-    if (!username || !password) {
+    if (!phone || !password) {
       return res.status(400).json({
-        message: "Không thể thiếu username hoặc password",
+        message: "Không thể thiếu số điện thoại hoặc password",
+      });
+    }
+
+    if (!PHONE_REGEX.test(phone)) {
+      return res.status(400).json({
+        message: "Số điện thoại không hợp lệ",
       });
     }
 
     const user = await User.findOne({
-      username: username,
+      phone: phone,
     });
 
     if (!user) {
       return res.status(401).json({
-        message: "username hoặc password không chính xác",
+        message: "Số điện thoại hoặc password không chính xác",
       });
     }
 
@@ -32,19 +39,7 @@ export const login = async (req, res) => {
 
     if (!correctPassword) {
       return res.status(401).json({
-        message: "username hoặc password không chính xác",
-      });
-    }
-
-    if (user.role != "admin") {
-      return res.status(403).json({
-        message: "bạn không có quyền truy cập",
-      });
-    }
-
-    if (user.status != "active") {
-      return res.status(403).json({
-        message: "tài khoản bạn đã bị khóa",
+        message: "Số điện thoại hoặc password không chính xác",
       });
     }
 

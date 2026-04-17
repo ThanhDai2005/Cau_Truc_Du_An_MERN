@@ -1,17 +1,17 @@
 import { LoginForm } from "@/components/auth/login-form";
-import { useAuthStore } from "@/stores/useAuthStore";
+import { useAdminStore } from "@/stores/useAdminStore";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
 const AdminLoginPage = () => {
-  const { accessToken, user } = useAuthStore();
+  const { user } = useAdminStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (accessToken && user?.role == "admin") {
+    if (user?.role == "admin" || user?.role == "staff") {
       navigate("/admin/dashboard", { replace: true });
     }
-  }, [accessToken, user, navigate]);
+  }, [user, navigate]);
 
   return (
     <>

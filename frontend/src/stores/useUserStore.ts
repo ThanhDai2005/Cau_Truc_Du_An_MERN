@@ -25,22 +25,16 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
   },
 
-  updateInfo: async (displayName, username, email, phone) => {
+  updateInfo: async (displayName, email, phone) => {
     try {
       const { user, setUser } = useAuthStore.getState();
 
-      const res = await userService.updateInfo(
-        displayName,
-        username,
-        email,
-        phone || "",
-      );
+      const res = await userService.updateInfo(displayName, email, phone);
 
       if (user) {
         setUser({
           ...user,
           displayName: res.user.displayName,
-          username: res.user.username,
           email: res.user.email,
           phone: res.user.phone,
         });

@@ -37,7 +37,7 @@ export const requireAuth = async (req, res, next) => {
       });
     }
 
-    if (user.role != "admin") {
+    if (user.role != "admin" && user.role != "staff") {
       return res.status(403).json({
         message: "Bạn không có quyền truy cập",
       });

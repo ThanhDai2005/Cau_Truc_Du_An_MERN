@@ -9,24 +9,30 @@ import crypto from "crypto";
 
 const ACCESS_TOKEN_TIME = "30m";
 const REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000; // 14 ngày
+const PHONE_REGEX = /^(03|05|07|08|09)\d{8}$/;
 
 // [POST] /api/v1/auth/signup
 export const signUp = async (req, res) => {
   try {
-    const { username, password, email, firstName, lastName } = req.body;
+    const { phone, password, email, firstName, lastName } = req.body;
 
-    if (!username || !password || !email || !firstName || !lastName) {
+    if (!phone || !password || !email || !firstName || !lastName) {
       return res.status(400).json({
         message:
-          "Không thể thiếu username, password, email, firstName và lastName",
+          "Không thể thiếu phone, password, email, firstName và lastName",
       });
     }
 
-    const existUserName = await User.findOne({ username: username });
-
-    if (existUserName) {
+    if (!PHONE_REGEX.test(phone)) {
       return res.status(400).json({
-        message: "username đã tồn tại",
+        message: "Số điện thoại không hợp lệ",
+      });
+    }
+
+    const existPhone = await User.findOne({ phone: phone });
+    if (existPhone) {
+      return res.status(400).json({
+        message: "Số điện thoại đã tồn tại",
       });
     }
 
@@ -43,7 +49,7 @@ export const signUp = async (req, res) => {
 
     const user = new User({
       displayName: `${firstName} ${lastName}`,
-      username: username,
+      phone: phone,
       email: email,
       hashedPassword: hashedPassword,
     });
@@ -64,19 +70,25 @@ export const signUp = async (req, res) => {
 // [POST] /api/v1/auth/signin
 export const signIn = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { phone, password } = req.body;
 
-    if (!username || !password) {
+    if (!phone || !password) {
       return res.status(400).json({
-        message: "Thiếu username hoặc password",
+        message: "Thiếu số điện thoại hoặc password",
       });
     }
 
-    const user = await User.findOne({ username: username });
+    if (!PHONE_REGEX.test(phone)) {
+      return res.status(400).json({
+        message: "Số điện thoại không hợp lệ",
+      });
+    }
+
+    const user = await User.findOne({ phone: phone });
 
     if (!user) {
       return res.status(401).json({
-        message: "username hoặc password không chính xác",
+        message: "Số điện thoại hoặc password không chính xác",
       });
     }
 
@@ -84,7 +96,7 @@ export const signIn = async (req, res) => {
 
     if (!passwordCorrect) {
       return res.status(401).json({
-        message: "username hoặc password không chính xác",
+        message: "Số điện thoại hoặc password không chính xác",
       });
     }
 

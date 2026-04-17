@@ -10,24 +10,15 @@ const productSchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
-    basePrice: { type: Number, required: true },
-    discountPrice: { type: Number, default: null },
-    images: [
-      {
-        url: { type: String, required: true },
-        public_id: { type: String, required: true },
-      },
-    ],
+    price: { type: Number, required: true },
+    discount: { type: Number },
+    images: [],
     stock: { type: Number, required: true, min: 0, default: 0 },
-    attributes: [
-      {
-        name: { type: String },
-        value: { type: String },
-      },
-    ],
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     numReviews: { type: Number, default: 0 },
-    isActive: { type: Boolean, default: true },
+    status: { type: String, enum: ["active", "inactive"], default: "active" },
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

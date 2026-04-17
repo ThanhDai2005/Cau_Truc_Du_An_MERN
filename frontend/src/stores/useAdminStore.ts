@@ -21,18 +21,18 @@ export const useAdminStore = create<AdminState>()(
         sessionStorage.removeItem("adminStorage");
       },
 
-      login: async (username, password) => {
+      login: async (phone, password) => {
         try {
           set({ loading: true });
 
-          const res = await adminService.login(username, password);
+          const res = await adminService.login(phone, password);
           get().setAccessToken(res.accessToken);
           await get().getDetail();
           toast.success("Đăng nhập thành công");
           return res;
         } catch (error) {
           console.log(error);
-          toast.error(error?.response?.data?.message);
+          toast.error(error?.response?.data?.message || "Đăng nhập thất bại");
         } finally {
           set({ loading: false });
         }

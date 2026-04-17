@@ -10,7 +10,9 @@ import { useAdminStore } from "@/stores/useAdminStore";
 import { useNavigate } from "react-router";
 
 const loginSchema = z.object({
-  username: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
+  phone: z
+    .string()
+    .regex(/^(03|05|07|08|09)\d{8}$/, "Số điện thoại không hợp lệ"),
   password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
 
@@ -32,10 +34,9 @@ export function LoginForm({
   const navigate = useNavigate();
 
   const onSubmit = async (data: loginForm) => {
-    const { username, password } = data;
+    const { phone, password } = data;
 
-    const res = await login(username, password);
-
+    const res = await login(phone, password);
     if (res?.accessToken) {
       navigate("/admin/dashboard");
     }
@@ -61,21 +62,18 @@ export function LoginForm({
                 </p>
               </div>
               <div className="flex flex-col gap-3">
-                <Label
-                  className="block text-sm font-semibold"
-                  htmlFor="username"
-                >
-                  Tên đăng nhập
+                <Label className="block text-sm font-semibold" htmlFor="phone">
+                  Số điện thoại
                 </Label>
                 <Input
-                  type="text"
-                  id="username"
-                  placeholder="pingme"
-                  {...register("username")}
+                  type="tel"
+                  id="phone"
+                  placeholder="0909123456"
+                  {...register("phone")}
                 />
-                {errors.username && (
+                {errors.phone && (
                   <p className="text-sm text-[#EF4444]">
-                    {errors.username.message}
+                    {errors.phone.message}
                   </p>
                 )}
               </div>

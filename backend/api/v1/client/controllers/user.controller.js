@@ -47,23 +47,23 @@ export const uploadAvatar = async (req, res) => {
 // [PATCH] /api/v1/user/profile
 export const updateInfo = async (req, res) => {
   try {
-    const { displayName, username, email, phone } = req.body;
+    const { displayName, email, phone } = req.body;
     const userId = req.user._id;
 
-    if (!displayName || !username || !email) {
+    if (!displayName || !email || !phone) {
       return res.status(400).json({
-        message: "Không thể thiếu displayName, username và email",
+        message: "Không thể thiếu displayName, email và phone",
       });
     }
 
-    const existUser = await User.findOne({
+    const existPhone = await User.findOne({
       _id: { $ne: userId },
-      username: username,
+      phone: phone,
     });
 
-    if (existUser) {
+    if (existPhone) {
       return res.status(400).json({
-        message: "Username đã tồn tại",
+        message: "Số điện thoại đã tồn tại",
       });
     }
 
@@ -71,9 +71,8 @@ export const updateInfo = async (req, res) => {
       { _id: userId },
       {
         displayName: displayName,
-        username: username,
         email: email,
-        phone: phone || "",
+        phone: phone,
       },
       { new: true },
     ).select("-hashedPassword");

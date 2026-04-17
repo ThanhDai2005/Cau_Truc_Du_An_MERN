@@ -4,7 +4,7 @@ export const authService = {
   signUp: async (
     firstName: string,
     lastName: string,
-    username: string,
+    phone: string,
     email: string,
     password: string,
   ) => {
@@ -13,7 +13,7 @@ export const authService = {
       {
         firstName,
         lastName,
-        username,
+        phone,
         email,
         password,
       },
@@ -23,11 +23,11 @@ export const authService = {
     return res.data;
   },
 
-  signIn: async (username: string, password: string) => {
+  signIn: async (phone: string, password: string) => {
     const res = await api.post(
       "/auth/signin",
       {
-        username,
+        phone,
         password,
       },
       { withCredentials: true },

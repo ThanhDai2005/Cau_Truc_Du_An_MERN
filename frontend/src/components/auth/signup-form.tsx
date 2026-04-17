@@ -12,7 +12,9 @@ import { useNavigate } from "react-router";
 const signUpSchema = z.object({
   firstName: z.string().min(1, "Tên bắt buộc phải có"),
   lastName: z.string().min(1, "Họ bắt buộc phải có"),
-  username: z.string().min(3, "Tên đăng nhập phải có ít nhất 3 ký tự"),
+  phone: z
+    .string()
+    .regex(/^(03|05|07|08|09)\d{8}$/, "Số điện thoại không hợp lệ"),
   email: z.string().email("Email không hợp lệ"),
   password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
@@ -35,9 +37,9 @@ export function SignupForm({
   });
 
   const onSubmit = async (data: signUpForm) => {
-    const { firstName, lastName, username, email, password } = data;
+    const { firstName, lastName, phone, email, password } = data;
 
-    const res = await signUp(firstName, lastName, username, email, password);
+    const res = await signUp(firstName, lastName, phone, email, password);
 
     if (res?.message) {
       navigate("/signin");
@@ -88,18 +90,18 @@ export function SignupForm({
                 </div>
               </div>
               <div className="flex flex-col gap-3">
-                <Label className="block text-sm" htmlFor="username">
-                  Tên đăng nhập
+                <Label className="block text-sm" htmlFor="phone">
+                  Số điện thoại
                 </Label>
                 <Input
-                  type="text"
-                  id="username"
-                  placeholder="CAU_TRUC_DU_AN_MERN"
-                  {...register("username")}
+                  type="tel"
+                  id="phone"
+                  placeholder="0909123456"
+                  {...register("phone")}
                 />
-                {errors.username && (
+                {errors.phone && (
                   <p className="text-sm text-[#EF4444]">
-                    {errors.username.message}
+                    {errors.phone.message}
                   </p>
                 )}
               </div>

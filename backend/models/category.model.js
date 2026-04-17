@@ -22,10 +22,13 @@ const categorySchema = new mongoose.Schema(
       ref: "Category",
       default: null,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
     },
+    deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

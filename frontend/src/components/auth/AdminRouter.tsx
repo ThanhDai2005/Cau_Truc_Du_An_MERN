@@ -43,7 +43,7 @@ const AdminRouter = () => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (user?.role != "admin") {
+  if (user?.role != "admin" && user?.role != "staff") {
     return <Navigate to="/admin/login" />;
   }
 
