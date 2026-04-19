@@ -6,6 +6,9 @@ export const list = async (req, res) => {
   try {
     const keyword = req.query.keyword;
     const categorySlug = req.query.categorySlug;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     const filter = {
       status: "active",
       deleted: false,
@@ -31,13 +34,20 @@ export const list = async (req, res) => {
       filter.name = { $regex: keyword, $options: "i" };
     }
 
-    const data = await Product.find(filter)
-      .populate("category", "name slug")
-      .sort({ createdAt: -1 });
+    const [data, totalItems] = await Promise.all([
+      Product.find(filter)
+        .populate("category", "name slug")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Product.countDocuments(filter),
+    ]);
 
     res.status(200).json({
       message: "Lấy danh sách product thành công",
       data: data,
+      totalItems: totalItems,
+      totalPages: Math.ceil(totalItems / limit),
     });
   } catch (error) {
     console.log("Lỗi khi gọi list product", error);

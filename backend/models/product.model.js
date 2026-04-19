@@ -5,14 +5,14 @@ const productSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, lowercase: true },
     description: { type: String, required: true },
-    category: {
+    ingredients: { type: String, required: true },
+    categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
     },
     price: { type: Number, required: true },
-    discount: { type: Number },
-    images: [],
+    images: [String],
     stock: { type: Number, required: true, min: 0, default: 0 },
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     numReviews: { type: Number, default: 0 },
@@ -23,7 +23,7 @@ const productSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-productSchema.index({ name: "text", description: "text" });
+productSchema.index({ deleted: 1, categoryId: 1, status: 1, createdAt: -1 });
 
 const Product = mongoose.model("Product", productSchema, "products");
 

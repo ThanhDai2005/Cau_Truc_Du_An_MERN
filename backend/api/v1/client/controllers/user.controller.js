@@ -47,7 +47,7 @@ export const uploadAvatar = async (req, res) => {
 // [PATCH] /api/v1/user/profile
 export const updateInfo = async (req, res) => {
   try {
-    const { displayName, email, phone } = req.body;
+    const { displayName, email, phone, address } = req.body;
     const userId = req.user._id;
 
     if (!displayName || !email || !phone) {
@@ -73,6 +73,7 @@ export const updateInfo = async (req, res) => {
         displayName: displayName,
         email: email,
         phone: phone,
+        address: address,
       },
       { new: true },
     ).select("-hashedPassword");

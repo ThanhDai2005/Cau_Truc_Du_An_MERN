@@ -2,13 +2,9 @@ import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema(
   {
-    product: {
+    productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
-      required: true,
-    },
-    name: {
-      type: String,
       required: true,
     },
     quantity: {
@@ -17,24 +13,22 @@ const orderItemSchema = new mongoose.Schema(
       min: 1,
     },
     price: { type: Number, required: true },
-    discount: { type: Number },
   },
   { _id: false },
 );
 
 const orderSchema = new mongoose.Schema(
   {
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     items: [orderItemSchema],
     shippingAddress: {
-      fullName: { type: String, required: true },
+      recipient: { type: String, required: true },
       phone: { type: String, required: true },
       address: { type: String, required: true },
-      city: { type: String, required: true },
     },
     paymentMethod: {
       type: String,
@@ -56,6 +50,8 @@ const orderSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+orderSchema.index({ userId: 1, orderStatus: 1, createdAt: -1 });
 
 const Order = mongoose.model("Order", orderSchema, "orders");
 

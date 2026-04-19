@@ -33,7 +33,8 @@ The following are STRICTLY LOCKED:
 
 - API structure (`/api/v1/...`)
 - Separation: `client` vs `admin`
-- Controller → Service → Model pattern
+- **Pattern (LOCKED):** `routes` → `controllers` → `models`  
+  Express route modules (`**/routes/*.route.js`) map HTTP paths to controller handlers (`**/controllers/*.controller.js`); controllers use Mongoose models (`models/*.model.js`). **Do not** introduce a parallel layering (e.g. a new “service” layer) unless explicitly requested.
 - MongoDB schema design
 
 ---
@@ -93,7 +94,7 @@ All changes MUST:
 
 - Not break existing APIs
 - Not break existing UI
-- Not change response formats
+- Not change response formats: **no renaming fields, no reshaping JSON nesting or array/object contracts** unless explicitly requested and documented (see `docs/PRD_CAU_TRUC_DU_AN_MERN.md` — **section 13**, response shape lock). Optional **non-breaking** new fields remain allowed per section 4.
 
 ---
 

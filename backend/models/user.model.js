@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    displayName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     phone: {
       type: String,
       required: true,
@@ -19,6 +24,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    address: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    avatarUrl: {
+      type: String,
+    },
     role: {
       type: String,
       enum: ["user", "admin", "staff"],
@@ -28,14 +41,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["active", "inactive"],
       default: "active",
-    },
-    displayName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    avatarUrl: {
-      type: String,
     },
   },
   { timestamps: true },

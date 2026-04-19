@@ -5,13 +5,50 @@ import slugify from "slugify";
 // [GET] /api/v1/admin/product
 export const list = async (req, res) => {
   try {
-    const data = await Product.find({ deleted: false })
-      .populate("category", "name slug")
-      .sort({ createdAt: -1 });
+    const keyword = req.query.keyword;
+    const categorySlug = req.query.categorySlug;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const filter = {
+      status: "active",
+      deleted: false,
+    };
+
+    if (categorySlug) {
+      const category = await Category.findOne({
+        slug: categorySlug,
+        status: "active",
+        deleted: false,
+      });
+
+      if (!category) {
+        return res.status(404).json({
+          message: "Category không tồn tại",
+        });
+      }
+
+      filter.category = category._id;
+    }
+
+    if (keyword) {
+      filter.name = { $regex: keyword, $options: "i" };
+    }
+
+    const [data, totalItems] = await Promise.all([
+      Product.find(filter)
+        .populate("category", "name slug")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Product.countDocuments(filter),
+    ]);
 
     res.status(200).json({
       message: "Lấy danh sách product thành công",
       data: data,
+      totalItems: totalItems,
+      totalPages: Math.ceil(totalItems / limit),
     });
   } catch (error) {
     console.log("Lỗi khi gọi list product", error);
@@ -24,9 +61,18 @@ export const list = async (req, res) => {
 // [POST] /api/v1/admin/product
 export const create = async (req, res) => {
   try {
-    const { name, description, category, price, discount, images, stock, status } = req.body;
+    const {
+      name,
+      description,
+      category,
+      price,
+      discount,
+      images,
+      stock,
+      status,
+    } = req.body;
 
-    if (!name || !description || !category || !price ) {
+    if (!name || !description || !category || !price) {
       return res.status(400).json({
         message: "Thiếu dữ liệu bắt buộc",
       });
@@ -84,7 +130,16 @@ export const create = async (req, res) => {
 export const update = async (req, res) => {
   try {
     const productId = req.params.id;
-    const { name, description, category, price, discount, images, stock, status } = req.body;
+    const {
+      name,
+      description,
+      category,
+      price,
+      discount,
+      images,
+      stock,
+      status,
+    } = req.body;
 
     const existedProduct = await Product.findOne({
       _id: productId,
@@ -102,16 +157,15 @@ export const update = async (req, res) => {
       });
     }
 
-    if (category != undefined) {
-      const existedCategory = await Category.findOne({
-        _id: category,
-        deleted: false,
+    const existedCategory = await Category.findOne({
+      _id: category,
+      deleted: false,
+    });
+
+    if (!existedCategory) {
+      return res.status(404).json({
+        message: "Category không tồn tại",
       });
-      if (!existedCategory) {
-        return res.status(404).json({
-          message: "Category không tồn tại",
-        });
-      }
     }
 
     const updateData = {};
@@ -134,7 +188,8 @@ export const update = async (req, res) => {
     if (description != undefined) updateData.description = description;
     if (category != undefined) updateData.category = category;
     if (price != undefined) updateData.price = Number(price);
-    if (discount != undefined) updateData.discount = discount == null ? null : Number(discount);
+    if (discount != undefined)
+      updateData.discount = discount == null ? null : Number(discount);
     if (images != undefined) updateData.images = images;
     if (stock != undefined) updateData.stock = Number(stock);
     if (status != undefined) updateData.status = status;
