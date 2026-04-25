@@ -32,15 +32,23 @@ const userSchema = new mongoose.Schema(
     avatarUrl: {
       type: String,
     },
-    role: {
-      type: String,
-      enum: ["user", "admin", "staff"],
-      default: "user",
+    roleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
+      default: null,
     },
     status: {
       type: String,
       enum: ["active", "inactive"],
       default: "active",
+    },
+    deleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true },

@@ -4,7 +4,7 @@ import Order from "../../../../models/order.model.js";
 export const list = async (req, res) => {
   try {
     const data = await Order.find({})
-      .populate("user", "fullName email")
+      .populate("userId", "displayName email")
       .sort({ createdAt: -1 });
 
     res.status(200).json({

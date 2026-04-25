@@ -1,271 +1,375 @@
-# MASTER PRODUCT REQUIREMENTS DOCUMENT (PRD)
+# 🧾 PRODUCT REQUIREMENTS DOCUMENT (PRD)
+
+# 🍔 FOOD_ORDER_MERN — Nền tảng E-Commerce bán đồ ăn (Full Stack MERN)
 
 | Thuộc tính             | Giá trị                                                          |
 | ---------------------- | ---------------------------------------------------------------- |
 | **Tên sản phẩm**       | FOOD_ORDER_MERN — Nền tảng E-Commerce bán đồ ăn (Client + Admin) |
-| **Phiên bản tài liệu** | 3.1 (Dong bo schema voi `backend/models/*` — User, Session, ForgotPassword, Category, Product, Cart, Order, Review) |
+| **Phiên bản tài liệu** | 5.0 (RBAC System & Complete Architecture)                        |
 | **Giai đoạn**          | MVP → Production Ready                                           |
-| **Căn cứ**             | docs/PRD_CAU_HINH_AI.md, codebase hiện tại                       |
+| **Ngày cập nhật**      | 2026-04-25                                                       |
+| **Căn cứ**             | `docs/PRD_CAU_HINH_AI.md`, `docs/PRD_BACKEND.md`, `docs/PRD_FRONTEND.md` |
 
-> **Lưu ý:** Tài liệu dùng tiếng Việt không dấu (đối với một số thuật ngữ) để tránh lỗi encoding khi AI đọc/parse dữ liệu.
+> **Lưu ý:** Đây là tài liệu gốc quy định luồng nghiệp vụ và kiến trúc tổng thể. Chi tiết kỹ thuật API và DB Schema nằm ở bản Backend PRD.
 
 ## Mục lục
 
-1. [Nền tảng & Kiến trúc kỹ thuật](#1-nền-tảng--kiến-trúc-kỹ-thuật)
-2. [Vai trò người dùng (Personas & Roles)](#2-vai-trò-người-dùng-personas--roles)
-3. [Database Design (Schema & Indexing)](#3-database-design-schema--indexing)
-4. [Scope & Phân quyền API](#4-scope--phân-quyền-api)
-5. [Quy tắc nghiệp vụ cốt lõi (Core Business Rules)](#5-quy-tắc-nghiệp-vụ-cốt-lõi-core-business-rules)
-6. [Bảo mật & Hiệu năng (NFR)](#6-bảo-mật--hiệu-năng-nfr)
-7. [API Contract: Response & HTTP Status](#7-api-contract-response--http-status)
+1. [Tổng quan hệ thống](#1-tong-quan-he-thong)
+2. [Vai trò người dùng (Personas)](#2-vai-tro-nguoi-dung-personas)
+3. [Hệ thống phân quyền (RBAC)](#3-he-thong-phan-quyen-rbac)
+4. [Luồng người dùng chính (User Flows)](#4-luong-nguoi-dung-chinh-user-flows)
+5. [Phạm vi tính năng (Scope)](#5-pham-vi-tinh-nang-scope)
+6. [Quy tắc nghiệp vụ cốt lõi (Core Business Rules)](#6-quy-tac-nghiep-vu-cot-loi)
+7. [Kiến trúc hệ thống](#7-kien-truc-he-thong)
 
 ---
 
-## 1. Nền tảng & Kiến trúc kỹ thuật
+## 1. Tổng quan hệ thống
 
-Hệ thống tuân thủ nghiêm ngặt mô hình RESTful API và kiến trúc MERN phân lớp:
+Xây dựng nền tảng đặt đồ ăn trực tuyến (MERN Stack) chia làm 2 phân hệ rõ rệt:
 
-| Lớp            | Công nghệ cốt lõi                                                                         |
-| -------------- | ----------------------------------------------------------------------------------------- |
-| **Frontend**   | React 19, TypeScript, Vite 7, React Router 7, Zustand, Tailwind CSS 4, shadcn/ui, Axios   |
-| **Backend**    | Node.js, Express 5, MongoDB (Mongoose), JWT + refresh cookie httpOnly, Multer, Cloudinary |
-| **Deployment** | Frontend: Vercel/Netlify; Backend: VPS/AWS; DB: MongoDB Atlas                             |
+- **Client App:** Nơi khách hàng xem menu, lọc sản phẩm, thêm vào giỏ hàng, đặt đơn và theo dõi lịch sử.
+- **Admin Dashboard:** Nơi nhân viên/quản trị viên quản lý danh mục, hàng hóa, duyệt đơn hàng, phân quyền và thống kê doanh thu.
 
-### Pattern Code Bắt Buộc (LOCK)
-
-**routes → controllers → models**
-
-- Express route modules map HTTP paths đến controller handlers.
-- Controllers gọi trực tiếp Mongoose models.
-- **CẤM** tự ý đẻ thêm các abstraction layer (như Service layer) nếu không có lệnh.
+**Công nghệ sử dụng:**
+- Frontend: React.js + React Router + Axios
+- Backend: Node.js + Express.js + MongoDB (Mongoose)
+- Authentication: JWT (Access Token + Refresh Token)
+- File Upload: Cloudinary
+- Authorization: Role-Based Access Control (RBAC)
 
 ---
 
-## 2. Vai trò người dùng (Personas & Roles)
+## 2. Vai trò người dùng (Personas)
 
-Hệ thống có cấu trúc Multi-role rõ ràng:
-
-| Persona (Role)        | Mô tả & Quyền hạn                                                                      |
-| --------------------- | -------------------------------------------------------------------------------------- |
-| **Khách vãng lai**    | Xem menu, lọc/tìm kiếm sản phẩm. Chưa đăng nhập.                                       |
-| **User (Khách hàng)** | Có tài khoản. Thêm giỏ hàng, đặt món, thanh toán, theo dõi đơn hàng my-order.          |
-| **Staff (Nhân viên)** | Có quyền truy cập Admin Dashboard (bị giới hạn). Xử lý đơn hàng, cập nhật orderStatus. |
-| **Admin (Quản trị)**  | Toàn quyền. CRUD sản phẩm/danh mục/user, thống kê doanh thu, quản lý hệ thống.         |
+| Vai trò               | Phân quyền & Mô tả                                                                                       |
+| :-------------------- | :------------------------------------------------------------------------------------------------------- |
+| **Guest (Khách)**     | Truy cập tự do để xem Menu, tìm kiếm món ăn. Yêu cầu đăng nhập khi bắt đầu đặt hàng.                     |
+| **User (Khách hàng)** | Có tài khoản. Sở hữu 1 Giỏ hàng duy nhất (Cart). Tạo đơn hàng, theo dõi vòng đời đơn, đánh giá (Review). |
+| **Staff (Nhân viên)** | Có roleId được gán quyền cụ thể. Quản lý đơn hàng, sản phẩm theo permissions được cấp.                   |
+| **Admin (Quản trị)**  | Có roleId với toàn quyền. Quản lý tài khoản, phân quyền, xem thống kê doanh thu toàn sàn.                |
 
 ---
 
-## 3. Database Design (Schema & Indexing)
+## 3. Hệ thống phân quyền (RBAC)
 
-Thiết kế DB ưu tiên tốc độ truy vấn (Indexing) và an toàn dữ liệu (Soft delete).
+### 3.1. Cấu trúc phân quyền
 
-### 3.1 Auth & User Data
+Hệ thống sử dụng **Role-Based Access Control (RBAC)** với cấu trúc:
+- **User** có `roleId` (ObjectId) tham chiếu đến **Role**
+- **Role** chứa mảng `permissions` (array of strings)
+- Mỗi route admin được bảo vệ bởi middleware `requirePermission(permission)`
 
-**Collection `users`** (model `User`)
+### 3.2. Danh sách permissions
 
-| Field                    | Kiểu / Ghi chú                                     |
-| ------------------------ | -------------------------------------------------- |
-| `displayName`            | String, required, trim                             |
-| `phone`                  | String, required, **unique**, trim                 |
-| `hashedPassword`         | String, required                                   |
-| `email`                  | String, required, **unique**, trim, lowercase      |
-| `address`                | String, trim, default `""`                         |
-| `avatarUrl`              | String (optional)                                  |
-| `role`                   | Enum: `user` \| `admin` \| `staff`, default `user` |
-| `status`                 | Enum: `active` \| `inactive`, default `active`     |
-| `createdAt`, `updatedAt` | timestamps                                         |
+**Quản lý sản phẩm:**
+- `products_view` - Xem danh sách sản phẩm
+- `products_create` - Thêm sản phẩm mới
+- `products_edit` - Chỉnh sửa sản phẩm
+- `products_delete` - Xóa sản phẩm
 
-**Collection `sessions`** (model `Session`)
+**Quản lý danh mục:**
+- `categories_view` - Xem danh sách danh mục
+- `categories_create` - Thêm danh mục mới
+- `categories_edit` - Chỉnh sửa danh mục
+- `categories_delete` - Xóa danh mục
 
-| Field          | Kiểu / Ghi chú                                      |
-| -------------- | --------------------------------------------------- |
-| `userId`       | ObjectId ref `User`, required, indexed              |
-| `refreshToken` | String, **unique**, required                        |
-| `expireAt`     | Date, required                                      |
-| **TTL**        | Index `{ expireAt: 1 }` với `expireAfterSeconds: 0` |
+**Quản lý vai trò:**
+- `roles_view` - Xem danh sách vai trò
+- `roles_create` - Tạo vai trò mới
+- `roles_edit` - Chỉnh sửa vai trò
+- `roles_delete` - Xóa vai trò
+- `roles_permissions` - Phân quyền cho vai trò
 
-**Collection `forgot-password`** (model `ForgotPassword`)
+**Quản lý tài khoản:**
+- `accounts_view` - Xem danh sách tài khoản
+- `accounts_create` - Tạo tài khoản mới
+- `accounts_edit` - Chỉnh sửa tài khoản
+- `accounts_delete` - Xóa tài khoản
 
-| Field                    | Kiểu / Ghi chú                                      |
-| ------------------------ | --------------------------------------------------- |
-| `email`                  | String, required, **unique**, trim, lowercase       |
-| `otp`                    | String, required, **unique**                        |
-| `expireAt`               | Date, required                                      |
-| **TTL**                  | Index `{ expireAt: 1 }` với `expireAfterSeconds: 0` |
-| `createdAt`, `updatedAt` | timestamps                                          |
+**Quản lý đơn hàng:**
+- `orders_view` - Xem danh sách đơn hàng
+- `orders_edit` - Cập nhật trạng thái đơn hàng
 
-### 3.2 Product & Category (Metadata)
+**Quản lý khuyến mãi:**
+- `promotions_view` - Xem danh sách khuyến mãi
+- `promotions_create` - Tạo mã khuyến mãi
+- `promotions_edit` - Chỉnh sửa khuyến mãi
+- `promotions_delete` - Xóa khuyến mãi
 
-**Collection `categories`** (model `Category`)
+### 3.3. Luồng kiểm tra quyền
 
-| Field                    | Kiểu / Ghi chú                                 |
-| ------------------------ | ---------------------------------------------- |
-| `name`                   | String, required, trim, **unique**             |
-| `slug`                   | String, required, **unique**, lowercase        |
-| `description`            | String (optional)                              |
-| `parentCategory`         | ObjectId ref `Category`, default `null`        |
-| `status`                 | Enum: `active` \| `inactive`, default `active` |
-| `deleted`                | Boolean, default `false`                       |
-| `deletedAt`              | Date, default `null`                           |
-| `createdAt`, `updatedAt` | timestamps                                     |
-
-**Index trong code:** (khong) — co the bo sung sau theo query (goi y: `{ slug: 1 }`, `{ status: 1, deleted: 1 }`).
-
-**Collection `products`** (model `Product`)
-
-| Field                    | Kiểu / Ghi chú                                 |
-| ------------------------ | ---------------------------------------------- |
-| `name`                   | String, required, trim                         |
-| `slug`                   | String, required, **unique**, lowercase        |
-| `description`            | String, required                               |
-| `ingredients`            | String, required (thanh phan / nguyen lieu)   |
-| `categoryId`             | ObjectId ref `Category`, required              |
-| `price`                  | Number, required                               |
-| `images`                 | `[String]`                                     |
-| `stock`                  | Number, required, min `0`, default `0`         |
-| `averageRating`          | Number, default `0`, min `0`, max `5`          |
-| `numReviews`             | Number, default `0`                            |
-| `status`                 | Enum: `active` \| `inactive`, default `active` |
-| `deleted`                | Boolean, default `false`                       |
-| `deletedAt`              | Date, default `null`                           |
-| `createdAt`, `updatedAt` | timestamps                                     |
-
-**Compound index (trong code):** `{ deleted: 1, categoryId: 1, status: 1, createdAt: -1 }`
-
-**Ghi chú tim kiem:** Text index **chua** khai bao trong model; `keyword` (neu co) dung regex/`$text` sau khi bo sung index — khong ghi nhan la da co trong schema hien tai.
-
-### 3.3 Giỏ hàng (Cart)
-
-**Collection `carts`** (model `Cart`)
-
-| Field                    | Kiểu / Ghi chú                                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `userId`                 | ObjectId ref `User`, **required** (nghiep vu: mot user mot gio — cap nhat `findOneAndUpdate` theo `userId`) |
-| `items`                  | Mảng subdocument: `productId` (ObjectId ref `Product`, required), `quantity` (Number, min 1), `price` (Number, **snapshot** don gia tai thoi diem them gio) |
-| `createdAt`, `updatedAt` | timestamps                                                                                                  |
-
-### 3.4 Transaction (Orders)
-
-**Collection `orders`** (model `Order`)
-
-| Field                    | Kiểu / Ghi chú                                                                                |
-| ------------------------ | --------------------------------------------------------------------------------------------- |
-| `userId`                 | ObjectId ref `User`, required                                                                 |
-| `items`                  | Mảng (không `_id` con): `productId`, `quantity`, `price` — **snapshot** don hang               |
-| `shippingAddress`        | Subdocument: `recipient`, `phone`, `address` (tat ca required)                                  |
-| `paymentMethod`          | Enum: `COD` \| `VNPAY` \| `MOMO` \| `STRIPE`, default `COD`                                   |
-| `paymentStatus`          | Enum: `Pending` \| `Paid` \| `Failed` \| `Refunded`, default `Pending`                        |
-| `orderStatus`            | Enum: `Pending` \| `Processing` \| `Shipped` \| `Delivered` \| `Cancelled`, default `Pending` |
-| `shippingFee`            | Number, default `0`                                                                           |
-| `totalAmount`            | Number, required                                                                              |
-| `createdAt`, `updatedAt` | timestamps                                                                                    |
-
-**Dinh danh don:** dung `_id` MongoDB (khong co field `code` trong model hien tai).
-
-**Index (trong `order.model.js`):** `{ userId: 1, orderStatus: 1, createdAt: -1 }` (GET `/order/my` + dashboard).
-
-### 3.5 Đánh giá sản phẩm (Review)
-
-**Collection `reviews`** (model `Review`)
-
-| Field                    | Kiểu / Ghi chú                                      |
-| ------------------------ | --------------------------------------------------- |
-| `productId`              | ObjectId ref `Product`, required                    |
-| `userId`                 | ObjectId ref `User`, required                       |
-| `rating`                 | Number, required, min `1`, max `5`                  |
-| `comment`                | String, required                                    |
-| `createdAt`, `updatedAt` | timestamps                                          |
-
-**Ghi chú nghiệp vụ:** Khi tạo/sửa/xóa review, backend can dong bo `Product.averageRating` + `Product.numReviews` (aggregate hoac cap nhat tang/giam) — logic nam o controller, khong nam trong schema.
+1. User đăng nhập → Nhận JWT token chứa `userId`
+2. Request đến admin route → Middleware `requireAuth` verify token
+3. Middleware `requireAuth` populate `roleId` từ User
+4. Middleware `requirePermission(permission)` kiểm tra `role.permissions` có chứa permission không
+5. Nếu có → Cho phép truy cập, nếu không → Trả về 403 Forbidden
 
 ---
 
-## 4. Scope & Phân quyền API
+## 4. Luồng người dùng chính (User Flows)
 
-Namespace quy chuẩn: Client là `/api/v1/...` | Admin/Staff là `/api/v1/admin/...`
+### 4.1. Flow mua hàng cốt lõi (Happy Path)
 
-### 4.1 Client API (Public & RequireAuth)
+1. Khách hàng lướt xem danh sách món ăn (có hỗ trợ phân trang tự động để không lag).
+2. Lọc món ăn theo `Danh mục` hoặc tìm kiếm theo `Tên món`.
+3. Thêm món vào Giỏ hàng (Hệ thống tự động kiểm tra xem kho còn hàng không).
+4. Vào trang Thanh toán → Xác nhận thông tin giao hàng.
+5. Tạo đơn (Hệ thống **chụp lại giá** hiện tại của món ăn và **trừ kho**).
+6. Nhân viên nhận đơn trên Admin → Đổi trạng thái sang "Đang xử lý" → "Đang giao".
 
-| Nhóm     | Method    | Endpoint                                         | Note / Yêu cầu Auth                 |
-| -------- | --------- | ------------------------------------------------ | ----------------------------------- |
-| Auth     | POST      | `/auth/register`, `/auth/login`, `/auth/refresh` | Quản lý Cookie `clientRefreshToken` |
-| Category | GET       | `/category`, `/category/:slug`                   | Chỉ lấy active + `deleted` = false  |
-| Product  | GET       | `/product`, `/product/:slug`                     | Có Pagination/Sort (xem mục 5.1)    |
-| Review   | GET/POST  | `/product/:slug/reviews` (hoặc tương đương)      | GET public; POST `requireAuth` — contract tách biet khi implement |
-| Order    | POST, GET | `/order`, `/order/my`                            | Bắt buộc User đã đăng nhập          |
+### 4.2. Flow quản lý sản phẩm (Admin)
 
-### 4.2 Admin API (RequireAdmin / RequireStaff)
+1. Admin/Staff đăng nhập vào Admin Dashboard
+2. Hệ thống kiểm tra `roleId` và `permissions`
+3. Nếu có quyền `products_view` → Hiển thị danh sách sản phẩm (có phân trang, tìm kiếm)
+4. Nếu có quyền `products_create` → Cho phép thêm sản phẩm mới (upload ảnh lên Cloudinary)
+5. Nếu có quyền `products_edit` → Cho phép chỉnh sửa thông tin sản phẩm
+6. Nếu có quyền `products_delete` → Cho phép xóa mềm sản phẩm
 
-| Nhóm     | Method     | Endpoint                                   | Note / Yêu cầu Auth                |
-| -------- | ---------- | ------------------------------------------ | ---------------------------------- |
-| Auth     | POST       | `/admin/auth/login`, `/admin/auth/refresh` | Quản lý Cookie `adminRefreshToken` |
-| Category | CRUD       | `/admin/category/...`                      | Soft delete support                |
-| Product  | CRUD       | `/admin/product/...`                       | Có Pagination y hệt Client         |
-| Order    | GET, PATCH | `/admin/order`, `/admin/order/:id`         | Update `orderStatus`               |
+### 4.3. Flow phân quyền (Admin)
 
----
-
-## 5. Quy tắc nghiệp vụ cốt lõi (Core Business Rules)
-
-Đây là các quy tắc VÀNG, AI hoặc Dev không được phép phá vỡ hay code sai logic.
-
-### 5.1 Pagination & Sort (Rule Phân Trang Toàn Cục)
-
-Áp dụng bắt buộc cho API GET List Product.
-
-- **Pagination:** Bắt từ query `page` (mặc định 1) và `limit` (mặc định 20).
-- **Clamp Rule:** `limit` tối đa = 100. Vượt quá tự ép về 100.
-- **Lỗi 400:** Nếu `page` hoặc `limit` < 1 hoặc không phải số nguyên.
-- **Sort:** Chỉ cho phép sort theo `createdAt`, `name`, `price`. Mặc định là `createdAt=desc` (mới nhất). Trượt khỏi whitelist → Lỗi 400.
-- **Response:** Bắt buộc trả thêm object `meta: { page, limit, total, totalPages }` cùng cấp với mảng `data`.
-
-### 5.2 Giá sản phẩm (Product không có field discount)
-
-- Don gia hien tai lay tu `Product.price` (model khong co `discount`).
-- Frontend chi hien thi; **khong** gui `price` / tong tien line / `totalAmount` de server tin tuong khi tao Order — server tinh lai tu DB + gio hang tai thoi diem dat.
-
-### 5.3 Kỷ luật Order (Giao dịch)
-
-- **Atomic Stock (Trừ kho an toàn):** Bắt buộc dùng `findOneAndUpdate` với điều kiện `stock >= quantity` (hoặc Transaction). Không cho phép trừ âm kho. Hết hàng trả về HTTP **409 Conflict**.
-- **Order Immutability (Bất biến):** Mỗi line item luu snapshot `productId`, `quantity`, `price` (don gia tai luc dat). Order sau khi tao khong phu thuoc vao gia Product sau nay.
-- **Total Amount:** Chi tinh tu backend: tong (`quantity * price` theo tung line snapshot) + `shippingFee`.
-
-### 5.4 Vòng đời đơn hàng (Order Status Lifecycle)
-
-- **State Machine:** `Pending` → `Processing` → `Shipped` → `Delivered`.
-- Hoặc rẽ nhánh: `Cancelled` (Terminal state).
-- **Quy tắc:** Không được phép chuyển trạng thái ngược (Ví dụ: `Delivered` → `Pending`). Invalid transition trả về HTTP **409 Conflict**.
+1. Super Admin truy cập trang Quản lý vai trò
+2. Tạo vai trò mới (VD: "Nhân viên kho")
+3. Chọn permissions cho vai trò (VD: products_view, products_edit, orders_view, orders_edit)
+4. Lưu vai trò
+5. Vào trang Quản lý tài khoản → Gán `roleId` cho user
 
 ---
 
-## 6. Bảo mật & Hiệu năng (NFR)
+## 5. Phạm vi tính năng (Scope)
 
-**Security:**
+### 5.1. Hệ thống Client
 
-- JWT ngắn hạn + Refresh Token rotation (Lưu HTTP-Only Cookie).
-- Không trộn lẫn logic auth/cookie của Client và Admin.
-- Validate dữ liệu đầu vào chặt chẽ.
+- **Auth System:** Đăng ký, Đăng nhập, Đăng xuất, Quên mật khẩu (OTP qua Email), Refresh Token
+- **Catalog System:** Xem danh sách sản phẩm (phân trang, tìm kiếm, lọc theo danh mục)
+- **Shopping System:** Giỏ hàng (Cart) lưu trữ theo userId, CRUD giỏ hàng
+- **Order System:** Tạo đơn hàng, xem lịch sử đơn hàng, chọn phương thức thanh toán (COD, Momo, VNPay)
+- **User Profile:** Xem/cập nhật thông tin cá nhân, upload avatar
 
-**Performance:**
+### 5.2. Hệ thống Admin
 
-- Tối ưu MongoDB Index (đặc biệt cho category filter và soft delete).
-- API response < 300ms (cho phép cache sau này).
+- **Auth System:** Đăng nhập admin, Refresh Token
+- **Dashboard:** Thống kê tổng quan (doanh thu, đơn hàng, sản phẩm)
+- **Product Management:** CRUD sản phẩm (có upload ảnh, ingredients field, phân trang, tìm kiếm)
+- **Category Management:** CRUD danh mục (có phân trang, tìm kiếm)
+- **Order Management:** Xem danh sách đơn hàng, cập nhật trạng thái đơn hàng
+- **User Management:** CRUD tài khoản người dùng, gán roleId
+- **Role Management:** CRUD vai trò, phân quyền cho vai trò
+- **Promotion Management:** CRUD mã khuyến mãi (percentage/fixed discount, usage limit, date range)
 
 ---
 
-## 7. API Contract: Response & HTTP Status
+## 6. Quy tắc nghiệp vụ cốt lõi (Business Rules)
 
-### 7.1 Cấu trúc Response (Lock Shape)
+_Dành cho cả team Tech và team Business tuân thủ tuyệt đối:_
 
-Định dạng JSON phải ổn định: **KHÔNG** tự ý đổi tên field, cấu trúc lồng nhau (nesting) hoặc kiểu dữ liệu khi chưa có yêu cầu. Các field mới non-breaking được phép thêm vào nhưng không phá field cũ.
+### 6.1. Quy tắc hiển thị & Phân trang (Pagination)
 
-### 7.2 HTTP Status Chuẩn
+- Bắt buộc áp dụng phân trang (Page, Limit) ở mọi danh sách dữ liệu để chống quá tải.
+- Giới hạn hiển thị mặc định:
+  - Product: 12 items/page
+  - Category: 5 items/page (admin), unlimited (client)
+  - User: 10 items/page
+  - Order: unlimited (cần thêm phân trang sau)
+  - Role: 10 items/page
+  - Promotion: 10 items/page
+- Khách hàng chỉ nhìn thấy Sản phẩm và Danh mục có trạng thái `active` và `deleted: false`.
 
-| Status        | Ý nghĩa và Trường hợp dùng                                                |
-| ------------- | ------------------------------------------------------------------------- |
-| **200 / 201** | Thành công (201 cho Create).                                              |
-| **400**       | Bad Request (Validation lỗi, page/limit sai, thiếu trường bắt buộc).      |
-| **401**       | Unauthorized (Chưa đăng nhập, token hết hạn/sai).                         |
-| **403**       | Forbidden (Đã login nhưng sai Role, VD: User mò vào route Admin).         |
-| **404**       | Not Found (Resource không tồn tại).                                       |
-| **409**       | Conflict (Hết hàng/Stock âm, Trùng slug, Chuyển orderStatus sai quy tắc). |
-| **500**       | Lỗi server/DB.                                                            |
+### 6.2. Định giá & Bất biến đơn hàng (Order Immutability)
+
+- Giá bán của sản phẩm là giá duy nhất (không có field discount). 
+- **Quy tắc Snapshot:** Khi đơn hàng tạo thành công, phải "chụp" lại tên món và giá tiền lưu thẳng vào đơn. Nếu hôm sau Admin tăng/giảm giá món ăn, đơn hàng cũ **không được phép** thay đổi giá.
+- Frontend **tuyệt đối không** được gửi tổng tiền lên backend để tạo đơn (phòng chống hack giá).
+
+### 6.3. Quy tắc Kho hàng (Stock Rules)
+
+- Không bao giờ cho phép kho hàng bị âm (< 0).
+- Khi tạo đơn hàng, backend phải kiểm tra `product.stock >= item.quantity` trước khi trừ kho.
+- Sử dụng `$inc` operator của MongoDB để trừ kho atomic (tránh race condition).
+
+### 6.4. Vòng đời đơn hàng (Order State Machine)
+
+**Order Status:**
+- Trạng thái đi theo 1 chiều tiến: `Pending` → `Processing` → `Shipped` → `Delivered`
+- Trạng thái `Cancelled` là trạng thái kết thúc (Terminal)
+- Tuyệt đối không được phép lùi trạng thái (Ví dụ: Từ Đã giao hàng lùi về Đang xử lý)
+
+**Payment Status:**
+- `Pending` - Chưa thanh toán
+- `Paid` - Đã thanh toán
+- `Failed` - Thanh toán thất bại
+- `Refunded` - Đã hoàn tiền
+
+### 6.5. Quy tắc Soft Delete
+
+- Tất cả các entity quan trọng (User, Product, Category, Role, Promotion, Order) đều có field `deleted` và `deletedAt`.
+- Khi xóa, chỉ set `deleted: true` và `deletedAt: new Date()`, không xóa vật lý khỏi database.
+- Các query phải luôn filter `deleted: false` để không hiển thị dữ liệu đã xóa.
+
+### 6.6. Quy tắc Authentication & Authorization
+
+- Client routes: Chỉ cần `requireAuth` middleware (verify JWT)
+- Admin routes: Cần cả `requireAuth` và `requirePermission(permission)` middleware
+- JWT Access Token có thời gian sống ngắn (15 phút)
+- JWT Refresh Token có thời gian sống dài (7 ngày), lưu trong collection `sessions`
+- Khi user đăng xuất, phải xóa refresh token khỏi database
+
+### 6.7. Quy tắc Upload File
+
+- Chỉ cho phép upload ảnh (jpg, jpeg, png, webp)
+- Kích thước tối đa: 5MB/file
+- Upload lên Cloudinary, lưu URL vào database
+- Product có thể có nhiều ảnh (array), User chỉ có 1 avatar
+
+### 6.8. Quy tắc Promotion (Khuyến mãi)
+
+- Mã khuyến mãi phải unique (uppercase)
+- `discountType`: "percentage" (0-100%) hoặc "fixed" (số tiền cố định)
+- `minOrderValue`: Giá trị đơn hàng tối thiểu để áp dụng
+- `maxDiscountAmount`: Giảm tối đa (chỉ áp dụng cho percentage)
+- `usageLimit`: Số lần sử dụng tối đa (null = unlimited)
+- `usedCount`: Số lần đã sử dụng
+- `startDate` và `endDate`: Thời gian hiệu lực
+- Kiểm tra: `startDate < endDate`, `usedCount < usageLimit`, `status: active`, `deleted: false`
+
+---
+
+## 7. Kiến trúc hệ thống
+
+### 7.1. Cấu trúc thư mục Backend
+
+```
+backend/
+├── api/
+│   └── v1/
+│       ├── admin/
+│       │   ├── controllers/
+│       │   │   ├── auth.controller.js
+│       │   │   ├── dashboard.controller.js
+│       │   │   ├── user.controller.js
+│       │   │   ├── users.controller.js
+│       │   │   ├── category.controller.js
+│       │   │   ├── product.controller.js
+│       │   │   ├── order.controller.js
+│       │   │   ├── role.controller.js
+│       │   │   └── promotion.controller.js
+│       │   ├── middlewares/
+│       │   │   ├── auth.middleware.js
+│       │   │   ├── permission.middleware.js
+│       │   │   └── uploadCloud.middleware.js
+│       │   └── routes/
+│       │       ├── index.route.js
+│       │       ├── auth.route.js
+│       │       ├── dashboard.route.js
+│       │       ├── user.route.js
+│       │       ├── users.route.js
+│       │       ├── category.route.js
+│       │       ├── product.route.js
+│       │       ├── order.route.js
+│       │       ├── role.route.js
+│       │       └── promotion.route.js
+│       └── client/
+│           ├── controllers/
+│           │   ├── auth.controller.js
+│           │   ├── user.controller.js
+│           │   ├── category.controller.js
+│           │   ├── product.controller.js
+│           │   ├── cart.controller.js
+│           │   └── order.controller.js
+│           ├── middlewares/
+│           │   ├── auth.middleware.js
+│           │   └── uploadCloud.middleware.js
+│           └── routes/
+│               ├── index.route.js
+│               ├── auth.route.js
+│               ├── user.route.js
+│               ├── category.route.js
+│               ├── product.route.js
+│               ├── cart.route.js
+│               └── order.route.js
+├── models/
+│   ├── user.model.js
+│   ├── role.model.js
+│   ├── category.model.js
+│   ├── product.model.js
+│   ├── cart.model.js
+│   ├── order.model.js
+│   ├── promotion.model.js
+│   ├── session.model.js
+│   ├── forgot-password.model.js
+│   └── review.model.js
+├── config/
+│   └── database.js
+├── helpers/
+│   └── sendMail.js
+└── index.js
+```
+
+### 7.2. Database Schema Overview
+
+**Collections:**
+1. `users` - Thông tin người dùng (có roleId)
+2. `roles` - Vai trò và permissions
+3. `categories` - Danh mục sản phẩm
+4. `products` - Sản phẩm (có categoryId, ingredients)
+5. `carts` - Giỏ hàng (theo userId)
+6. `orders` - Đơn hàng (có userId, items snapshot)
+7. `promotions` - Mã khuyến mãi
+8. `sessions` - Refresh tokens
+9. `forgot_passwords` - OTP quên mật khẩu
+10. `reviews` - Đánh giá sản phẩm
+
+### 7.3. API Structure
+
+**Client API:**
+- `POST /api/v1/auth/sign-up` - Đăng ký
+- `POST /api/v1/auth/sign-in` - Đăng nhập
+- `POST /api/v1/auth/sign-out` - Đăng xuất
+- `POST /api/v1/auth/refresh-token` - Làm mới token
+- `GET /api/v1/category` - Danh sách danh mục
+- `GET /api/v1/product` - Danh sách sản phẩm (phân trang, tìm kiếm, lọc)
+- `GET /api/v1/product/:slug` - Chi tiết sản phẩm
+- `GET /api/v1/cart` - Lấy giỏ hàng
+- `POST /api/v1/cart/add` - Thêm vào giỏ
+- `PATCH /api/v1/cart/update/:productId` - Cập nhật số lượng
+- `PATCH /api/v1/cart/remove/:productId` - Xóa khỏi giỏ
+- `POST /api/v1/order` - Tạo đơn hàng
+- `GET /api/v1/order/my` - Lịch sử đơn hàng
+
+**Admin API:**
+- `POST /api/v1/admin/auth/login` - Đăng nhập admin
+- `GET /api/v1/admin/category` - Danh sách danh mục (phân trang, tìm kiếm)
+- `POST /api/v1/admin/category` - Tạo danh mục
+- `PATCH /api/v1/admin/category/:id` - Cập nhật danh mục
+- `DELETE /api/v1/admin/category/:id` - Xóa danh mục
+- `GET /api/v1/admin/product` - Danh sách sản phẩm (phân trang, tìm kiếm, lọc)
+- `POST /api/v1/admin/product` - Tạo sản phẩm (upload ảnh)
+- `PATCH /api/v1/admin/product/:id` - Cập nhật sản phẩm
+- `DELETE /api/v1/admin/product/:id` - Xóa sản phẩm
+- `GET /api/v1/admin/order` - Danh sách đơn hàng
+- `PATCH /api/v1/admin/order/:id` - Cập nhật trạng thái đơn
+- `GET /api/v1/admin/users` - Danh sách tài khoản (phân trang, tìm kiếm)
+- `GET /api/v1/admin/users/:id` - Chi tiết tài khoản
+- `POST /api/v1/admin/users` - Tạo tài khoản
+- `PATCH /api/v1/admin/users/:id` - Cập nhật tài khoản
+- `DELETE /api/v1/admin/users/:id` - Xóa tài khoản
+- `GET /api/v1/admin/role` - Danh sách vai trò
+- `GET /api/v1/admin/role/permissions` - Danh sách permissions
+- `POST /api/v1/admin/role` - Tạo vai trò
+- `PATCH /api/v1/admin/role/:id` - Cập nhật vai trò
+- `DELETE /api/v1/admin/role/:id` - Xóa vai trò
+- `GET /api/v1/admin/promotion` - Danh sách khuyến mãi (phân trang, tìm kiếm)
+- `GET /api/v1/admin/promotion/:id` - Chi tiết khuyến mãi
+- `POST /api/v1/admin/promotion` - Tạo khuyến mãi
+- `PATCH /api/v1/admin/promotion/:id` - Cập nhật khuyến mãi
+- `DELETE /api/v1/admin/promotion/:id` - Xóa khuyến mãi
+
+---
+
+## Kết luận
+
+Tài liệu này mô tả kiến trúc tổng thể và quy tắc nghiệp vụ của hệ thống FOOD_ORDER_MERN. Để biết chi tiết kỹ thuật về API endpoints, request/response format, và database schema, vui lòng tham khảo:
+- `docs/PRD_BACKEND.md` - Chi tiết Backend API
+- `docs/PRD_FRONTEND.md` - Chi tiết Frontend Components
+- `docs/PRD_CAU_HINH_AI.md` - Cấu hình AI Assistant

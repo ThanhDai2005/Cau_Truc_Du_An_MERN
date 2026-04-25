@@ -6,6 +6,8 @@ import usersRoute from "./users.route.js";
 import categoryRoute from "./category.route.js";
 import productRoute from "./product.route.js";
 import orderRoute from "./order.route.js";
+import roleRoute from "./role.route.js";
+import promotionRoute from "./promotion.route.js";
 
 export const adminV1Routes = (app) => {
   const version = "/api/v1/admin";
@@ -23,4 +25,8 @@ export const adminV1Routes = (app) => {
   app.use(version + "/users", requireAuth, usersRoute);
 
   app.use(version + "/order", requireAuth, orderRoute);
+
+  app.use(version + "/role", requireAuth, roleRoute);
+
+  app.use(version + "/promotion", requireAuth, promotionRoute);
 };

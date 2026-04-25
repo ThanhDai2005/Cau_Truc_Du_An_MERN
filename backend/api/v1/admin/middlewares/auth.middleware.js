@@ -21,9 +21,9 @@ export const requireAuth = async (req, res, next) => {
       });
     }
 
-    const user = await User.findOne({ _id: decoded.userId }).select(
-      "-hashedPassword",
-    );
+    const user = await User.findOne({ _id: decoded.userId })
+      .populate("roleId")
+      .select("-hashedPassword");
 
     if (!user) {
       return res.status(404).json({
@@ -37,9 +37,9 @@ export const requireAuth = async (req, res, next) => {
       });
     }
 
-    if (user.role != "admin" && user.role != "staff") {
+    if (!user.roleId) {
       return res.status(403).json({
-        message: "Bạn không có quyền truy cập",
+        message: "Bạn chưa được gán vai trò",
       });
     }
 

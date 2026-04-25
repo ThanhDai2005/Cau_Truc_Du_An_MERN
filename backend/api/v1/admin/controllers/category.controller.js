@@ -4,12 +4,29 @@ import slugify from "slugify";
 // [GET] /api/v1/admin/category
 export const list = async (req, res) => {
   try {
-    const data = await Category.find({ deleted: false }).sort({
-      createdAt: -1,
-    });
+    const keyword = req.query.keyword;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+    const filter = {
+      deleted: false,
+      status: "active",
+    };
+
+    if (keyword) {
+      filter.name = { $regex: keyword, $options: "i" };
+    }
+
+    const [data, totalItems] = await Promise.all([
+      Category.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Category.countDocuments(filter),
+    ]);
+
     res.status(200).json({
       message: "Lấy danh sách category thành công",
       data: data,
+      totalItems: totalItems,
+      totalPages: Math.ceil(totalItems / limit),
     });
   } catch (error) {
     console.log("Lỗi khi gọi list category", error);

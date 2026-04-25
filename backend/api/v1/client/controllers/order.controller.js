@@ -51,17 +51,14 @@ export const create = async (req, res) => {
         });
       }
 
-      const priceAtPurchase = product.price * (1 - product.discount);
-
-      const lineTotal = priceAtPurchase * item.quantity;
+      const lineTotal = product.price * item.quantity;
       subtotal += lineTotal;
 
       normalizedItems.push({
-        product: product._id,
+        productId: product._id,
         name: product.name,
         quantity: item.quantity,
         price: Number(product.price || 0),
-        discount: Number(product.discount || 0),
       });
     }
 
@@ -69,7 +66,7 @@ export const create = async (req, res) => {
     const totalAmount = subtotal + shippingFeeValue;
 
     const createdOrder = await Order.create({
-      user: req.user._id,
+      userId: req.user._id,
       items: normalizedItems,
       shippingAddress: shippingAddress,
       paymentMethod: paymentMethod || "COD",
@@ -79,7 +76,7 @@ export const create = async (req, res) => {
 
     for (const item of normalizedItems) {
       await Product.updateOne(
-        { _id: item.product },
+        { _id: item.productId },
         { $inc: { stock: -item.quantity } },
       );
     }
@@ -99,7 +96,7 @@ export const create = async (req, res) => {
 // [GET] /api/v1/order/my
 export const myOrders = async (req, res) => {
   try {
-    const data = await Order.find({ user: req.user._id }).sort({
+    const data = await Order.find({ userId: req.user._id }).sort({
       createdAt: -1,
     });
     res.status(200).json({

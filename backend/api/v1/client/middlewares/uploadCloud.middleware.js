@@ -8,7 +8,7 @@ let streamUpload = (buffer, options) => {
         api_key: process.env.CLOUD_KEY,
         api_secret: process.env.CLOUD_SECRET,
         folder: "CAU_TRUC_DU_AN_MERN",
-        resource_type: "auto",
+        resource_type: "image",
         ...options,
       },
       (error, result) => {
@@ -27,7 +27,6 @@ let streamUpload = (buffer, options) => {
 const uploadAvatar = async (buffer) => {
   return await streamUpload(buffer, {
     folder: "CAU_TRUC_DU_AN_MERN/avatar",
-    transformation: [{ width: 200, height: 200, crop: "fill" }],
   });
 };
 
@@ -55,7 +54,7 @@ export const uploadSingle = async (req, res, next) => {
   next();
 };
 
-// upload nhiều file gồm ảnh video tài liệu
+// upload nhiều ảnh
 export const uploadMulti = async (req, res, next) => {
   try {
     if (!req.files || req.files.length === 0) {

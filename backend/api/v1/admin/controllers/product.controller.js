@@ -8,7 +8,7 @@ export const list = async (req, res) => {
     const keyword = req.query.keyword;
     const categorySlug = req.query.categorySlug;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 12;
     const skip = (page - 1) * limit;
     const filter = {
       status: "active",
@@ -28,7 +28,7 @@ export const list = async (req, res) => {
         });
       }
 
-      filter.category = category._id;
+      filter.categoryId = category._id;
     }
 
     if (keyword) {
@@ -37,7 +37,7 @@ export const list = async (req, res) => {
 
     const [data, totalItems] = await Promise.all([
       Product.find(filter)
-        .populate("category", "name slug")
+        .populate("categoryId", "name slug")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -64,15 +64,15 @@ export const create = async (req, res) => {
     const {
       name,
       description,
+      ingredients,
       category,
       price,
-      discount,
       images,
       stock,
       status,
     } = req.body;
 
-    if (!name || !description || !category || !price) {
+    if (!name || !description || !ingredients || !category || !price) {
       return res.status(400).json({
         message: "Thiếu dữ liệu bắt buộc",
       });
@@ -106,9 +106,9 @@ export const create = async (req, res) => {
       name: name,
       slug: slug,
       description: description,
-      category: category,
+      ingredients: ingredients,
+      categoryId: category,
       price: Number(price),
-      discount: discount == null ? null : Number(discount),
       images: images || [],
       stock: Number(stock || 0),
       status: status || "active",
@@ -133,9 +133,9 @@ export const update = async (req, res) => {
     const {
       name,
       description,
+      ingredients,
       category,
       price,
-      discount,
       images,
       stock,
       status,
@@ -186,10 +186,9 @@ export const update = async (req, res) => {
     }
 
     if (description != undefined) updateData.description = description;
-    if (category != undefined) updateData.category = category;
+    if (ingredients != undefined) updateData.ingredients = ingredients;
+    if (category != undefined) updateData.categoryId = category;
     if (price != undefined) updateData.price = Number(price);
-    if (discount != undefined)
-      updateData.discount = discount == null ? null : Number(discount);
     if (images != undefined) updateData.images = images;
     if (stock != undefined) updateData.stock = Number(stock);
     if (status != undefined) updateData.status = status;

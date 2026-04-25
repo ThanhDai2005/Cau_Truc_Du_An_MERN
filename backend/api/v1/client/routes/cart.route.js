@@ -3,6 +3,12 @@ const router = express.Router();
 
 import * as controller from "../controllers/cart.controller.js";
 
-router.get("/", controller.cart);
+router.get("/", controller.getCart);
+
+router.post("/add", controller.addToCart);
+
+router.patch("/update/:productId", controller.updateQuantity);
+
+router.patch("/remove/:productId", controller.removeFromCart);
 
 export default router;

@@ -7,7 +7,7 @@ export const list = async (req, res) => {
     const keyword = req.query.keyword;
     const categorySlug = req.query.categorySlug;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 12;
     const skip = (page - 1) * limit;
     const filter = {
       status: "active",
@@ -27,7 +27,7 @@ export const list = async (req, res) => {
         });
       }
 
-      filter.category = category._id;
+      filter.categoryId = category._id;
     }
 
     if (keyword) {
@@ -36,7 +36,7 @@ export const list = async (req, res) => {
 
     const [data, totalItems] = await Promise.all([
       Product.find(filter)
-        .populate("category", "name slug")
+        .populate("categoryId", "name slug")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -65,7 +65,7 @@ export const detail = async (req, res) => {
       slug: slug,
       status: "active",
       deleted: false,
-    }).populate("category", "name slug");
+    }).populate("categoryId", "name slug");
 
     if (!data) {
       return res.status(404).json({
