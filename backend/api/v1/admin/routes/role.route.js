@@ -10,8 +10,12 @@ router.get("/", requirePermission("roles_view"), controller.list);
 
 router.post("/", requirePermission("roles_create"), controller.create);
 
-router.patch("/:id", requirePermission("roles_edit"), controller.update);
+router.patch("/update/:roleId", requirePermission("roles_edit"), controller.update);
 
-router.delete("/:id", requirePermission("roles_delete"), controller.softDelete);
+router.patch(
+  "/delete/:roleId",
+  requirePermission("roles_delete"),
+  controller.softDelete,
+);
 
 export default router;

@@ -59,10 +59,10 @@ export const dashboard = async (req, res) => {
         },
       });
 
-      let totalRevenue = 0;
-      orders.forEach((order) => {
-        totalRevenue += order.totalAmount;
-      });
+      const totalRevenue = orders.reduce(
+        (total, item) => total + item.totalAmount,
+        0,
+      );
 
       revenueStats = {
         totalRevenue: totalRevenue,

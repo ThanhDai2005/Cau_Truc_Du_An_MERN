@@ -126,10 +126,10 @@ export const create = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/product/:id
+// [PATCH] /api/v1/admin/product/update/:productId
 export const update = async (req, res) => {
   try {
-    const productId = req.params.id;
+    const productId = req.params.productId;
     const {
       name,
       description,
@@ -141,6 +141,27 @@ export const update = async (req, res) => {
       status,
     } = req.body;
 
+    if (
+      !name &&
+      !description &&
+      !ingredients &&
+      !category &&
+      !price &&
+      !images &&
+      !stock &&
+      !status
+    ) {
+      return res.status(400).json({
+        message: "Không có dữ liệu để cập nhật",
+      });
+    }
+
+    if (Number(stock) < 0) {
+      return res.status(400).json({
+        message: "Stock không hợp lệ",
+      });
+    }
+
     const existedProduct = await Product.findOne({
       _id: productId,
       deleted: false,
@@ -151,27 +172,22 @@ export const update = async (req, res) => {
       });
     }
 
-    if (stock != undefined && Number(stock) < 0) {
-      return res.status(400).json({
-        message: "Stock không hợp lệ",
+    if (category) {
+      const existedCategory = await Category.findOne({
+        _id: category,
+        deleted: false,
       });
+
+      if (!existedCategory) {
+        return res.status(404).json({
+          message: "Category không tồn tại",
+        });
+      }
     }
 
-    const existedCategory = await Category.findOne({
-      _id: category,
-      deleted: false,
-    });
-
-    if (!existedCategory) {
-      return res.status(404).json({
-        message: "Category không tồn tại",
-      });
-    }
-
-    const updateData = {};
-
+    let slug = existedProduct.slug;
     if (name) {
-      const slug = slugify(name, { lower: true, strict: true });
+      slug = slugify(name, { lower: true, strict: true });
       const duplicateSlug = await Product.findOne({
         slug: slug,
         _id: { $ne: productId },
@@ -181,24 +197,22 @@ export const update = async (req, res) => {
           message: "Slug product đã tồn tại",
         });
       }
-      updateData.name = name;
-      updateData.slug = slug;
     }
 
-    if (description != undefined) updateData.description = description;
-    if (ingredients != undefined) updateData.ingredients = ingredients;
-    if (category != undefined) updateData.categoryId = category;
-    if (price != undefined) updateData.price = Number(price);
-    if (images != undefined) updateData.images = images;
-    if (stock != undefined) updateData.stock = Number(stock);
-    if (status != undefined) updateData.status = status;
-
-    const updatedProduct = await Product.findByIdAndUpdate(
-      productId,
-      updateData,
+    const updatedProduct = await Product.findOneAndUpdate(
+      { productId: productId },
       {
-        new: true,
+        name: name,
+        slug: slug,
+        description: description,
+        ingredients: ingredients,
+        categoryId: category,
+        price: price ? Number(price) : existedProduct.price,
+        images: images,
+        stock: stock ? Number(stock) : existedProduct.stock,
+        status: status,
       },
+      { new: true },
     );
 
     res.status(200).json({
@@ -213,10 +227,10 @@ export const update = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/product/:id
+// [PATCH] /api/v1/admin/product/delete/:productId
 export const softDelete = async (req, res) => {
   try {
-    const productId = req.params.id;
+    const productId = req.params.productId;
     const existedProduct = await Product.findOne({
       _id: productId,
       deleted: false,

@@ -8,10 +8,10 @@ router.get("/", requirePermission("categories_view"), controller.list);
 
 router.post("/", requirePermission("categories_create"), controller.create);
 
-router.patch("/:id", requirePermission("categories_edit"), controller.update);
+router.patch("/update/:categoryId", requirePermission("categories_edit"), controller.update);
 
-router.delete(
-  "/:id",
+router.patch(
+  "/delete/:categoryId",
   requirePermission("categories_delete"),
   controller.softDelete,
 );

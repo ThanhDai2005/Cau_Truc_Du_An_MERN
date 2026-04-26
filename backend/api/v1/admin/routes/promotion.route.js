@@ -8,10 +8,14 @@ router.get("/", requirePermission("promotions_view"), controller.list);
 
 router.post("/", requirePermission("promotions_create"), controller.create);
 
-router.patch("/:id", requirePermission("promotions_edit"), controller.update);
+router.patch(
+  "/update/:promotionId",
+  requirePermission("promotions_edit"),
+  controller.update,
+);
 
-router.delete(
-  "/:id",
+router.patch(
+  "/delete/:promotionId",
   requirePermission("promotions_delete"),
   controller.softDelete,
 );

@@ -6,6 +6,16 @@ import { requirePermission } from "../middlewares/permission.middleware.js";
 
 router.get("/", requirePermission("orders_view"), controller.list);
 
-router.patch("/:id", requirePermission("orders_edit"), controller.updateStatus);
+router.get(
+  "/detail/:orderId",
+  requirePermission("orders_view"),
+  controller.detail,
+);
+
+router.patch(
+  "/update/:orderId",
+  requirePermission("orders_edit"),
+  controller.updateStatus,
+);
 
 export default router;

@@ -8,10 +8,14 @@ router.get("/", requirePermission("accounts_view"), controller.list);
 
 router.post("/", requirePermission("accounts_create"), controller.create);
 
-router.patch("/:id", requirePermission("accounts_edit"), controller.update);
+router.patch(
+  "/update/:userId",
+  requirePermission("accounts_edit"),
+  controller.update,
+);
 
-router.delete(
-  "/:id",
+router.patch(
+  "/delete/:userId",
   requirePermission("accounts_delete"),
   controller.softDelete,
 );

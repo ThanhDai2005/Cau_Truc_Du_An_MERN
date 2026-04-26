@@ -33,7 +33,7 @@ export const list = async (req, res) => {
 // [POST] /api/v1/admin/role
 export const create = async (req, res) => {
   try {
-    const { title, description, permissions, status } = req.body;
+    const { title, description, permissions } = req.body;
 
     if (!title) {
       return res.status(400).json({
@@ -52,7 +52,6 @@ export const create = async (req, res) => {
       title: title,
       description: description || "",
       permissions: permissions || [],
-      status: status || "active",
     });
 
     res.status(201).json({
@@ -67,11 +66,17 @@ export const create = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/role/:id
+// [PATCH] /api/v1/admin/role/update/:roleId
 export const update = async (req, res) => {
   try {
-    const roleId = req.params.id;
-    const { title, description, permissions, status } = req.body;
+    const roleId = req.params.roleId;
+    const { title, description, permissions } = req.body;
+
+    if (!title && !description && !permissions) {
+      return res.status(400).json({
+        message: "Không có dữ liệu để cập nhật",
+      });
+    }
 
     const existedRole = await Role.findOne({
       _id: roleId,
@@ -96,15 +101,15 @@ export const update = async (req, res) => {
       }
     }
 
-    const updateData = {};
-    if (title != undefined) updateData.title = title;
-    if (description != undefined) updateData.description = description;
-    if (permissions != undefined) updateData.permissions = permissions;
-    if (status != undefined) updateData.status = status;
-
-    const updatedRole = await Role.findByIdAndUpdate(roleId, updateData, {
-      new: true,
-    });
+    const updatedRole = await Role.findOneAndUpdate(
+      { roleId: roleId },
+      {
+        title: title,
+        description: description,
+        permissions: permissions,
+      },
+      { new: true },
+    );
 
     res.status(200).json({
       message: "Cập nhật vai trò thành công",
@@ -118,10 +123,10 @@ export const update = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/role/:id
+// [PATCH] /api/v1/admin/role/delete/:roleId
 export const softDelete = async (req, res) => {
   try {
-    const roleId = req.params.id;
+    const roleId = req.params.roleId;
 
     const existedRole = await Role.findOne({
       _id: roleId,

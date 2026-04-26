@@ -39,7 +39,7 @@ export const list = async (req, res) => {
 // [POST] /api/v1/admin/category
 export const create = async (req, res) => {
   try {
-    const { name, description, parentCategory, status } = req.body;
+    const { name, description, status } = req.body;
 
     if (!name) {
       return res.status(400).json({
@@ -59,7 +59,6 @@ export const create = async (req, res) => {
       name: name,
       slug: slug,
       description: description || "",
-      parentCategory: parentCategory || null,
       status: status || "active",
     });
 
@@ -75,11 +74,17 @@ export const create = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/category/:id
+// [PATCH] /api/v1/admin/category/update/:categoryId
 export const update = async (req, res) => {
   try {
-    const categoryId = req.params.id;
-    const { name, description, parentCategory, status } = req.body;
+    const categoryId = req.params.categoryId;
+    const { name, description, status } = req.body;
+
+    if (!name && !description && !status) {
+      return res.status(400).json({
+        message: "Không có dữ liệu để cập nhật",
+      });
+    }
 
     const existedCategory = await Category.findOne({
       _id: categoryId,
@@ -91,10 +96,9 @@ export const update = async (req, res) => {
       });
     }
 
-    const updateData = {};
-
+    let slug = existedCategory.slug;
     if (name) {
-      const slug = slugify(name, { lower: true, strict: true });
+      slug = slugify(name, { lower: true, strict: true });
       const duplicateSlug = await Category.findOne({
         slug: slug,
         _id: { $ne: categoryId },
@@ -104,20 +108,17 @@ export const update = async (req, res) => {
           message: "Slug category đã tồn tại",
         });
       }
-      updateData.name = name;
-      updateData.slug = slug;
     }
 
-    if (description != undefined) updateData.description = description;
-    if (parentCategory != undefined) updateData.parentCategory = parentCategory;
-    if (status != undefined) updateData.status = status;
-
-    const updatedCategory = await Category.findByIdAndUpdate(
-      categoryId,
-      updateData,
+    const updatedCategory = await Category.findOneAndUpdate(
+      { categoryId: categoryId },
       {
-        new: true,
+        name: name,
+        slug: slug,
+        description: description,
+        status: status,
       },
+      { new: true },
     );
 
     res.status(200).json({
@@ -132,10 +133,10 @@ export const update = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/category/:id
+// [PATCH] /api/v1/admin/category/delete/:categoryId
 export const softDelete = async (req, res) => {
   try {
-    const categoryId = req.params.id;
+    const categoryId = req.params.categoryId;
     const existedCategory = await Category.findOne({
       _id: categoryId,
       deleted: false,

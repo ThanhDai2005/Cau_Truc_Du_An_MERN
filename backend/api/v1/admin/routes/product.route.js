@@ -21,15 +21,15 @@ router.post(
 );
 
 router.patch(
-  "/:id",
+  "/update/:productId",
   requirePermission("products_edit"),
   upload.array("images", 10),
   uploadMulti,
   controller.update,
 );
 
-router.delete(
-  "/:id",
+router.patch(
+  "/delete/:productId",
   requirePermission("products_delete"),
   controller.softDelete,
 );

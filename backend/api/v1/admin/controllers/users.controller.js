@@ -97,7 +97,7 @@ export const create = async (req, res) => {
       address: address || "",
     });
 
-    const userData = await User.findById(createdUser._id)
+    const userData = await User.findOne({ _id: createdUser._id })
       .populate("roleId", "title")
       .select("-hashedPassword");
 
@@ -113,12 +113,26 @@ export const create = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/users/:id
+// [PATCH] /api/v1/admin/users/update/:userId
 export const update = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = req.params.userId;
     const { displayName, email, phone, password, roleId, status, address } =
       req.body;
+
+    if (
+      !displayName &&
+      !email &&
+      !phone &&
+      !password &&
+      !roleId &&
+      !status &&
+      !address
+    ) {
+      return res.status(400).json({
+        message: "Không có dữ liệu để cập nhật",
+      });
+    }
 
     const existedUser = await User.findOne({
       _id: userId,
@@ -167,20 +181,25 @@ export const update = async (req, res) => {
       }
     }
 
-    const updateData = {};
-    if (displayName != undefined) updateData.displayName = displayName;
-    if (email != undefined) updateData.email = email;
-    if (phone != undefined) updateData.phone = phone;
-    if (password != undefined) {
-      updateData.hashedPassword = await bcrypt.hash(password, 10);
-    }
-    if (roleId != undefined) updateData.roleId = roleId;
-    if (status != undefined) updateData.status = status;
-    if (address != undefined) updateData.address = address;
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : existedUser.hashedPassword;
 
-    await User.findByIdAndUpdate(userId, updateData);
+    await User.findByOneAndUpdate(
+      { userId: userId },
+      {
+        displayName: displayName,
+        email: email,
+        phone: phone,
+        hashedPassword: hashedPassword,
+        roleId: roleId,
+        status: status,
+        address: address,
+      },
+      { new: true },
+    );
 
-    const updatedUser = await User.findById(userId)
+    const updatedUser = await User.findOne({ userId: userId })
       .populate("roleId", "title")
       .select("-hashedPassword");
 
@@ -196,10 +215,10 @@ export const update = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/users/:id
+// [PATCH] /api/v1/admin/users/delete/:userId
 export const softDelete = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = req.params.userId;
 
     const existedUser = await User.findOne({
       _id: userId,

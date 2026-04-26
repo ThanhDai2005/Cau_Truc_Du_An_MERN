@@ -116,10 +116,10 @@ export const create = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/promotion/:id
+// [PATCH] /api/v1/admin/promotion/update/:promotionId
 export const update = async (req, res) => {
   try {
-    const promotionId = req.params.id;
+    const promotionId = req.params.promotionId;
     const {
       title,
       code,
@@ -133,6 +133,24 @@ export const update = async (req, res) => {
       endDate,
       status,
     } = req.body;
+
+    if (
+      !title &&
+      !code &&
+      !description &&
+      !discountType &&
+      !discountValue &&
+      !minOrderValue &&
+      !maxDiscountAmount &&
+      !usageLimit &&
+      !startDate &&
+      !endDate &&
+      !status
+    ) {
+      return res.status(400).json({
+        message: "Không có dữ liệu để cập nhật",
+      });
+    }
 
     const existedPromotion = await Promotion.findOne({
       _id: promotionId,
@@ -173,28 +191,29 @@ export const update = async (req, res) => {
       });
     }
 
-    const updateData = {};
-    if (title != undefined) updateData.title = title;
-    if (code != undefined) updateData.code = code.toUpperCase();
-    if (description != undefined) updateData.description = description;
-    if (discountType != undefined) updateData.discountType = discountType;
-    if (discountValue != undefined)
-      updateData.discountValue = Number(discountValue);
-    if (minOrderValue != undefined)
-      updateData.minOrderValue = Number(minOrderValue);
-    if (maxDiscountAmount != undefined)
-      updateData.maxDiscountAmount = maxDiscountAmount
-        ? Number(maxDiscountAmount)
-        : null;
-    if (usageLimit != undefined)
-      updateData.usageLimit = usageLimit ? Number(usageLimit) : null;
-    if (startDate != undefined) updateData.startDate = new Date(startDate);
-    if (endDate != undefined) updateData.endDate = new Date(endDate);
-    if (status != undefined) updateData.status = status;
-
-    const updatedPromotion = await Promotion.findByIdAndUpdate(
-      promotionId,
-      updateData,
+    const updatedPromotion = await Promotion.findOneAndUpdate(
+      { promotionId: promotionId },
+      {
+        title: title,
+        code: code ? code.toUpperCase() : existedPromotion.code,
+        description: description,
+        discountType: discountType,
+        discountValue: discountValue
+          ? Number(discountValue)
+          : existedPromotion.discountValue,
+        minOrderValue: minOrderValue
+          ? Number(minOrderValue)
+          : existedPromotion.minOrderValue,
+        maxDiscountAmount: maxDiscountAmount
+          ? Number(maxDiscountAmount)
+          : existedPromotion.maxDiscountAmount,
+        usageLimit: usageLimit
+          ? Number(usageLimit)
+          : existedPromotion.usageLimit,
+        startDate: startDate ? new Date(startDate) : existedPromotion.startDate,
+        endDate: endDate ? new Date(endDate) : existedPromotion.endDate,
+        status: status,
+      },
       { new: true },
     );
 
@@ -210,10 +229,10 @@ export const update = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/promotion/:id
+// [PATCH] /api/v1/admin/promotion/delete/:promotionId
 export const softDelete = async (req, res) => {
   try {
-    const promotionId = req.params.id;
+    const promotionId = req.params.promotionId;
 
     const existedPromotion = await Promotion.findOne({
       _id: promotionId,

@@ -3,13 +3,51 @@ import Order from "../../../../models/order.model.js";
 // [GET] /api/v1/admin/order
 export const list = async (req, res) => {
   try {
-    const data = await Order.find({})
-      .populate("userId", "displayName email")
-      .sort({ createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+
+    if (req.query.orderStatus) {
+      filter.orderStatus = req.query.orderStatus;
+    }
+
+    if (req.query.paymentStatus) {
+      filter.paymentStatus = req.query.paymentStatus;
+    }
+
+    if (req.query.startDate || req.query.endDate) {
+      filter.createdAt = {};
+      if (req.query.startDate) {
+        filter.createdAt.$gte = new Date(req.query.startDate);
+      }
+      if (req.query.endDate) {
+        const endDate = new Date(req.query.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = endDate;
+      }
+    }
+
+    // Filter theo tên khách hàng hoặc số điện thoại
+    if (req.query.search) {
+      const searchRegex = new RegExp(req.query.search, "i");
+      filter.$or = [
+        { "shippingAddress.recipient": searchRegex },
+        { "shippingAddress.phone": searchRegex },
+      ];
+    }
+
+    const [data, totalItems] = await Promise.all([
+      Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Order.countDocuments(filter),
+    ]);
 
     res.status(200).json({
       message: "Lấy danh sách đơn hàng thành công",
       data: data,
+      totalItems: totalItems,
+      totalPages: Math.ceil(totalItems / limit),
     });
   } catch (error) {
     console.log("Lỗi khi gọi list order admin", error);
@@ -19,26 +57,89 @@ export const list = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/order/:id
+// [GET] /api/v1/admin/order/detail/:orderId
+export const detail = async (req, res) => {
+  try {
+    const orderId = req.params.orderId;
+
+    const order = await Order.findOne({ _id: orderId })
+      .populate("userId", "displayName email phone")
+      .populate("items.productId", "title thumbnail price");
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Đơn hàng không tồn tại",
+      });
+    }
+
+    res.status(200).json({
+      message: "Lấy chi tiết đơn hàng thành công",
+      data: order,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi detail order admin", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/order/update/:orderId
 export const updateStatus = async (req, res) => {
   try {
-    const orderId = req.params.id;
+    const orderId = req.params.orderId;
     const { orderStatus, paymentStatus } = req.body;
 
-    const existedOrder = await Order.findById(orderId);
+    if (!orderStatus && !paymentStatus) {
+      return res.status(400).json({
+        message: "Không có dữ liệu để cập nhật",
+      });
+    }
+
+    const existedOrder = await Order.findOne({ _id: orderId });
     if (!existedOrder) {
       return res.status(404).json({
         message: "Đơn hàng không tồn tại",
       });
     }
 
-    const updateData = {};
-    if (orderStatus != undefined) updateData.orderStatus = orderStatus;
-    if (paymentStatus != undefined) updateData.paymentStatus = paymentStatus;
+    if (
+      existedOrder.orderStatus == "Delivered" ||
+      existedOrder.orderStatus == "Cancelled"
+    ) {
+      return res.status(400).json({
+        message: `Không thể cập nhật đơn hàng đã ${existedOrder.orderStatus == "Delivered" ? "giao thành công" : "hủy"}`,
+      });
+    }
 
-    const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, {
-      new: true,
-    });
+    // Validate logic chuyển trạng thái
+    const validTransitions = {
+      Pending: ["Processing"],
+      Processing: ["Shipped", "Cancelled"],
+      Shipped: ["Delivered"],
+    };
+
+    if (orderStatus != existedOrder.orderStatus) {
+      const allowedStatuses = validTransitions[existedOrder.orderStatus];
+      if (!allowedStatuses || !allowedStatuses.includes(orderStatus)) {
+        return res.status(400).json({
+          message: `Không thể chuyển từ trạng thái ${existedOrder.orderStatus} sang ${orderStatus}`,
+        });
+      }
+    }
+
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: orderId },
+      {
+        orderStatus: orderStatus,
+        paymentStatus: paymentStatus,
+      },
+      {
+        new: true,
+      }
+    )
+      .populate("userId", "displayName email")
+      .populate("items.productId", "title thumbnail price");
 
     res.status(200).json({
       message: "Cập nhật trạng thái đơn hàng thành công",
