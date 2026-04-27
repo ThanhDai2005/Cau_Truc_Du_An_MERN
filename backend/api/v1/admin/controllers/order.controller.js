@@ -64,7 +64,7 @@ export const detail = async (req, res) => {
 
     const order = await Order.findOne({ _id: orderId })
       .populate("userId", "displayName email phone")
-      .populate("items.productId", "title thumbnail price");
+      .populate("items.productId", "name images price");
 
     if (!order) {
       return res.status(404).json({
@@ -139,7 +139,7 @@ export const updateStatus = async (req, res) => {
       }
     )
       .populate("userId", "displayName email")
-      .populate("items.productId", "title thumbnail price");
+      .populate("items.productId", "name images price");
 
     res.status(200).json({
       message: "Cập nhật trạng thái đơn hàng thành công",

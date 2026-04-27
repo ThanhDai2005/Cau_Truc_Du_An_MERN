@@ -46,7 +46,7 @@ export const create = async (req, res) => {
 
       if (product.stock < item.quantity) {
         return res.status(400).json({
-          message: `Sản phẩm ${product.title} không đủ tồn kho`,
+          message: `Sản phẩm ${product.name} không đủ tồn kho`,
         });
       }
 
@@ -85,7 +85,7 @@ export const create = async (req, res) => {
 
     const populatedOrder = await Order.findOne({ _id: createdOrder._id })
       .populate("userId", "displayName email")
-      .populate("items.productId", "title thumbnail price");
+      .populate("items.productId", "name images price");
 
     res.status(201).json({
       message: "Tạo đơn hàng thành công",
@@ -114,7 +114,7 @@ export const myOrders = async (req, res) => {
 
     const [data, totalItems] = await Promise.all([
       Order.find(filter)
-        .populate("items.productId", "title thumbnail price")
+        .populate("items.productId", "name images price")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -143,7 +143,7 @@ export const detail = async (req, res) => {
     const order = await Order.findOne({
       _id: orderId,
       userId: req.user._id,
-    }).populate("items.productId", "title thumbnail price");
+    }).populate("items.productId", "name images price");
 
     if (!order) {
       return res.status(404).json({

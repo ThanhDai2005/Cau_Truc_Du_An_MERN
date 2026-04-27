@@ -1,4 +1,4 @@
-import Role from "../../../models/role.model.js";
+import Role from "../../../../models/role.model.js";
 
 export const requirePermission = (permission) => {
   return async (req, res, next) => {
