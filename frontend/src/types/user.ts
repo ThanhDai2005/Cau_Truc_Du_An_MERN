@@ -1,11 +1,25 @@
+export interface Role {
+  _id: string;
+  title: string;
+  description: string;
+  permissions: string[];
+  deleted: boolean;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   _id: string;
-  email: string;
   displayName: string;
-  role: "user" | "admin" | "staff";
-  status: "active" | "inactive";
-  avatarUrl?: string;
   phone: string;
-  createdAt?: string;
-  updatedAt?: string;
+  email: string;
+  address?: string;
+  avatarUrl?: string;
+  roleId?: Role | string | null;
+  status: "active" | "inactive";
+  deleted: boolean;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -11,12 +11,7 @@ import ProfilePage from "@/pages/client/ProfilePage";
 
 const clientRoute = {
   path: "/",
-  element: <ClientLayout />,
   children: [
-    {
-      index: true,
-      element: <HomePage />,
-    },
     {
       path: "signup",
       element: <SignUpPage />,
@@ -37,20 +32,27 @@ const clientRoute = {
       path: "reset-password",
       element: <ResetPassword />,
     },
-
     {
-      element: <PrivateRouter />,
+      element: <ClientLayout />,
       children: [
         {
-          path: "profile",
-          element: <ProfilePage />,
+          index: true,
+          element: <HomePage />,
+        },
+        {
+          element: <PrivateRouter />,
+          children: [
+            {
+              path: "profile",
+              element: <ProfilePage />,
+            },
+          ],
+        },
+        {
+          path: "*",
+          element: <NotFoundPage />,
         },
       ],
-    },
-
-    {
-      path: "*",
-      element: <NotFoundPage />,
     },
   ],
 };

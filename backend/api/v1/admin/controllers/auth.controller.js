@@ -43,6 +43,18 @@ export const login = async (req, res) => {
       });
     }
 
+    if (user.status != "active") {
+      return res.status(403).json({
+        message: "Tài khoản đã bị vô hiệu hóa",
+      });
+    }
+
+    if (!user.roleId) {
+      return res.status(403).json({
+        message: "Bạn chưa được gán vai trò",
+      });
+    }
+
     const accessToken = jwt.sign(
       { userId: user._id },
       process.env.ACCESS_TOKEN_SECRET,
@@ -61,8 +73,8 @@ export const login = async (req, res) => {
 
     res.cookie("adminRefreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: process.env.NODE_ENV == "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: REFRESH_TOKEN_TIME,
     });
 
