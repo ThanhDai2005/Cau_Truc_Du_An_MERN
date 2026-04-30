@@ -192,7 +192,7 @@ export const update = async (req, res) => {
     }
 
     const updatedPromotion = await Promotion.findOneAndUpdate(
-      { promotionId: promotionId },
+      { _id: promotionId },
       {
         title: title,
         code: code ? code.toUpperCase() : existedPromotion.code,

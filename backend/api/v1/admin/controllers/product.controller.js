@@ -200,7 +200,7 @@ export const update = async (req, res) => {
     }
 
     const updatedProduct = await Product.findOneAndUpdate(
-      { productId: productId },
+      { _id: productId },
       {
         name: name,
         slug: slug,

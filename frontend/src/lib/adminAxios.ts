@@ -44,7 +44,7 @@ api.interceptors.response.use(
       console.log("refresh", originalRequest._retryCount);
       try {
         const res = await api.post(
-          "/auth/refresh",
+          "/admin/auth/refresh",
           {},
           { withCredentials: true },
         );

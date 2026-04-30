@@ -102,7 +102,7 @@ export const update = async (req, res) => {
     }
 
     const updatedRole = await Role.findOneAndUpdate(
-      { roleId: roleId },
+      { _id: roleId },
       {
         title: title,
         description: description,

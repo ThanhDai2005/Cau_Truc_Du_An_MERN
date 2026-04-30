@@ -185,8 +185,8 @@ export const update = async (req, res) => {
       ? await bcrypt.hash(password, 10)
       : existedUser.hashedPassword;
 
-    await User.findByOneAndUpdate(
-      { userId: userId },
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
       {
         displayName: displayName,
         email: email,
@@ -197,9 +197,7 @@ export const update = async (req, res) => {
         address: address,
       },
       { new: true },
-    );
-
-    const updatedUser = await User.findOne({ userId: userId })
+    )
       .populate("roleId", "title")
       .select("-hashedPassword");
 

@@ -111,7 +111,7 @@ export const update = async (req, res) => {
     }
 
     const updatedCategory = await Category.findOneAndUpdate(
-      { categoryId: categoryId },
+      { _id: categoryId },
       {
         name: name,
         slug: slug,
