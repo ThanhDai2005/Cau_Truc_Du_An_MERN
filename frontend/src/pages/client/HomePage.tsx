@@ -1,14 +1,16 @@
+import Banner from "@/components/client/Banner";
+import ProductList from "@/components/client/ProductList";
+import Service from "@/components/client/Service";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { Link } from "react-router";
 
 const HomePage = () => {
   const user = useAuthStore((store) => store.user);
 
   return (
     <>
-      <div>HomePage</div>
-      <Link to="signup">Đăng kí</Link>
-      <Link to="signin">Đăng nhập</Link>
+      <Banner />
+      <Service />
+      <ProductList />
     </>
   );
 };

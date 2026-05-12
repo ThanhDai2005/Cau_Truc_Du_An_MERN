@@ -4,6 +4,8 @@ import categoryRoute from "./category.route.js";
 import productRoute from "./product.route.js";
 import cartRoute from "./cart.route.js";
 import orderRoute from "./order.route.js";
+import reviewRoute from "./review.route.js";
+import promotionRoute from "./promotion.route.js";
 import { requireAuth } from "../middlewares/auth.middleware.js";
 
 export const clientV1Routes = (app) => {
@@ -20,4 +22,8 @@ export const clientV1Routes = (app) => {
   app.use(version + "/cart", requireAuth, cartRoute);
 
   app.use(version + "/order", requireAuth, orderRoute);
+
+  app.use(version + "/review", reviewRoute);
+
+  app.use(version + "/promotion", requireAuth, promotionRoute);
 };

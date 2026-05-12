@@ -50,3 +50,15 @@ export interface UserState {
     phone: string,
   ) => Promise<void>;
 }
+
+export interface CategoryState {
+  category: [];
+
+  getList: () => Promise<void>;
+}
+
+export interface ProductState {
+  product: [];
+
+  getList: () => Promise<void>;
+}

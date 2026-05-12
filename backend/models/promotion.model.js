@@ -47,6 +47,11 @@ const promotionSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    usersUsed: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
+    },
     startDate: {
       type: Date,
       required: true,

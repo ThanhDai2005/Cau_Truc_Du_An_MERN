@@ -4,8 +4,7 @@ import Category from "../../../../models/category.model.js";
 // [GET] /api/v1/product
 export const list = async (req, res) => {
   try {
-    const keyword = req.query.keyword;
-    const categorySlug = req.query.categorySlug;
+    const { keyword, categorySlug, sortKey, sortValue } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 12;
     const skip = (page - 1) * limit;
@@ -34,10 +33,17 @@ export const list = async (req, res) => {
       filter.name = { $regex: keyword, $options: "i" };
     }
 
+    const sort = {};
+    if (sortKey && sortValue) {
+      sort[sortKey] = sortValue;
+    } else {
+      sort.createdAt = -1;
+    }
+
     const [data, totalItems] = await Promise.all([
       Product.find(filter)
         .populate("categoryId", "name slug")
-        .sort({ createdAt: -1 })
+        .sort(sort)
         .skip(skip)
         .limit(limit),
       Product.countDocuments(filter),
