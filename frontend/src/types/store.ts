@@ -1,4 +1,9 @@
 import type { User } from "./user";
+import type { Category } from "./category";
+import type { Product } from "./product";
+import type { Cart } from "./cart";
+import type { Order } from "./order";
+import type { CreateOrderData } from "../services/orderService";
 
 export interface AuthState {
   accessToken: string | null;
@@ -48,17 +53,55 @@ export interface UserState {
     displayName: string,
     email: string,
     phone: string,
+    address: string,
   ) => Promise<void>;
 }
 
 export interface CategoryState {
-  category: [];
+  category: Category[];
+  loading: boolean;
 
   getList: () => Promise<void>;
 }
 
 export interface ProductState {
-  product: [];
+  product: Product[];
+  loading: boolean;
 
-  getList: () => Promise<void>;
+  getList: (
+    keyword: string,
+    categorySlug: string,
+    page: number,
+    limit: number,
+    sortKey: string,
+    sortValue: string,
+  ) => Promise<void>;
+}
+
+export interface CartState {
+  cart: Cart | null;
+  loading: boolean;
+
+  getCart: () => Promise<void>;
+  addToCart: (productId: string, quantity: number) => Promise<void>;
+  updateQuantity: (productId: string, quantity: number) => Promise<void>;
+  removeFromCart: (productId: string) => Promise<void>;
+  clearCart: () => void;
+}
+
+export interface OrderState {
+  orders: Order[];
+  currentOrder: Order | null;
+  loading: boolean;
+  error: string | null;
+  totalPages: number;
+
+  createOrder: (data: CreateOrderData) => Promise<Order>;
+  getMyOrders: (
+    page?: number,
+    limit?: number,
+    orderStatus?: string,
+  ) => Promise<void>;
+  getOrderDetail: (orderId: string) => Promise<void>;
+  clearCurrentOrder: () => void;
 }

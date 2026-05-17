@@ -4,46 +4,43 @@ import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
 import { toast } from "sonner";
 
-export const useUserStore = create<UserState>((set, get) => ({
+export const useUserStore = create<UserState>()(() => ({
   uploadAvatar: async (formData) => {
     try {
       const { user, setUser } = useAuthStore.getState();
-
       const res = await userService.uploadAvatar(formData);
-
       if (user) {
-        setUser({
-          ...user,
-          avatarUrl: res.avatarUrl,
-        });
+        setUser({ ...user, avatarUrl: res.avatarUrl });
       }
-    } catch (error) {
-      console.log("Lỗi khi upload Avatar", error);
-      toast.error(
-        error?.response?.data?.message || "Upload Avatar không thành công!",
-      );
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Upload Avatar that bai!");
+      throw err;
     }
   },
 
-  updateInfo: async (displayName, email, phone) => {
+  updateInfo: async (displayName, email, phone, address) => {
     try {
       const { user, setUser } = useAuthStore.getState();
-
-      const res = await userService.updateInfo(displayName, email, phone);
-
+      const res = await userService.updateInfo(
+        displayName,
+        email,
+        phone,
+        address,
+      );
       if (user) {
         setUser({
           ...user,
           displayName: res.user.displayName,
           email: res.user.email,
           phone: res.user.phone,
+          address: res.user.address,
         });
       }
-
-      toast.success("Cập nhật thông tin thành công");
-    } catch (error) {
-      console.log("Lỗi khi updateInfo", error);
-      toast.error(error?.response?.data?.message || "Cập nhật thất bại");
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      console.log("Error updateInfo", error);
+      throw err;
     }
   },
 }));

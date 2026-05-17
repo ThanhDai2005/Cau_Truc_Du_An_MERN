@@ -1,0 +1,195 @@
+import { useEffect } from "react";
+import { useNavigate, Link } from "react-router";
+import { useCartStore } from "@/stores/useCartStore";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { toast } from "sonner";
+
+export default function CartPage() {
+  const navigate = useNavigate();
+  const { cart, loading, getCart, updateQuantity, removeFromCart } = useCartStore();
+  const { accessToken } = useAuthStore();
+
+  useEffect(() => {
+    if (!accessToken) {
+      toast.error("Vui lòng đăng nhập để xem giỏ hàng");
+      navigate("/signin");
+      return;
+    }
+    getCart();
+  }, [accessToken, getCart, navigate]);
+
+  const handleUpdateQuantity = async (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    try {
+      await updateQuantity(productId, newQuantity);
+    } catch (error) {
+      toast.error("Lỗi khi cập nhật số lượng");
+    }
+  };
+
+  const handleRemove = async (productId: string) => {
+    try {
+      await removeFromCart(productId);
+      toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
+    } catch (error) {
+      toast.error("Lỗi khi xóa sản phẩm");
+    }
+  };
+
+  const calculateSubtotal = () => {
+    if (!cart?.items) return 0;
+    return cart.items.reduce((sum, item) => {
+      const product = typeof item.productId === "object" ? item.productId : null;
+      if (!product) return sum;
+      return sum + product.price * item.quantity;
+    }, 0);
+  };
+
+  const subtotal = calculateSubtotal();
+  const shippingFee = subtotal > 0 ? 30000 : 0;
+  const total = subtotal + shippingFee;
+
+  if (loading && (!cart || cart.items.length === 0)) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8 animate-pulse space-y-6">
+        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-32 bg-gray-200 rounded-xl"></div>
+            <div className="h-32 bg-gray-200 rounded-xl"></div>
+          </div>
+          <div className="h-64 bg-gray-200 rounded-xl"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cart?.items || cart.items.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 text-[#b51c00]">
+          <span className="material-symbols-outlined text-[48px]">shopping_cart_off</span>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Giỏ hàng của bạn đang trống</h2>
+        <p className="text-gray-500 mb-8">Hãy thêm món ăn ngon vào giỏ hàng ngay nhé!</p>
+        <button
+          onClick={() => navigate("/")}
+          className="bg-[#b51c00] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#8e1400] transition shadow-md shadow-red-100"
+        >
+          Tiếp tục chọn món
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+      <div className="flex items-center gap-2 mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Giỏ hàng</h1>
+        <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-bold">
+          {cart.items.length} món
+        </span>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Cart Items */}
+        <div className="lg:col-span-2 space-y-4">
+          {cart.items.map((item) => {
+            const product = typeof item.productId === "object" ? item.productId : null;
+            if (!product) return null;
+
+            return (
+              <div
+                key={product._id}
+                className="bg-white border border-gray-100 rounded-xl p-4 flex gap-4 shadow-sm"
+              >
+                <img
+                  src={product.images[0] || "/placeholder.png"}
+                  alt={product.name}
+                  className="w-24 h-24 object-cover rounded-lg bg-gray-50 shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-2">
+                      {product.name}
+                    </h3>
+                    <button
+                      onClick={() => handleRemove(product._id)}
+                      className="text-gray-400 hover:text-red-600 transition"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                    </button>
+                  </div>
+                  <p className="text-[#b51c00] font-bold mt-1">
+                    {product.price.toLocaleString("vi-VN")}đ
+                  </p>
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
+                      <button
+                        onClick={() => handleUpdateQuantity(product._id, item.quantity - 1)}
+                        className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
+                        disabled={item.quantity <= 1}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">remove</span>
+                      </button>
+                      <span className="w-10 text-center font-bold text-sm">{item.quantity}</span>
+                      <button
+                        onClick={() => handleUpdateQuantity(product._id, item.quantity + 1)}
+                        className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
+                        disabled={item.quantity >= product.stock}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">add</span>
+                      </button>
+                    </div>
+                    <span className="font-bold text-gray-900">
+                      {(product.price * item.quantity).toLocaleString("vi-VN")}đ
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          <Link to="/" className="inline-flex items-center gap-2 text-[#b51c00] font-bold text-sm hover:underline mt-4">
+             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+             Thêm món ăn khác
+          </Link>
+        </div>
+
+        {/* Order Summary */}
+        <div className="lg:col-span-1">
+          <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm sticky top-24">
+            <h2 className="text-lg font-bold text-gray-900 mb-6 pb-2 border-b border-gray-50">
+              Chi tiết đơn hàng
+            </h2>
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between text-gray-600 text-sm">
+                <span>Tạm tính</span>
+                <span className="font-semibold">{subtotal.toLocaleString("vi-VN")}đ</span>
+              </div>
+              <div className="flex justify-between text-gray-600 text-sm">
+                <span>Phí vận chuyển</span>
+                <span className="font-semibold">{shippingFee.toLocaleString("vi-VN")}đ</span>
+              </div>
+              <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+                <span className="text-gray-900 font-bold">Tổng cộng</span>
+                <span className="text-xl font-bold text-[#b51c00]">
+                  {total.toLocaleString("vi-VN")}đ
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/checkout")}
+              className="w-full bg-[#b51c00] text-white py-3.5 rounded-xl font-bold hover:bg-[#8e1400] transition shadow-md shadow-red-100 active:scale-[0.98]"
+            >
+              Tiến hành thanh toán
+            </button>
+            <p className="text-[11px] text-gray-400 text-center mt-4 italic">
+              * Giá đã bao gồm thuế VAT
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

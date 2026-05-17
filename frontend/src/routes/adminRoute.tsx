@@ -1,7 +1,7 @@
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import AdminRouter from "@/components/auth/AdminRouter";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "react-router";
 
 import DashboardPage from "@/pages/admin/DashboardPage";
 import UserManagementPage from "@/pages/admin/UserManagementPage";

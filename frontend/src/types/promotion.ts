@@ -9,6 +9,7 @@ export interface Promotion {
   maxDiscountAmount: number | null;
   usageLimit: number | null;
   usedCount: number;
+  usersUsed: string[];
   startDate: string;
   endDate: string;
   status: "active" | "inactive";

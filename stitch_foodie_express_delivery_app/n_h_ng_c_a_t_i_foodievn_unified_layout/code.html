@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lịch sử đơn hàng - FoodieVN</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#1a1c1c",
+                        "secondary-container": "#6bfe9c",
+                        "inverse-on-surface": "#f1f1f1",
+                        "tertiary-fixed-dim": "#64d3fe",
+                        "tertiary-fixed": "#bce9ff",
+                        "surface-container-low": "#f3f3f3",
+                        "on-secondary-container": "#00743a",
+                        "on-primary-fixed-variant": "#8e1400",
+                        "error": "#ba1a1a",
+                        "primary": "#b51c00",
+                        "background": "#f9f9f9",
+                        "surface-container-high": "#e8e8e8",
+                        "on-secondary-fixed-variant": "#005228",
+                        "on-surface": "#1a1c1c",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#ffb4a5",
+                        "inverse-surface": "#2f3131",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#004d63",
+                        "on-surface-variant": "#5c403a",
+                        "on-primary-fixed": "#3e0400",
+                        "on-primary-container": "#fffbff",
+                        "on-secondary-fixed": "#00210c",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#ffb4a5",
+                        "surface-container-highest": "#e2e2e2",
+                        "primary-fixed": "#ffdad3",
+                        "on-tertiary-container": "#fbfdff",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9f9",
+                        "tertiary-container": "#007fa0",
+                        "surface-tint": "#ba1d00",
+                        "on-tertiary-fixed": "#001f29",
+                        "surface-bright": "#f9f9f9",
+                        "surface-dim": "#dadada",
+                        "tertiary": "#00647f",
+                        "secondary": "#006d37",
+                        "surface-container": "#eeeeee",
+                        "secondary-fixed-dim": "#4ae183",
+                        "surface-variant": "#e2e2e2",
+                        "primary-container": "#db3416",
+                        "outline-variant": "#e5beb6",
+                        "outline": "#906f69",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#6bfe9c",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "12px",
+                        "lg": "24px",
+                        "container-margin": "16px",
+                        "unit": "8px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-xl": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-xl": ["32px", { "lineHeight": "40px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background pb-24 md:pb-0 pt-16 font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar (Web) -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 h-16 max-w-7xl mx-auto bg-surface shadow-sm hidden md:flex">
+<div class="font-headline-lg text-headline-lg font-bold text-primary">FoodieVN</div>
+<nav class="flex-1 flex justify-center gap-8 px-8">
+<a class="font-label-md text-label-md text-on-surface-variant hover:opacity-80 transition-opacity flex items-center gap-2" href="#">
+<span class="material-symbols-outlined">home</span>
+                Trang chủ
+            </a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:opacity-80 transition-opacity flex items-center gap-2" href="#">
+<span class="material-symbols-outlined">search</span>
+                Tìm kiếm
+            </a>
+<a class="font-label-md text-label-md text-primary font-bold hover:opacity-80 transition-opacity flex items-center gap-2 border-b-2 border-primary pb-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+                Đơn hàng
+            </a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:opacity-80 transition-opacity flex items-center gap-2" href="#">
+<span class="material-symbols-outlined">person</span>
+                Hồ sơ
+            </a>
+</nav>
+<div class="flex items-center gap-4 text-primary">
+<button class="hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</header>
+<!-- Mobile Top Header -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 h-16 bg-surface shadow-sm md:hidden">
+<div class="font-headline-md text-headline-md font-bold text-primary">Lịch sử đơn hàng</div>
+<div class="flex items-center gap-4 text-primary">
+<button class="hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-grow max-w-3xl mx-auto px-container-margin py-lg pt-24 md:pt-12 w-full">
+<div class="mb-lg hidden md:block">
+<h1 class="font-headline-xl text-headline-xl text-on-background">Lịch sử đơn hàng</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-unit">Xem lại các đơn hàng bạn đã đặt và theo dõi trạng thái.</p>
+</div>
+<!-- Filter Tabs -->
+<div class="flex gap-sm overflow-x-auto pb-sm mb-lg no-scrollbar">
+<button class="font-label-md text-label-md px-md py-sm rounded-full bg-primary text-on-primary whitespace-nowrap active:scale-95 transition-transform duration-200 shadow-sm">Tất cả</button>
+<button class="font-label-md text-label-md px-md py-sm rounded-full bg-surface-container text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap active:scale-95 transition-transform duration-200">Đang xử lý</button>
+<button class="font-label-md text-label-md px-md py-sm rounded-full bg-surface-container text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap active:scale-95 transition-transform duration-200">Đang giao</button>
+<button class="font-label-md text-label-md px-md py-sm rounded-full bg-surface-container text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap active:scale-95 transition-transform duration-200">Hoàn thành</button>
+<button class="font-label-md text-label-md px-md py-sm rounded-full bg-surface-container text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap active:scale-95 transition-transform duration-200">Đã hủy</button>
+</div>
+<!-- Order List -->
+<div class="flex flex-col gap-md">
+<!-- Order Card 1: Delivered -->
+<div class="bg-surface rounded-xl p-md shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant flex flex-col gap-md">
+<div class="flex justify-between items-start border-b border-surface-variant pb-sm">
+<div>
+<div class="font-label-md text-label-md text-on-surface-variant">Đơn hàng #FD12345</div>
+<div class="font-body-sm text-body-sm text-outline mt-xs">10:30, 24/10/2023</div>
+</div>
+<div class="font-label-sm text-label-sm px-2 py-1 rounded-md bg-secondary-container text-on-secondary-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                        Đã giao
+                    </div>
+</div>
+<div class="flex gap-md items-center">
+<img alt="Pizza" class="w-16 h-16 rounded-lg object-cover bg-surface-container" data-alt="A delicious, hot pizza with melted cheese, pepperoni, and fresh basil leaves on a wooden serving board. The pizza is well-lit, highlighting the greasy texture of the cheese and the crispy crust. The background is a slightly blurred, modern kitchen setting, providing a warm and inviting atmosphere. The overall style is appetizing, high-quality food photography suitable for a food delivery app, with vibrant colors emphasizing red and golden brown tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7GXqxkNJr9YOQpfkzxGBrJDi8Kh4CeS98UD4kk31Dj0GwHZUxe_JvDFOMoBU0c6h78PnHV8ORARbyeifDCU4Iw9UZj1fYlpQbM29H66c6Ia2-InvxsEHtLsfLUxIs8VdkYRCyA_e6heCGPa7tL1tYcHwamHvFR7_Re1oSNoJWg0jG6TF6WorukXX2h-gqDIg08-0rdf90g9rvH1VNLdVQrM0RJTXzBLMsd2SrOict8O6OUQq12mYAeauNZ6t9hdd9GBF8k5-ofhg"/>
+<div class="flex-1">
+<div class="font-headline-md text-headline-md text-on-background line-clamp-1">Pizza Hut - Trần Hưng Đạo</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Pizza Hải Sản Xốt Pesto (M) + 2 Món khác</div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-sm border-t border-surface-variant">
+<div class="font-headline-md text-headline-md text-primary">285.000đ</div>
+<div class="flex gap-sm">
+<button class="font-label-md text-label-md px-md py-sm rounded-lg border border-primary text-primary hover:bg-primary/5 active:scale-95 transition-transform duration-200">Đánh giá</button>
+<button class="font-label-md text-label-md px-md py-sm rounded-lg bg-primary text-on-primary hover:opacity-90 active:scale-95 transition-transform duration-200">Đặt lại</button>
+</div>
+</div>
+</div>
+<!-- Order Card 2: Processing -->
+<div class="bg-surface rounded-xl p-md shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant flex flex-col gap-md">
+<div class="flex justify-between items-start border-b border-surface-variant pb-sm">
+<div>
+<div class="font-label-md text-label-md text-on-surface-variant">Đơn hàng #FD12346</div>
+<div class="font-body-sm text-body-sm text-outline mt-xs">12:15, Hôm nay</div>
+</div>
+<div class="font-label-sm text-label-sm px-2 py-1 rounded-md bg-tertiary-container text-on-tertiary-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">hourglass_empty</span>
+                        Đang xử lý
+                    </div>
+</div>
+<div class="flex gap-md items-center">
+<img alt="Burger" class="w-16 h-16 rounded-lg object-cover bg-surface-container" data-alt="A juicy, double-patty beef burger with melted cheddar cheese, fresh lettuce, and tomato slices inside a toasted sesame seed bun. The burger is placed on a dark slate plate, emphasizing its height and textures. The lighting is dramatic, casting soft shadows and highlighting the shininess of the meat and cheese. The scene suggests a premium, modern fast-food meal, fitting perfectly with a sleek, minimalist app UI with warm orange and red brand accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUWS2yZPGVHhnMkvFn7p803bxKZi2b6LrnwDoKENeey2kxZKozvBt5RSddmmNaMlJ6VVn0iuNpzpZygxNOw2ypd-ygJcJeE6FEJ2GhspOVzDQZ6BtmL-Fgck1d-bN-u3PUHWDNFptz46OQUeIrCCPfKPXP_oPpVtO2aoLJ9osQreCvAjzqVk5EzgbXvQn4_5k2lU6ug2iSovWsn6WLaFL1_ArXtLEM_sUQbIwMkrptatDGj0saX49d4_caQP2yQKA5S9x4oen2v08"/>
+<div class="flex-1">
+<div class="font-headline-md text-headline-md text-on-background line-clamp-1">Burger King - Phạm Ngũ Lão</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Combo Whopper Kèm Khoai Tây &amp; Nước</div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-sm border-t border-surface-variant">
+<div class="font-headline-md text-headline-md text-primary">125.000đ</div>
+<button class="font-label-md text-label-md px-md py-sm rounded-lg border border-primary text-primary hover:bg-primary/5 active:scale-95 transition-transform duration-200 flex items-center gap-2">
+                        Theo dõi đơn
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward_ios</span>
+</button>
+</div>
+</div>
+<!-- Order Card 3: Cancelled -->
+<div class="bg-surface rounded-xl p-md shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant flex flex-col gap-md opacity-75">
+<div class="flex justify-between items-start border-b border-surface-variant pb-sm">
+<div>
+<div class="font-label-md text-label-md text-on-surface-variant">Đơn hàng #FD12340</div>
+<div class="font-body-sm text-body-sm text-outline mt-xs">19:00, 20/10/2023</div>
+</div>
+<div class="font-label-sm text-label-sm px-2 py-1 rounded-md bg-error-container text-on-error-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+                        Đã hủy
+                    </div>
+</div>
+<div class="flex gap-md items-center">
+<img alt="Salad" class="w-16 h-16 rounded-lg object-cover bg-surface-container grayscale" data-alt="A fresh, vibrant green salad in a white ceramic bowl, featuring crisp lettuce, cherry tomatoes, cucumber slices, and a light vinaigrette dressing. The salad is brightly lit to emphasize the freshness and healthy appeal of the ingredients. The background is a clean, bright white marble surface, contributing to a modern, minimalist, and light-mode UI aesthetic. The overall mood is light, healthy, and appetizing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcT4zJtiMTM6aWUXd6ESCu5CFBRJUUHcXCUZgWOlm-3zy4Hk7jtrtjFdNF6hitfEpdQBBn4Wr63f_u73Z9dhwjnCB026f7_pyIC-2RwAO6pqJdh1rhKlIkVBeEs2wKkITwWpKZrlH1_jZa6CXSBO7rvPVSMDsUi7xU4OJqXj4pTfv7Umpr4xoDbv52o21GpaDZFzMuDmYZU9k0qvxnKsrQDosjglGfD5J4nLgQvxrnGBpRAxug2qeMVQTRyxaThREAFtQEbOm8D3E"/>
+<div class="flex-1">
+<div class="font-headline-md text-headline-md text-on-background line-clamp-1">Salad Station - Quận 1</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Salad Ức Gà Nướng Sốt Mè Rang</div>
+</div>
+</div>
+<div class="flex justify-between items-center pt-sm border-t border-surface-variant">
+<div class="font-headline-md text-headline-md text-on-surface-variant">85.000đ</div>
+<button class="font-label-md text-label-md px-md py-sm rounded-lg border border-surface-variant text-on-surface-variant hover:bg-surface-container active:scale-95 transition-transform duration-200">Xem chi tiết</button>
+</div>
+</div>
+<!-- Load More Skeleton -->
+<div class="bg-surface rounded-xl p-md shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant flex flex-col gap-md animate-pulse mt-unit">
+<div class="flex justify-between items-start border-b border-surface-variant pb-sm">
+<div class="space-y-2">
+<div class="h-4 bg-surface-variant rounded w-24"></div>
+<div class="h-3 bg-surface-variant rounded w-32"></div>
+</div>
+<div class="h-6 w-20 bg-surface-variant rounded-md"></div>
+</div>
+<div class="flex gap-md items-center">
+<div class="w-16 h-16 rounded-lg bg-surface-variant"></div>
+<div class="flex-1 space-y-2">
+<div class="h-5 bg-surface-variant rounded w-3/4"></div>
+<div class="h-4 bg-surface-variant rounded w-1/2"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-2 px-4 pb-safe bg-surface border-t border-outline-variant shadow-[0_-2px_10px_rgba(0,0,0,0.05)] md:hidden rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low active:scale-90 transition-transform duration-150 p-2 rounded-lg" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">Trang chủ</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low active:scale-90 transition-transform duration-150 p-2 rounded-lg" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="font-label-sm text-label-sm mt-1">Tìm kiếm</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary font-semibold hover:bg-surface-container-low active:scale-90 transition-transform duration-150 p-2 rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-label-sm text-label-sm mt-1">Đơn hàng</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low active:scale-90 transition-transform duration-150 p-2 rounded-lg" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">Hồ sơ</span>
+</a>
+</nav>
+<!-- Dark Footer -->
+<footer class="bg-inverse-surface text-inverse-on-surface py-12 mt-12 hidden md:block">
+<div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+<div>
+<h3 class="font-headline-lg text-inverse-primary mb-4">FoodieVN</h3>
+<p class="font-body-md text-surface-variant">Nền tảng đặt đồ ăn trực tuyến hàng đầu Việt Nam.</p>
+</div>
+<div>
+<h4 class="font-headline-md mb-4 text-inverse-on-surface">Về chúng tôi</h4>
+<ul class="space-y-2 font-body-md text-surface-variant">
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Giới thiệu</a></li>
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Điều khoản sử dụng</a></li>
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Chính sách bảo mật</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-headline-md mb-4 text-inverse-on-surface">Hỗ trợ khách hàng</h4>
+<ul class="space-y-2 font-body-md text-surface-variant">
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Trung tâm trợ giúp</a></li>
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Câu hỏi thường gặp</a></li>
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Liên hệ</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-headline-md mb-4 text-inverse-on-surface">Tải ứng dụng</h4>
+<div class="flex flex-col gap-2">
+<a class="bg-surface/10 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-surface/20 transition-colors text-inverse-on-surface" href="#">
+<span class="material-symbols-outlined">android</span>
+<span class="font-label-md">Google Play</span>
+</a>
+<a class="bg-surface/10 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-surface/20 transition-colors text-inverse-on-surface" href="#">
+<span class="material-symbols-outlined">apple</span>
+<span class="font-label-md">App Store</span>
+</a>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-4 mt-8 pt-8 border-t border-surface-variant/20 text-center font-body-sm text-surface-variant">
+        © 2023 FoodieVN. Đã đăng ký bản quyền.
+    </div>
+</footer>
+</body></html>

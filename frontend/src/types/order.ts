@@ -1,11 +1,13 @@
 export interface OrderItem {
-  productId: {
-    _id: string;
-    name: string;
-    slug: string;
-    images: string[];
-    price: number;
-  } | string;
+  productId:
+    | {
+        _id: string;
+        name: string;
+        slug: string;
+        images: string[];
+        price: number;
+      }
+    | string;
   quantity: number;
   price: number;
 }
@@ -28,4 +30,18 @@ export interface Order {
   totalAmount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateOrderData {
+  items: Array<{
+    productId: string;
+    quantity: number;
+  }>;
+  shippingAddress: {
+    recipient: string;
+    phone: string;
+    address: string;
+  };
+  paymentMethod: "COD" | "VNPAY" | "MOMO" | "STRIPE";
+  shippingFee: number;
 }

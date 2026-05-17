@@ -8,6 +8,12 @@ import VerifyOtp from "@/pages/client/VerifyOtp";
 import ResetPassword from "@/pages/client/ResetPassword";
 import NotFoundPage from "@/pages/client/NotFoundPage";
 import ProfilePage from "@/pages/client/ProfilePage";
+import ProductListPage from "@/pages/client/ProductListPage";
+import ProductDetailPage from "@/pages/client/ProductDetailPage";
+import CartPage from "@/pages/client/CartPage";
+import CheckoutPage from "@/pages/client/CheckoutPage";
+import OrdersPage from "@/pages/client/OrdersPage";
+import OrderDetailPage from "@/pages/client/OrderDetailPage";
 
 const clientRoute = {
   path: "/",
@@ -40,11 +46,35 @@ const clientRoute = {
           element: <HomePage />,
         },
         {
+          path: "products",
+          element: <ProductListPage />,
+        },
+        {
+          path: "product/:slug",
+          element: <ProductDetailPage />,
+        },
+        {
           element: <PrivateRouter />,
           children: [
             {
               path: "profile",
               element: <ProfilePage />,
+            },
+            {
+              path: "cart",
+              element: <CartPage />,
+            },
+            {
+              path: "checkout",
+              element: <CheckoutPage />,
+            },
+            {
+              path: "orders",
+              element: <OrdersPage />,
+            },
+            {
+              path: "orders/:orderId",
+              element: <OrderDetailPage />,
             },
           ],
         },

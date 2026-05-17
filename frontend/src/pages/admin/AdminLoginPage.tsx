@@ -8,7 +8,7 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.roleId?.title == "admin" || user?.roleId?.title == "staff") {
+    if (user?.roleId && typeof user.roleId !== "string" && (user.roleId.title === "admin" || user.roleId.title === "staff")) {
       navigate("/admin/dashboard", { replace: true });
     }
   }, [user, navigate]);

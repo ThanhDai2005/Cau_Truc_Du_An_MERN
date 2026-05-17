@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chi tiết đơn hàng - FoodieVN</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#1a1c1c",
+                        "secondary-container": "#6bfe9c",
+                        "inverse-on-surface": "#f1f1f1",
+                        "tertiary-fixed-dim": "#64d3fe",
+                        "tertiary-fixed": "#bce9ff",
+                        "surface-container-low": "#f3f3f3",
+                        "on-secondary-container": "#00743a",
+                        "on-primary-fixed-variant": "#8e1400",
+                        "error": "#ba1a1a",
+                        "primary": "#b51c00",
+                        "background": "#f9f9f9",
+                        "surface-container-high": "#e8e8e8",
+                        "on-secondary-fixed-variant": "#005228",
+                        "on-surface": "#1a1c1c",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#ffb4a5",
+                        "inverse-surface": "#2f3131",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#004d63",
+                        "on-surface-variant": "#5c403a",
+                        "on-primary-fixed": "#3e0400",
+                        "on-primary-container": "#fffbff",
+                        "on-secondary-fixed": "#00210c",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#ffb4a5",
+                        "surface-container-highest": "#e2e2e2",
+                        "primary-fixed": "#ffdad3",
+                        "on-tertiary-container": "#fbfdff",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9f9",
+                        "tertiary-container": "#007fa0",
+                        "surface-tint": "#ba1d00",
+                        "on-tertiary-fixed": "#001f29",
+                        "surface-bright": "#f9f9f9",
+                        "surface-dim": "#dadada",
+                        "tertiary": "#00647f",
+                        "secondary": "#006d37",
+                        "surface-container": "#eeeeee",
+                        "secondary-fixed-dim": "#4ae183",
+                        "surface-variant": "#e2e2e2",
+                        "primary-container": "#db3416",
+                        "outline-variant": "#e5beb6",
+                        "outline": "#906f69",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#6bfe9c",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "12px",
+                        "lg": "24px",
+                        "container-margin": "16px",
+                        "unit": "8px",
+                        "sm": "8px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "md": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-xl": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-xl": ["32px", { "lineHeight": "40px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        .step-active .step-icon {
+            background-color: theme('colors.primary');
+            color: theme('colors.on-primary');
+        }
+        .step-completed .step-icon {
+            background-color: theme('colors.secondary');
+            color: theme('colors.on-secondary');
+        }
+        .step-inactive .step-icon {
+            background-color: theme('colors.surface-variant');
+            color: theme('colors.on-surface-variant');
+        }
+        .step-line {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            bottom: -24px;
+            width: 2px;
+            background-color: theme('colors.surface-variant');
+            z-index: 0;
+        }
+        .step-line-active {
+            background-color: theme('colors.primary');
+        }
+        .step-line-completed {
+            background-color: theme('colors.secondary');
+        }
+        .last-step .step-line {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen pb-24 md:pb-0 pt-[72px] flex flex-col">
+<!-- Top Navigation App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface border-b border-surface-variant h-[72px] px-4 md:px-lg flex items-center justify-between">
+<div class="flex items-center gap-4">
+<a class="text-primary font-headline-lg flex items-center gap-2" href="/">
+<span class="material-symbols-outlined text-[32px]">restaurant</span>
+            FoodieVN
+        </a>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface font-label-md hover:text-primary transition-colors" href="/">Trang chủ</a>
+<a class="text-on-surface font-label-md hover:text-primary transition-colors" href="/khuyen-mai">Khuyến mãi</a>
+<a class="text-primary font-label-md" href="/don-hang">Đơn hàng</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-on-surface hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="hidden md:flex items-center gap-2 cursor-pointer">
+<div class="w-10 h-10 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center font-label-md">
+                T
+            </div>
+</div>
+<button class="md:hidden p-2 text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</header>
+<main class="flex-1 max-w-3xl w-full mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+<!-- Header Info -->
+<div class="flex items-center gap-4 mb-2">
+<button aria-label="Quay lại" class="p-2 -ml-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-on-surface">Chi tiết đơn hàng</h1>
+</div>
+<div class="bg-surface rounded-xl p-4 md:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Mã đơn hàng: #ORD-20231025-001</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Đang giao hàng</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Dự kiến giao: 14:30 - 14:45</p>
+</div>
+<div class="bg-primary-container text-on-primary-container px-3 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] fill-icon">directions_bike</span>
+<span class="font-label-md text-label-md">Đang đến</span>
+</div>
+</div>
+<!-- Driver Info -->
+<div class="flex items-center gap-4 pt-4 border-t border-surface-variant">
+<img alt="Avatar tài xế" class="w-12 h-12 rounded-full object-cover border border-surface-variant" data-alt="A close-up portrait of a friendly delivery driver wearing a modern, subtle uniform. The lighting is bright and natural, creating a welcoming and trustworthy mood. The background is slightly blurred to focus on the person. The overall aesthetic is clean and professional, matching the light-mode corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4Km36d8TdKVyhBkhmrmHyZCOsbUjtqSKhH6t_w3WJMbz3aJV3Q7ctFQGCEogg_cqCDBtR2z5vpWJ0d12mkvd2lKFf0N22_TdGpVGO0yWsSP8rKXbfUK-QQsoSiWXXQiTmR_Zh0bCrNMpl7kmYGNQd8PDZFIlkHzSBEmHKa3kqoYus-empdoO_6vEs3MUzx9qkZWj3_DsChuEuNJsSi4A9dgCBqYSKrhF9yfnxpNbAdnNgXVE-c_JwaDcMNFil9l855yBbsvbiqd4"/>
+<div class="flex-1">
+<h3 class="font-label-md text-label-md text-on-surface">Nguyễn Văn A</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Honda Wave - 29X1-123.45</p>
+</div>
+<div class="flex gap-2">
+<button aria-label="Nhắn tin" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface">chat</span>
+</button>
+<button aria-label="Gọi điện" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-on-surface">call</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Tracking Stepper -->
+<div class="bg-surface rounded-xl p-4 md:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">Trạng thái vận chuyển</h3>
+<div class="relative pl-6 pb-2">
+<!-- Step 1: Completed -->
+<div class="relative pb-8 step-completed">
+<div class="step-line step-line-completed"></div>
+<div class="absolute left-[-24px] top-0 w-12 h-12 flex items-center justify-center z-10">
+<div class="w-8 h-8 rounded-full step-icon flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px] fill-icon">check</span>
+</div>
+</div>
+<div class="ml-4">
+<h4 class="font-label-md text-label-md text-on-surface">Đơn hàng đã đặt</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">13:45, 25/10/2023</p>
+</div>
+</div>
+<!-- Step 2: Completed -->
+<div class="relative pb-8 step-completed">
+<div class="step-line step-line-completed"></div>
+<div class="absolute left-[-24px] top-0 w-12 h-12 flex items-center justify-center z-10">
+<div class="w-8 h-8 rounded-full step-icon flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px] fill-icon">check</span>
+</div>
+</div>
+<div class="ml-4">
+<h4 class="font-label-md text-label-md text-on-surface">Nhà hàng đã xác nhận</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">13:48, 25/10/2023</p>
+</div>
+</div>
+<!-- Step 3: Completed -->
+<div class="relative pb-8 step-completed">
+<div class="step-line step-line-active"></div>
+<div class="absolute left-[-24px] top-0 w-12 h-12 flex items-center justify-center z-10">
+<div class="w-8 h-8 rounded-full step-icon flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px] fill-icon">check</span>
+</div>
+</div>
+<div class="ml-4">
+<h4 class="font-label-md text-label-md text-on-surface">Tài xế đã lấy hàng</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">14:05, 25/10/2023</p>
+</div>
+</div>
+<!-- Step 4: Active -->
+<div class="relative pb-8 step-active">
+<div class="step-line"></div>
+<div class="absolute left-[-24px] top-0 w-12 h-12 flex items-center justify-center z-10">
+<div class="w-8 h-8 rounded-full step-icon flex items-center justify-center shadow-sm animate-pulse">
+<span class="material-symbols-outlined text-[16px] fill-icon">directions_bike</span>
+</div>
+</div>
+<div class="ml-4">
+<h4 class="font-label-md text-label-md text-on-surface">Đang giao đến bạn</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Tài xế đang trên đường. Dự kiến: 14:30</p>
+</div>
+</div>
+<!-- Step 5: Inactive -->
+<div class="relative last-step step-inactive">
+<div class="step-line"></div>
+<div class="absolute left-[-24px] top-0 w-12 h-12 flex items-center justify-center z-10">
+<div class="w-8 h-8 rounded-full step-icon flex items-center justify-center border-2 border-surface-variant bg-surface">
+<span class="material-symbols-outlined text-[16px]">home</span>
+</div>
+</div>
+<div class="ml-4">
+<h4 class="font-label-md text-label-md text-on-surface-variant">Giao hàng thành công</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Đợi nhận hàng</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Items List -->
+<div class="bg-surface rounded-xl p-4 md:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant">
+<div class="flex items-center gap-3 mb-4 pb-4 border-b border-surface-variant">
+<span class="material-symbols-outlined text-primary">storefront</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Cơm Tấm Sườn Bì - Nguyễn Đình Chiểu</h3>
+</div>
+<div class="space-y-4">
+<!-- Item 1 -->
+<div class="flex items-start gap-4">
+<div class="w-8 font-label-md text-label-md text-on-surface pt-1">1x</div>
+<div class="flex-1">
+<h4 class="font-label-md text-label-md text-on-surface">Cơm Tấm Sườn Bì Chả</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Thêm tóp mỡ, Không lấy đồ chua</p>
+</div>
+<div class="font-label-md text-label-md text-on-surface">65.000đ</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-start gap-4">
+<div class="w-8 font-label-md text-label-md text-on-surface pt-1">2x</div>
+<div class="flex-1">
+<h4 class="font-label-md text-label-md text-on-surface">Trà Đá</h4>
+</div>
+<div class="font-label-md text-label-md text-on-surface">10.000đ</div>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-surface-variant space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Tạm tính</span>
+<span class="font-body-md text-body-md text-on-surface">75.000đ</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Phí giao hàng (2.5km)</span>
+<span class="font-body-md text-body-md text-on-surface">15.000đ</span>
+</div>
+<div class="flex justify-between items-center text-primary">
+<span class="font-body-md text-body-md">Khuyến mãi</span>
+<span class="font-body-md text-body-md">-10.000đ</span>
+</div>
+<div class="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-surface-variant">
+<span class="font-label-md text-label-md text-on-surface">Tổng cộng</span>
+<span class="font-headline-md text-headline-md text-primary">80.000đ</span>
+</div>
+</div>
+</div>
+<!-- Delivery Address & Payment Method -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Address -->
+<div class="bg-surface rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant">
+<h3 class="font-label-md text-label-md text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">location_on</span>
+                    Giao đến
+                </h3>
+<div class="font-body-md text-body-md text-on-surface">
+<p class="font-medium mb-1">Công ty ABC (Anh Tuấn)</p>
+<p class="text-on-surface-variant">Tầng 4, Tòa nhà Bitexco, 2 Hải Triều, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh</p>
+<p class="text-on-surface-variant mt-1">0901234567</p>
+</div>
+</div>
+<!-- Payment -->
+<div class="bg-surface rounded-xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-surface-variant">
+<h3 class="font-label-md text-label-md text-on-surface mb-3 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">payments</span>
+                    Thanh toán
+                </h3>
+<div class="font-body-md text-body-md text-on-surface flex items-center gap-3">
+<div class="w-10 h-10 bg-surface-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">account_balance_wallet</span>
+</div>
+<div>
+<p class="font-medium">Tiền mặt</p>
+<p class="text-on-surface-variant text-sm">Thanh toán khi nhận hàng</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-inverse-surface text-inverse-on-surface py-12 px-4 md:px-lg mt-auto hidden md:block">
+<div class="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+<div>
+<a class="text-inverse-primary font-headline-lg flex items-center gap-2 mb-4" href="/">
+<span class="material-symbols-outlined text-[32px]">restaurant</span>
+                FoodieVN
+            </a>
+<p class="font-body-sm text-surface-variant">Giao đồ ăn nhanh chóng, tiện lợi.</p>
+</div>
+<div>
+<h3 class="font-label-md mb-4 text-surface-container-lowest">Về chúng tôi</h3>
+<ul class="space-y-2 font-body-sm text-surface-variant">
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Giới thiệu</a></li>
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Tuyển dụng</a></li>
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Điều khoản</a></li>
+</ul>
+</div>
+<div>
+<h3 class="font-label-md mb-4 text-surface-container-lowest">Hỗ trợ</h3>
+<ul class="space-y-2 font-body-sm text-surface-variant">
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Trung tâm trợ giúp</a></li>
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Câu hỏi thường gặp</a></li>
+<li><a class="hover:text-inverse-primary transition-colors" href="#">Liên hệ</a></li>
+</ul>
+</div>
+<div>
+<h3 class="font-label-md mb-4 text-surface-container-lowest">Tải ứng dụng</h3>
+<div class="flex flex-col gap-2">
+<button class="bg-surface text-on-surface px-4 py-2 rounded-lg font-label-sm flex items-center gap-2 hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">phone_iphone</span> App Store
+                    </button>
+<button class="bg-surface text-on-surface px-4 py-2 rounded-lg font-label-sm flex items-center gap-2 hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">android</span> Google Play
+                    </button>
+</div>
+</div>
+</div>
+<div class="max-w-[1200px] mx-auto mt-8 pt-8 border-t border-outline text-center font-body-sm text-surface-variant">
+            © 2023 FoodieVN. All rights reserved.
+        </div>
+</footer>
+<!-- Bottom Navigation Bar for Mobile -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center py-2 px-4 pb-safe bg-surface dark:bg-inverse-surface border-t border-outline-variant dark:border-outline shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+<button aria-label="Trang chủ" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high p-2 rounded-lg transition-colors w-16">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-label-sm text-label-sm">Trang chủ</span>
+</button>
+<button aria-label="Tìm kiếm" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high p-2 rounded-lg transition-colors w-16">
+<span class="material-symbols-outlined mb-1">search</span>
+<span class="font-label-sm text-label-sm">Tìm kiếm</span>
+</button>
+<button aria-label="Đơn hàng" class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-semibold hover:bg-surface-container-low dark:hover:bg-surface-container-high p-2 rounded-lg transition-colors w-16">
+<span class="material-symbols-outlined mb-1 fill-icon">receipt_long</span>
+<span class="font-label-sm text-label-sm">Đơn hàng</span>
+</button>
+<button aria-label="Hồ sơ" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high p-2 rounded-lg transition-colors w-16">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-label-sm text-label-sm">Hồ sơ</span>
+</button>
+</nav>
+</body></html>

@@ -11,11 +11,17 @@ export const userService = {
     return res.data;
   },
 
-  updateInfo: async (displayName: string, email: string, phone: string) => {
+  updateInfo: async (
+    displayName: string,
+    email: string,
+    phone: string,
+    address: string,
+  ) => {
     const res = await api.patch("/user/profile", {
       displayName,
       email,
       phone,
+      address,
     });
 
     return res.data;

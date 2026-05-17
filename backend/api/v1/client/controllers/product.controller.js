@@ -35,7 +35,7 @@ export const list = async (req, res) => {
 
     const sort = {};
     if (sortKey && sortValue) {
-      sort[sortKey] = sortValue;
+      sort[sortKey] = Number(sortValue);
     } else {
       sort.createdAt = -1;
     }
