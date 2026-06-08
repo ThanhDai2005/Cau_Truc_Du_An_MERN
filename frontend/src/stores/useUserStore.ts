@@ -43,4 +43,19 @@ export const useUserStore = create<UserState>()(() => ({
       throw err;
     }
   },
+
+  changePassword: async (currentPassword, newPassword, confirmNewPassword) => {
+    try {
+      const res = await userService.changePassword(
+        currentPassword,
+        newPassword,
+        confirmNewPassword,
+      );
+      return res;
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      console.log("Error changePassword", error);
+      throw err;
+    }
+  },
 }));

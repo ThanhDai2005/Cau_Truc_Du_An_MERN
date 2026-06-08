@@ -4,6 +4,8 @@ import type { Product } from "./product";
 import type { Cart } from "./cart";
 import type { Order } from "./order";
 import type { CreateOrderData } from "../services/orderService";
+import type { ApplyPromotionResponse } from "./promotion";
+import type { Review } from "./review";
 
 export interface AuthState {
   accessToken: string | null;
@@ -55,6 +57,11 @@ export interface UserState {
     phone: string,
     address: string,
   ) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+    confirmNewPassword: string,
+  ) => Promise<any>;
 }
 
 export interface CategoryState {
@@ -66,6 +73,7 @@ export interface CategoryState {
 
 export interface ProductState {
   product: Product[];
+  currentProduct: Product | null;
   loading: boolean;
 
   getList: (
@@ -75,7 +83,8 @@ export interface ProductState {
     limit: number,
     sortKey: string,
     sortValue: string,
-  ) => Promise<void>;
+  ) => Promise<any>;
+  getDetail: (slug: string) => Promise<any>;
 }
 
 export interface CartState {
@@ -104,4 +113,36 @@ export interface OrderState {
   ) => Promise<void>;
   getOrderDetail: (orderId: string) => Promise<void>;
   clearCurrentOrder: () => void;
+}
+
+export interface PromotionState {
+  appliedPromotion: ApplyPromotionResponse | null;
+  loading: boolean;
+  applyPromotion: (
+    code: string,
+    orderValue: number,
+  ) => Promise<ApplyPromotionResponse>;
+  clearPromotion: () => void;
+}
+
+export interface ReviewState {
+  reviews: Review[];
+  loading: boolean;
+  totalPages: number;
+  createReview: (
+    productId: string,
+    rating: number,
+    comment: string,
+    images?: File[]
+  ) => Promise<any>;
+  getReviewsByProduct: (
+    productId: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<{ data: Review[]; totalItems: number; totalPages: number }>;
+  loadMoreReviews: (
+    productId: string,
+    page: number,
+    limit?: number,
+  ) => Promise<{ data: Review[]; totalItems: number; totalPages: number }>;
 }

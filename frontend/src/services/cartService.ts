@@ -20,4 +20,9 @@ export const cartService = {
     const response = await api.patch(`/cart/remove/${productId}`);
     return response.data;
   },
+
+  clearCart: async () => {
+    const response = await api.post("/cart/clear");
+    return response.data;
+  },
 };

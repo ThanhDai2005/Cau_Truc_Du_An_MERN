@@ -20,4 +20,6 @@ router.patch(
 
 router.patch("/profile", controller.updateInfo);
 
+router.patch("/change-password", controller.changePassword);
+
 export default router;

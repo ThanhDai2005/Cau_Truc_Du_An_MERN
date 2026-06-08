@@ -5,12 +5,13 @@ import { useCartStore } from "@/stores/useCartStore";
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user, accessToken, signOut } = useAuthStore();
+  const { user, signOut } = useAuthStore();
   const { cart } = useCartStore();
   const [searchValue, setSearchValue] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const cartCount = cart?.items?.length ?? 0;
+  const cartCount =
+    cart?.items?.reduce((total, item) => total + item.quantity, 0) ?? 0;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +50,7 @@ const Header = () => {
           >
             Sản phẩm
           </Link>
-          {accessToken && (
+          {user && (
             <Link
               to="/orders"
               className="text-[14px] font-medium text-gray-600 hover:opacity-80 transition-opacity"
@@ -77,7 +78,7 @@ const Header = () => {
           </form>
 
           <button
-            onClick={() => navigate(accessToken ? "/cart" : "/signin")}
+            onClick={() => navigate(user ? "/cart" : "/signin")}
             className="relative w-10 h-10 flex items-center justify-center rounded-full text-[#b51c00] hover:bg-gray-100 transition-colors active:scale-95"
           >
             <span className="material-symbols-outlined">shopping_cart</span>

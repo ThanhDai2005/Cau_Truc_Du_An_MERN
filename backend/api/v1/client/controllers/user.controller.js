@@ -1,4 +1,6 @@
 import User from "../../../../models/user.model.js";
+import Session from "../../../../models/session.model.js";
+import bcrypt from "bcrypt";
 
 // [GET] /api/v1/user/detail
 export const getDetail = async (req, res) => {
@@ -84,6 +86,67 @@ export const updateInfo = async (req, res) => {
     });
   } catch (error) {
     console.log("Lỗi xảy ra khi updateInfo", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/user/change-password
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmNewPassword } = req.body;
+    const userId = req.user._id;
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({
+        message: "Thiếu thông tin mật khẩu",
+      });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({
+        message: "Mật khẩu mới không khớp",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "Mật khẩu mới phải có ít nhất 6 ký tự",
+      });
+    }
+
+    const user = await User.findOne({ _id: userId });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Người dùng không tồn tại",
+      });
+    }
+
+    const passwordCorrect = await bcrypt.compare(
+      currentPassword,
+      user.hashedPassword,
+    );
+
+    if (!passwordCorrect) {
+      return res.status(401).json({
+        message: "Mật khẩu hiện tại không chính xác",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await User.updateOne({ _id: userId }, { hashedPassword: hashedPassword });
+
+    // Xóa tất cả session của user để bắt đăng nhập lại
+    await Session.deleteMany({ userId: userId });
+
+    res.status(200).json({
+      message: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.",
+    });
+  } catch (error) {
+    console.log("Lỗi xảy ra khi changePassword", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });

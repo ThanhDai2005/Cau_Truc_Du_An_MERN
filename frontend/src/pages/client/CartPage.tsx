@@ -1,13 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { useCartStore } from "@/stores/useCartStore";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { usePromotionStore } from "@/stores/usePromotionStore";
 import { toast } from "sonner";
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const { cart, loading, getCart, updateQuantity, removeFromCart } = useCartStore();
+  const { cart, loading, getCart, updateQuantity, removeFromCart } =
+    useCartStore();
   const { accessToken } = useAuthStore();
+  const { applyPromotion, appliedPromotion, clearPromotion } = usePromotionStore();
+
+  // State cho mã khuyến mãi
+  const [promoCode, setPromoCode] = useState("");
+  const [applyingPromo, setApplyingPromo] = useState(false);
 
   useEffect(() => {
     if (!accessToken) {
@@ -18,7 +25,10 @@ export default function CartPage() {
     getCart();
   }, [accessToken, getCart, navigate]);
 
-  const handleUpdateQuantity = async (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (
+    productId: string,
+    newQuantity: number,
+  ) => {
     if (newQuantity < 1) return;
     try {
       await updateQuantity(productId, newQuantity);
@@ -36,10 +46,35 @@ export default function CartPage() {
     }
   };
 
+  // Xử lý áp dụng mã khuyến mãi
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) {
+      toast.error("Vui lòng nhập mã khuyến mãi");
+      return;
+    }
+
+    const subtotal = calculateSubtotal();
+    if (subtotal === 0) {
+      toast.error("Giỏ hàng trống");
+      return;
+    }
+
+    try {
+      setApplyingPromo(true);
+      await applyPromotion(promoCode.trim().toUpperCase(), subtotal);
+      toast.success(`Đã áp dụng mã ${promoCode.toUpperCase()}`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Mã khuyến mãi không hợp lệ");
+    } finally {
+      setApplyingPromo(false);
+    }
+  };
+
   const calculateSubtotal = () => {
     if (!cart?.items) return 0;
     return cart.items.reduce((sum, item) => {
-      const product = typeof item.productId === "object" ? item.productId : null;
+      const product =
+        typeof item.productId === "object" ? item.productId : null;
       if (!product) return sum;
       return sum + product.price * item.quantity;
     }, 0);
@@ -47,7 +82,8 @@ export default function CartPage() {
 
   const subtotal = calculateSubtotal();
   const shippingFee = subtotal > 0 ? 30000 : 0;
-  const total = subtotal + shippingFee;
+  const discount = appliedPromotion?.discountAmount || 0;
+  const total = subtotal + shippingFee - discount;
 
   if (loading && (!cart || cart.items.length === 0)) {
     return (
@@ -68,10 +104,16 @@ export default function CartPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 text-[#b51c00]">
-          <span className="material-symbols-outlined text-[48px]">shopping_cart_off</span>
+          <span className="material-symbols-outlined text-[48px]">
+            shopping_cart_off
+          </span>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Giỏ hàng của bạn đang trống</h2>
-        <p className="text-gray-500 mb-8">Hãy thêm món ăn ngon vào giỏ hàng ngay nhé!</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Giỏ hàng của bạn đang trống
+        </h2>
+        <p className="text-gray-500 mb-8">
+          Hãy thêm món ăn ngon vào giỏ hàng ngay nhé!
+        </p>
         <button
           onClick={() => navigate("/")}
           className="bg-[#b51c00] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#8e1400] transition shadow-md shadow-red-100"
@@ -95,7 +137,8 @@ export default function CartPage() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {cart.items.map((item) => {
-            const product = typeof item.productId === "object" ? item.productId : null;
+            const product =
+              typeof item.productId === "object" ? item.productId : null;
             if (!product) return null;
 
             return (
@@ -117,7 +160,9 @@ export default function CartPage() {
                       onClick={() => handleRemove(product._id)}
                       className="text-gray-400 hover:text-red-600 transition"
                     >
-                      <span className="material-symbols-outlined text-[20px]">delete</span>
+                      <span className="material-symbols-outlined text-[20px]">
+                        delete
+                      </span>
                     </button>
                   </div>
                   <p className="text-[#b51c00] font-bold mt-1">
@@ -126,19 +171,29 @@ export default function CartPage() {
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
                       <button
-                        onClick={() => handleUpdateQuantity(product._id, item.quantity - 1)}
+                        onClick={() =>
+                          handleUpdateQuantity(product._id, item.quantity - 1)
+                        }
                         className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
                         disabled={item.quantity <= 1}
                       >
-                        <span className="material-symbols-outlined text-[18px]">remove</span>
+                        <span className="material-symbols-outlined text-[18px]">
+                          remove
+                        </span>
                       </button>
-                      <span className="w-10 text-center font-bold text-sm">{item.quantity}</span>
+                      <span className="w-10 text-center font-bold text-sm">
+                        {item.quantity}
+                      </span>
                       <button
-                        onClick={() => handleUpdateQuantity(product._id, item.quantity + 1)}
+                        onClick={() =>
+                          handleUpdateQuantity(product._id, item.quantity + 1)
+                        }
                         className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
                         disabled={item.quantity >= product.stock}
                       >
-                        <span className="material-symbols-outlined text-[18px]">add</span>
+                        <span className="material-symbols-outlined text-[18px]">
+                          add
+                        </span>
                       </button>
                     </div>
                     <span className="font-bold text-gray-900">
@@ -150,9 +205,14 @@ export default function CartPage() {
             );
           })}
 
-          <Link to="/" className="inline-flex items-center gap-2 text-[#b51c00] font-bold text-sm hover:underline mt-4">
-             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-             Thêm món ăn khác
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-[#b51c00] font-bold text-sm hover:underline mt-4"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              arrow_back
+            </span>
+            Thêm món ăn khác
           </Link>
         </div>
 
@@ -162,15 +222,30 @@ export default function CartPage() {
             <h2 className="text-lg font-bold text-gray-900 mb-6 pb-2 border-b border-gray-50">
               Chi tiết đơn hàng
             </h2>
+
             <div className="space-y-4 mb-8">
               <div className="flex justify-between text-gray-600 text-sm">
                 <span>Tạm tính</span>
-                <span className="font-semibold">{subtotal.toLocaleString("vi-VN")}đ</span>
+                <span className="font-semibold">
+                  {subtotal.toLocaleString("vi-VN")}đ
+                </span>
               </div>
               <div className="flex justify-between text-gray-600 text-sm">
                 <span>Phí vận chuyển</span>
-                <span className="font-semibold">{shippingFee.toLocaleString("vi-VN")}đ</span>
+                <span className="font-semibold">
+                  {shippingFee.toLocaleString("vi-VN")}đ
+                </span>
               </div>
+
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600 text-sm">
+                  <span>Khuyến mãi</span>
+                  <span className="font-semibold">
+                    - {discount.toLocaleString("vi-VN")}đ
+                  </span>
+                </div>
+              )}
+
               <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
                 <span className="text-gray-900 font-bold">Tổng cộng</span>
                 <span className="text-xl font-bold text-[#b51c00]">
@@ -178,12 +253,60 @@ export default function CartPage() {
                 </span>
               </div>
             </div>
+
+            {/* ==================== PHẦN NHẬP MÃ KHUYẾN MÃI ==================== */}
+            <div className="mb-6 relative">
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                placeholder="Nhập mã khuyến mãi"
+                className="w-full h-12 pl-4 pr-24 rounded-xl border border-gray-200 bg-white focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none transition-colors text-sm"
+                disabled={applyingPromo}
+              />
+              <button
+                onClick={handleApplyPromo}
+                disabled={applyingPromo}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {applyingPromo ? "Đang xử lý..." : "Áp dụng"}
+              </button>
+            </div>
+
+            {appliedPromotion && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-green-600 text-[20px]">
+                    confirmation_number
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-green-800">
+                      {appliedPromotion.title}
+                    </p>
+                    <p className="text-xs text-green-600">
+                      Mã: {appliedPromotion.code}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={clearPromotion}
+                  className="text-green-600 hover:text-green-800"
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    close
+                  </span>
+                </button>
+              </div>
+            )}
+            {/* ============================================================ */}
+
             <button
               onClick={() => navigate("/checkout")}
               className="w-full bg-[#b51c00] text-white py-3.5 rounded-xl font-bold hover:bg-[#8e1400] transition shadow-md shadow-red-100 active:scale-[0.98]"
             >
               Tiến hành thanh toán
             </button>
+
             <p className="text-[11px] text-gray-400 text-center mt-4 italic">
               * Giá đã bao gồm thuế VAT
             </p>

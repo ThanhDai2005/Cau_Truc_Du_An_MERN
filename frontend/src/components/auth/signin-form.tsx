@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Link, useNavigate } from "react-router";
+import { useState } from "react";
 
 const signInSchema = z.object({
   phone: z
@@ -22,6 +23,8 @@ export function SignInForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -35,7 +38,6 @@ export function SignInForm({
 
   const onSubmit = async (data: signInForm) => {
     const { phone, password } = data;
-
     const res = await signIn(phone, password);
     if (res?.accessToken) {
       navigate("/");
@@ -43,93 +45,157 @@ export function SignInForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="p-0 overflow-hidden border border-[#E0D9E3]">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col items-center gap-2">
-                <a className="inline-block mx-auto" href="/signin">
-                  <img
-                    className="object-contain w-12 h-12"
-                    src="/logo.png"
-                    alt=""
-                  />
-                </a>
-                <h2 className="text-2xl font-bold">Chào mừng quay lại</h2>
-                <p className="text-[#6C6C93]">
-                  Đăng nhập vào tài khoản CAU_TRUC của bạn
-                </p>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label className="block text-sm font-semibold" htmlFor="phone">
-                  Số điện thoại
-                </Label>
+    <div className={cn("w-full max-w-md", className)} {...props}>
+      <Card className="bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100">
+        <CardContent className="p-6 md:p-8 flex flex-col gap-6">
+          {/* Header */}
+          <header className="text-center flex flex-col items-center gap-2">
+            <h1 className="font-bold text-4xl tracking-tight text-[#b51c00]">
+              FoodieVN
+            </h1>
+            <p className="text-lg text-gray-600 mt-1">Đăng nhập để tiếp tục</p>
+          </header>
+
+          {/* Form */}
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-5"
+          >
+            {/* Phone Input */}
+            <div className="flex flex-col gap-1.5">
+              <Label
+                className="font-medium text-sm text-gray-700"
+                htmlFor="phone"
+              >
+                Số điện thoại
+              </Label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xl">
+                  phone
+                </span>
                 <Input
                   type="tel"
                   id="phone"
                   placeholder="0909123456"
+                  className="pl-11 h-12 rounded-xl"
                   {...register("phone")}
                 />
-                {errors.phone && (
-                  <p className="text-sm text-[#EF4444]">
-                    {errors.phone.message}
-                  </p>
-                )}
               </div>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <Label
-                    className="block text-sm font-semibold"
-                    htmlFor="password"
-                  >
-                    Mật khẩu
-                  </Label>
-                  <Link
-                    className="block hover:underline hover:underline-offset-2"
-                    to="/forgot-password"
-                  >
-                    Quên mật khẩu?
-                  </Link>
-                </div>
+              {errors.phone && (
+                <p className="text-sm text-red-500">{errors.phone.message}</p>
+              )}
+            </div>
+
+            {/* Password Input */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between items-center">
+                <Label
+                  className="font-medium text-sm text-gray-700"
+                  htmlFor="password"
+                >
+                  Mật khẩu
+                </Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-[#b51c00] hover:underline"
+                >
+                  Quên mật khẩu?
+                </Link>
+              </div>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xl">
+                  lock
+                </span>
                 <Input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
+                  placeholder="Nhập mật khẩu"
+                  className="pl-11 pr-11 h-12 rounded-xl"
                   {...register("password")}
                 />
-                {errors.password && (
-                  <p className="text-sm text-[#EF4444]">
-                    {errors.password.message}
-                  </p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <span className="material-symbols-outlined text-xl">
+                    {showPassword ? "visibility" : "visibility_off"}
+                  </span>
+                </button>
               </div>
-              <Button disabled={isSubmitting} className="w-full" type="submit">
-                Đăng nhập
-              </Button>
-              <p className="text-sm text-center">
-                Chưa có tài khoản?{" "}
-                <a className="underline underline-offset-4" href="/signup">
-                  Đăng ký
-                </a>
-              </p>
+              {errors.password && (
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
+
+            {/* Submit Button */}
+            <Button
+              disabled={isSubmitting}
+              className="w-full h-12 bg-[#b51c00] hover:bg-[#8e1400] text-white rounded-xl text-base font-semibold mt-2"
+              type="submit"
+            >
+              {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+            </Button>
           </form>
-          <div className="relative hidden bg-muted md:block">
-            <img
-              src="/SignIn.png"
-              alt="Image"
-              className="absolute object-cover -translate-y-1/2 top-1/2"
-            />
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 py-1">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-sm text-gray-500 font-medium">hoặc</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          {/* Social Login */}
+          <div className="flex flex-col gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
+            >
+              <img
+                alt="Google"
+                className="w-5 h-5"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA477ABBnqm8NA0dxlWlCsXtx0EvaDLdyzPj9AensRCO-MQVs4OVufXJAyXPFQgoWUch4tZd39rEbXSfXgzRQVQip3MPY2Dede7JnvQANbH-pY4mar_Vzn7e_yn3HMksqnq8WTDnWAcz8e0DDAgnBVc8mRK6_CLBt8FDdWrYwpaYRrMo7Ntii088eVcm53iAiPp4XQ4nGhvjDCPgf1g1ZUMhY6rq9ME3-OCGb5DyVA_QJpTa7haZjEX08Ibv8o1IlIZmnzoLWM2L04"
+              />
+              Đăng nhập với Google
+            </Button>
+
+            <Button
+              type="button"
+              className="h-12 bg-[#1877F2] hover:bg-[#1666d4] text-white rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
+            >
+              <img
+                alt="Facebook"
+                className="w-5 h-5 brightness-0 invert"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBx2MvKg9vH2nFcVUV3v9Mc94Etr2mS__6q_4ILJ5NWpCf6qf-0ZrbKEhJFJe14tGXyd8EN5rxCLpY6k46DjYazB3lovphm3pAEASpFtqKjHKqscCjYgkktSBd9dIeUCBCDtTdIPdxKtMvxmrqQzAnOts9gxV8cKhKZhpQn0TPRMO1hztwsiOQ4LgRcfZW9PYYfKxedAdCmffhzeZ8wZtexCd7lxU1u4CqYptfZCBl7Qy15cWVcIoB3LpLjTBGG7qWfXj-mnpmhLfc"
+              />
+              Đăng nhập với Facebook
+            </Button>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center text-sm text-gray-600 mt-2">
+            Chưa có tài khoản?{" "}
+            <Link
+              to="/signup"
+              className="text-[#b51c00] font-semibold hover:underline"
+            >
+              Đăng ký ngay
+            </Link>
           </div>
         </CardContent>
       </Card>
-      <p className="px-6 text-xs text-[#6C6C93] text-center">
+
+      {/* Policy Text */}
+      <p className="text-center text-xs text-gray-500 mt-6 px-4">
         Bằng cách tiếp tục, bạn đồng ý với{" "}
-        <a className="underline" href="#">
+        <a href="#" className="underline hover:text-gray-700">
           Điều khoản dịch vụ
         </a>{" "}
         và{" "}
-        <a className="underline" href="#">
+        <a href="#" className="underline hover:text-gray-700">
           Chính sách bảo mật
         </a>{" "}
         của chúng tôi.

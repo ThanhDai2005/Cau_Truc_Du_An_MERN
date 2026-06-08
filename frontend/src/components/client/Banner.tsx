@@ -9,7 +9,7 @@ const Banner = () => {
         <img
           alt="Food promotion banner"
           className="absolute inset-0 w-full h-full object-cover"
-          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=80"
+          src="banner.jpg"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent"></div>
         <div className="relative z-10 px-6 md:px-12 w-full max-w-md">

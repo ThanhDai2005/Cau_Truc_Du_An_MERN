@@ -13,8 +13,8 @@ export default function ProductListPage() {
   const keyword = searchParams.get("keyword") || "";
   const selectedCategory = searchParams.get("category") || "";
   const currentPage = parseInt(searchParams.get("page") || "1");
-  const sortKey = searchParams.get("sortKey") || "";
-  const sortValue = searchParams.get("sortValue") || "";
+  const sortKey = searchParams.get("sortKey") || "averageRating";
+  const sortValue = searchParams.get("sortValue") || "-1";
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function ProductListPage() {
           currentPage,
           12,
           sortKey,
-          sortValue
+          sortValue,
         );
         if (response) {
           setTotalPages(response.totalPages || 1);
@@ -131,7 +131,8 @@ export default function ProductListPage() {
               <button
                 onClick={() => handleSortChange("createdAt", "-1")}
                 className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
-                  (sortKey === "createdAt" || sortKey === "") && sortValue === "-1"
+                  (sortKey === "createdAt" || sortKey === "") &&
+                  sortValue === "-1"
                     ? "bg-red-50 text-[#b51c00] font-bold"
                     : "text-gray-600 hover:bg-gray-50"
                 }`}
@@ -171,7 +172,11 @@ export default function ProductListPage() {
       <section className="flex-1 flex flex-col gap-6">
         <div className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-gray-100">
           <span className="text-sm text-gray-500">
-            Hiển thị <strong className="text-gray-900 font-semibold">{product.length}</strong> sản phẩm
+            Hiển thị{" "}
+            <strong className="text-gray-900 font-semibold">
+              {product.length}
+            </strong>{" "}
+            sản phẩm
           </span>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 hidden sm:inline-block">
@@ -196,7 +201,10 @@ export default function ProductListPage() {
         {loading ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[...Array(12)].map((_, idx) => (
-              <div key={idx} className="bg-white rounded-xl p-2 shadow-sm animate-pulse border border-gray-100">
+              <div
+                key={idx}
+                className="bg-white rounded-xl p-2 shadow-sm animate-pulse border border-gray-100"
+              >
                 <div className="w-full h-[140px] md:h-[160px] bg-gray-200 rounded-lg mb-3"></div>
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
                 <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
@@ -232,7 +240,10 @@ export default function ProductListPage() {
                   <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
                     <span
                       className="material-symbols-outlined text-yellow-500"
-                      style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
+                      style={{
+                        fontSize: "14px",
+                        fontVariationSettings: "'FILL' 1",
+                      }}
                     >
                       star
                     </span>
@@ -264,7 +275,10 @@ export default function ProductListPage() {
                       disabled={item.stock === 0}
                       className="w-8 h-8 rounded-full bg-[#b51c00] text-white flex items-center justify-center hover:bg-[#8e1400] active:scale-90 transition-all shadow-sm disabled:opacity-50 disabled:bg-gray-300"
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: "18px" }}
+                      >
                         add
                       </span>
                     </button>
@@ -285,7 +299,10 @@ export default function ProductListPage() {
               disabled={currentPage === 1}
               className="w-10 h-10 rounded-lg flex items-center justify-center border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: "20px" }}
+              >
                 chevron_left
               </span>
             </button>
@@ -311,7 +328,10 @@ export default function ProductListPage() {
               disabled={currentPage === totalPages}
               className="w-10 h-10 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: "20px" }}
+              >
                 chevron_right
               </span>
             </button>

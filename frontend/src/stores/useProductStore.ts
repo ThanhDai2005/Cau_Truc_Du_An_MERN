@@ -4,6 +4,7 @@ import { productService } from "@/services/productService";
 
 export const useProductStore = create<ProductState>((set, get) => ({
   product: [],
+  currentProduct: null,
   loading: false,
 
   getList: async (
@@ -28,6 +29,20 @@ export const useProductStore = create<ProductState>((set, get) => ({
       return res;
     } catch (error) {
       console.error("Error fetching products:", error);
+      set({ loading: false });
+      throw error;
+    }
+  },
+
+  getDetail: async (slug: string) => {
+    try {
+      set({ loading: true });
+      const res = await productService.getDetail(slug);
+      set({ currentProduct: res.data, loading: false });
+      return res;
+    } catch (error) {
+      console.error("Error fetching product detail:", error);
+      set({ loading: false, currentProduct: null });
       throw error;
     }
   },

@@ -6,23 +6,40 @@ import { z } from "zod";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { toast } from "sonner";
-import LogOut from "@/components/auth/LogOut";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
   email: z.string().email("Email không hợp lệ"),
-  phone: z.string().regex(/^(03|05|07|08|09)\d{8}$/, "Số điện thoại không hợp lệ"),
+  phone: z
+    .string()
+    .regex(/^(03|05|07|08|09)\d{8}$/, "Số điện thoại không hợp lệ"),
   address: z.string().optional(),
 });
 
+const passwordSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(6, "Mật khẩu hiện tại phải có ít nhất 6 ký tự"),
+    newPassword: z.string().min(6, "Mật khẩu mới phải có ít nhất 6 ký tự"),
+    confirmNewPassword: z.string().min(6, "Xác nhận mật khẩu mới bắt buộc"),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "Mật khẩu mới không khớp",
+    path: ["confirmNewPassword"],
+  });
+
 type ProfileForm = z.infer<typeof profileSchema>;
+type PasswordForm = z.infer<typeof passwordSchema>;
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { user, accessToken } = useAuthStore();
-  const { uploadAvatar, updateInfo } = useUserStore();
+  const { uploadAvatar, updateInfo, changePassword } = useUserStore();
+
   const [uploading, setUploading] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const {
     register,
@@ -33,6 +50,15 @@ const ProfilePage = () => {
     resolver: zodResolver(profileSchema),
   });
 
+  const {
+    register: registerPassword,
+    handleSubmit: handlePasswordSubmit,
+    formState: { errors: passwordErrors },
+    reset: resetPasswordForm,
+  } = useForm<PasswordForm>({
+    resolver: zodResolver(passwordSchema),
+  });
+
   useEffect(() => {
     if (!accessToken) {
       toast.error("Vui lòng đăng nhập");
@@ -41,9 +67,9 @@ const ProfilePage = () => {
     }
 
     if (user) {
-      setValue("displayName", user.displayName);
-      setValue("email", user.email);
-      setValue("phone", user.phone);
+      setValue("displayName", user.displayName || "");
+      setValue("email", user.email || "");
+      setValue("phone", user.phone || "");
       setValue("address", user.address || "");
     }
   }, [user, accessToken, setValue, navigate]);
@@ -51,11 +77,6 @@ const ProfilePage = () => {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("Vui lòng chọn file ảnh");
-      return;
-    }
 
     try {
       setUploading(true);
@@ -70,130 +91,247 @@ const ProfilePage = () => {
     }
   };
 
-  const onSubmit = async (data: ProfileForm) => {
+  const onSubmitProfile = async (data: ProfileForm) => {
     try {
       setUpdating(true);
-      await updateInfo(data.displayName, data.email, data.phone, data.address || "");
+      await updateInfo(
+        data.displayName,
+        data.email,
+        data.phone,
+        data.address || "",
+      );
       toast.success("Cập nhật thông tin thành công");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Lỗi khi cập nhật thông tin");
+      toast.error(
+        error.response?.data?.message || "Lỗi khi cập nhật thông tin",
+      );
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const onSubmitPassword = async (data: PasswordForm) => {
+    try {
+      setChangingPassword(true);
+      await changePassword(data.currentPassword, data.newPassword, data.confirmNewPassword);
+      toast.success("Đổi mật khẩu thành công. Vui lòng đăng nhập lại.");
+      resetPasswordForm();
+      // Redirect to signin after password change
+      setTimeout(() => {
+        navigate("/signin");
+      }, 2000);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Lỗi khi đổi mật khẩu");
+    } finally {
+      setChangingPassword(false);
     }
   };
 
   if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Hồ sơ cá nhân</h1>
+    <div className="max-w-5xl mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold text-gray-900 mb-10">Hồ sơ cá nhân</h1>
 
-      <div className="grid md:grid-cols-3 gap-8">
-        {/* Left: Avatar & Logout */}
-        <div className="md:col-span-1 space-y-6">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center">
-            <div className="relative group">
-              <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-4 border-white shadow-md ring-1 ring-gray-100">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column - Avatar */}
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+            <div className="relative w-40 h-40 mx-auto mb-6 group">
+              <div className="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-md">
                 {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt={user.displayName} className="w-full h-full object-cover" />
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.displayName}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <div className="w-full h-full bg-[#b51c00] flex items-center justify-center text-white text-4xl font-black">
+                  <div className="w-full h-full bg-[#b51c00] flex items-center justify-center text-white text-6xl font-bold">
                     {user.displayName?.charAt(0).toUpperCase()}
                   </div>
                 )}
               </div>
+
+              {/* Camera Icon Overlay */}
               <label
                 htmlFor="avatar-upload"
-                className="absolute bottom-1 right-1 w-9 h-9 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center cursor-pointer hover:text-[#b51c00] transition-colors"
+                className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-all border border-gray-200"
               >
-                <span className="material-symbols-outlined text-[20px]">photo_camera</span>
+                <span className="material-symbols-outlined text-[#b51c00]">
+                  photo_camera
+                </span>
                 <input
                   id="avatar-upload"
                   type="file"
                   accept="image/*"
                   onChange={handleAvatarChange}
                   className="hidden"
-                  disabled={uploading}
                 />
               </label>
-              {uploading && (
-                <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined animate-spin text-[#b51c00]">progress_activity</span>
-                </div>
-              )}
             </div>
 
-            <div className="text-center mt-4">
-              <h2 className="font-bold text-gray-900 text-lg">{user.displayName}</h2>
-              <p className="text-sm text-gray-500">{user.email}</p>
-            </div>
-
-            <div className="w-full pt-6 mt-6 border-t border-gray-50">
-              <LogOut />
-            </div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {user.displayName}
+            </h2>
+            <p className="text-gray-500 mt-1">{user.email}</p>
           </div>
         </div>
 
-        {/* Right: Info Form */}
-        <div className="md:col-span-2">
-          <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2 mb-8 pb-4 border-b border-gray-50">
-              <span className="material-symbols-outlined text-[#b51c00]">edit_note</span>
-              <h2 className="text-lg font-bold text-gray-900">Cập nhật thông tin</h2>
+        {/* Right Column - Forms */}
+        <div className="lg:col-span-8 space-y-8">
+          {/* Cập nhật thông tin */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="flex items-center gap-3 mb-8">
+              <span className="material-symbols-outlined text-[#b51c00] text-2xl">
+                edit_note
+              </span>
+              <h2 className="text-2xl font-bold">Cập nhật thông tin</h2>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <form
+              onSubmit={handleSubmit(onSubmitProfile)}
+              className="space-y-6"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Họ và tên</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Họ và tên
+                  </label>
                   <input
                     {...register("displayName")}
-                    className="w-full h-11 px-4 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] outline-none text-sm bg-gray-50 focus:bg-white transition-all"
+                    className="w-full h-12 px-5 border border-gray-200 rounded-2xl focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none"
                   />
-                  {errors.displayName && <p className="text-red-500 text-xs mt-1.5">{errors.displayName.message}</p>}
+                  {errors.displayName && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.displayName.message}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Số điện thoại</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Số điện thoại
+                  </label>
                   <input
                     {...register("phone")}
-                    className="w-full h-11 px-4 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] outline-none text-sm bg-gray-50 focus:bg-white transition-all"
+                    readOnly
+                    className="w-full h-12 px-5 border border-gray-200 rounded-2xl bg-gray-50 text-gray-400 cursor-not-allowed outline-none"
                   />
-                  {errors.phone && <p className="text-red-500 text-xs mt-1.5">{errors.phone.message}</p>}
+                  {errors.phone && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.phone.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
                 <input
                   {...register("email")}
-                  className="w-full h-11 px-4 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] outline-none text-sm bg-gray-50 focus:bg-white transition-all"
+                  className="w-full h-12 px-5 border border-gray-200 rounded-2xl focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none"
                 />
-                {errors.email && <p className="text-red-500 text-xs mt-1.5">{errors.email.message}</p>}
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Địa chỉ</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Địa chỉ
+                </label>
                 <textarea
                   {...register("address")}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] outline-none text-sm bg-gray-50 focus:bg-white transition-all resize-none"
-                  placeholder="Nhập địa chỉ giao hàng của bạn..."
+                  className="w-full px-5 py-4 border border-gray-200 rounded-2xl focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none resize-none"
+                  placeholder="Nhập địa chỉ giao hàng..."
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={updating}
-                className="w-full h-12 bg-[#b51c00] text-white rounded-xl font-bold hover:bg-[#8e1400] transition shadow-md shadow-red-50 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full h-12 bg-[#b51c00] hover:bg-[#8e1400] text-white font-bold text-lg rounded-2xl transition disabled:opacity-70"
               >
-                {updating ? (
-                  <>
-                    <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
-                    Đang lưu...
-                  </>
-                ) : (
-                  "Lưu thay đổi"
+                {updating ? "Đang lưu..." : "Lưu thay đổi"}
+              </button>
+            </form>
+          </div>
+
+          {/* Đổi mật khẩu */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="flex items-center gap-3 mb-8">
+              <span className="material-symbols-outlined text-[#b51c00] text-2xl">
+                lock
+              </span>
+              <h2 className="text-2xl font-bold">Đổi mật khẩu</h2>
+            </div>
+
+            <form
+              onSubmit={handlePasswordSubmit(onSubmitPassword)}
+              className="space-y-6"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mật khẩu hiện tại
+                </label>
+                <input
+                  type="password"
+                  {...registerPassword("currentPassword")}
+                  className="w-full h-12 px-5 border border-gray-200 rounded-2xl focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none"
+                  placeholder="Nhập mật khẩu hiện tại"
+                />
+                {passwordErrors.currentPassword && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {passwordErrors.currentPassword.message}
+                  </p>
                 )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mật khẩu mới
+                  </label>
+                  <input
+                    type="password"
+                    {...registerPassword("newPassword")}
+                    className="w-full h-12 px-5 border border-gray-200 rounded-2xl focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none"
+                    placeholder="Nhập mật khẩu mới"
+                  />
+                  {passwordErrors.newPassword && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {passwordErrors.newPassword.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Xác nhận mật khẩu mới
+                  </label>
+                  <input
+                    type="password"
+                    {...registerPassword("confirmNewPassword")}
+                    className="w-full h-12 px-5 border border-gray-200 rounded-2xl focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none"
+                    placeholder="Nhập lại mật khẩu mới"
+                  />
+                  {passwordErrors.confirmNewPassword && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {passwordErrors.confirmNewPassword.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={changingPassword}
+                className="w-full h-12 border-2 border-[#b51c00] text-[#b51c00] font-bold text-lg rounded-2xl hover:bg-red-50 transition disabled:opacity-70"
+              >
+                {changingPassword ? "Đang xử lý..." : "Đổi mật khẩu"}
               </button>
             </form>
           </div>

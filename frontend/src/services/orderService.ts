@@ -12,6 +12,8 @@ export interface CreateOrderData {
   };
   paymentMethod: "COD" | "VNPAY" | "MOMO" | "STRIPE";
   shippingFee: number;
+  promotionId?: string;
+  discountAmount?: number;
 }
 
 export const orderService = {

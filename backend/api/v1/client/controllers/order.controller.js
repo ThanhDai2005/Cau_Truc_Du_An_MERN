@@ -1,10 +1,19 @@
 import Order from "../../../../models/order.model.js";
 import Product from "../../../../models/product.model.js";
+import Promotion from "../../../../models/promotion.model.js";
+import Cart from "../../../../models/cart.model.js";
 
 // [POST] /api/v1/order
 export const create = async (req, res) => {
   try {
-    const { items, shippingAddress, paymentMethod, shippingFee } = req.body;
+    const {
+      items,
+      shippingAddress,
+      paymentMethod,
+      shippingFee,
+      promotionId,
+      discountAmount,
+    } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
@@ -61,7 +70,8 @@ export const create = async (req, res) => {
     }
 
     const shippingFeeValue = Number(shippingFee || 0);
-    const totalAmount = subtotal + shippingFeeValue;
+    const discountAmountValue = Number(discountAmount || 0);
+    const totalAmount = subtotal + shippingFeeValue - discountAmountValue;
 
     const createdOrder = await Order.create({
       userId: req.user._id,
@@ -73,6 +83,8 @@ export const create = async (req, res) => {
       },
       paymentMethod: paymentMethod || "COD",
       shippingFee: shippingFeeValue,
+      promotionId: promotionId || null,
+      discountAmount: discountAmountValue,
       totalAmount: totalAmount,
     });
 
@@ -82,6 +94,20 @@ export const create = async (req, res) => {
         { $inc: { stock: -item.quantity } },
       );
     }
+
+    // Update promotion usedCount and usersUsed if promotion was applied
+    if (promotionId) {
+      await Promotion.updateOne(
+        { _id: promotionId },
+        {
+          $inc: { usedCount: 1 },
+          $addToSet: { usersUsed: req.user._id },
+        },
+      );
+    }
+
+    // Clear cart after successful order creation
+    await Cart.updateOne({ userId: req.user._id }, { items: [] });
 
     const populatedOrder = await Order.findOne({ _id: createdOrder._id })
       .populate("userId", "displayName email")

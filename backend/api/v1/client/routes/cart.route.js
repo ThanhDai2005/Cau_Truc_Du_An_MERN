@@ -11,4 +11,6 @@ router.patch("/update/:productId", controller.updateQuantity);
 
 router.patch("/remove/:productId", controller.removeFromCart);
 
+router.post("/clear", controller.clearCart);
+
 export default router;

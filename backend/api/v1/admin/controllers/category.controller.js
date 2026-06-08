@@ -1,4 +1,5 @@
 import Category from "../../../../models/category.model.js";
+import Product from "../../../../models/product.model.js";
 import slugify from "slugify";
 
 // [GET] /api/v1/admin/category
@@ -154,6 +155,12 @@ export const softDelete = async (req, res) => {
         deleted: true,
         deletedAt: new Date(),
       },
+    );
+
+    // Set categoryId to null for all products in this category
+    await Product.updateMany(
+      { categoryId: categoryId, deleted: false },
+      { categoryId: null },
     );
 
     res.status(200).json({

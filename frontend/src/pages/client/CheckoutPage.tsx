@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useCartStore } from "@/stores/useCartStore";
 import { useOrderStore } from "@/stores/useOrderStore";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { usePromotionStore } from "@/stores/usePromotionStore";
 import { toast } from "sonner";
 
 const checkoutSchema = z.object({
@@ -22,6 +23,7 @@ export default function CheckoutPage() {
   const { cart, getCart, clearCart } = useCartStore();
   const { createOrder } = useOrderStore();
   const { accessToken, user } = useAuthStore();
+  const { appliedPromotion, clearPromotion } = usePromotionStore();
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -64,7 +66,8 @@ export default function CheckoutPage() {
 
   const subtotal = calculateSubtotal();
   const shippingFee = subtotal > 0 ? 30000 : 0;
-  const total = subtotal + shippingFee;
+  const discount = appliedPromotion?.discountAmount || 0;
+  const total = subtotal + shippingFee - discount;
 
   const onSubmit = async (data: CheckoutForm) => {
     if (!cart?.items || cart.items.length === 0) {
@@ -89,10 +92,13 @@ export default function CheckoutPage() {
         },
         paymentMethod: data.paymentMethod,
         shippingFee: shippingFee,
+        promotionId: appliedPromotion?.promotionId,
+        discountAmount: appliedPromotion?.discountAmount || 0,
       };
 
       const order = await createOrder(orderData);
       clearCart();
+      clearPromotion();
       toast.success("Đặt hàng thành công!");
       navigate(`/orders/${order._id}`);
     } catch (error: any) {
@@ -259,6 +265,12 @@ export default function CheckoutPage() {
                   <span>Phí giao hàng</span>
                   <span className="font-semibold">{shippingFee.toLocaleString("vi-VN")}đ</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600 text-sm">
+                    <span>Khuyến mãi</span>
+                    <span className="font-semibold">- {discount.toLocaleString("vi-VN")}đ</span>
+                  </div>
+                )}
                 <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
                   <span className="text-gray-900 font-bold">Tổng thanh toán</span>
                   <span className="text-xl font-bold text-[#b51c00]">

@@ -46,6 +46,12 @@ const orderSchema = new mongoose.Schema(
       default: "Pending",
     },
     shippingFee: { type: Number, default: 0 },
+    promotionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Promotion",
+      default: null,
+    },
+    discountAmount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
   },
   { timestamps: true },

@@ -1,20 +1,9 @@
-export interface Promotion {
-  _id: string;
-  title: string;
+export interface ApplyPromotionResponse {
+  promotionId: string;
   code: string;
-  description: string;
-  discountType: "percentage" | "fixed";
+  title: string;
+  discountType: string;
   discountValue: number;
-  minOrderValue: number;
-  maxDiscountAmount: number | null;
-  usageLimit: number | null;
-  usedCount: number;
-  usersUsed: string[];
-  startDate: string;
-  endDate: string;
-  status: "active" | "inactive";
-  deleted: boolean;
-  deletedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
+  discountAmount: number;
+  finalAmount: number;
 }

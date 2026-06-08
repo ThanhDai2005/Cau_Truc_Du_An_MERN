@@ -6,16 +6,23 @@ import Order from "../../../../models/order.model.js";
 export const create = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { productId, rating, comment } = req.body;
+    const { productId, rating, comment, images } = req.body;
 
-    if (!productId || !rating || !comment) {
+    if (!productId || !rating) {
       return res
         .status(400)
-        .json({ message: "Thiếu productId, rating hoặc comment" });
+        .json({ message: "Thiếu productId hoặc rating" });
     }
 
     if (rating < 1 || rating > 5) {
       return res.status(400).json({ message: "Rating phải từ 1 đến 5" });
+    }
+
+    // Validate images array if provided
+    if (images && Array.isArray(images) && images.length > 5) {
+      return res
+        .status(400)
+        .json({ message: "Tối đa 5 ảnh cho mỗi đánh giá" });
     }
 
     // Kiểm tra sản phẩm tồn tại
@@ -56,7 +63,8 @@ export const create = async (req, res) => {
       productId,
       userId,
       rating: Number(rating),
-      comment: comment.trim(),
+      comment: comment ? comment.trim() : "",
+      images: images || [],
     });
 
     // Cập nhật averageRating và numReviews trên Product

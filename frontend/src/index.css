@@ -799,3 +799,104 @@
     @apply pt-[100px] pb-[10px];
   }
 }
+
+/* Product Detail - Ingredients Content Styling */
+.ingredients-content {
+  @apply text-gray-700;
+}
+
+.ingredients-content ul li {
+  list-style-type: disc;
+}
+
+.ingredients-content h1,
+.ingredients-content h2 {
+  @apply text-xl font-bold mb-4 text-gray-900 mt-8 first:mt-0;
+}
+
+.ingredients-content h3 {
+  @apply text-lg font-semibold mb-3 text-gray-800;
+}
+
+.ingredients-content p {
+  @apply mb-4 leading-relaxed text-gray-700;
+}
+
+.ingredients-content ul,
+.ingredients-content ol {
+  @apply mb-6 pl-6 space-y-2;
+}
+
+.ingredients-content ul {
+  @apply list-disc;
+}
+
+.ingredients-content ol {
+  @apply list-decimal;
+}
+
+.ingredients-content li {
+  @apply text-gray-700 leading-relaxed;
+}
+
+.ingredients-content strong,
+.ingredients-content b {
+  @apply font-semibold text-gray-900;
+}
+
+.ingredients-content em,
+.ingredients-content i {
+  @apply italic;
+}
+
+.ingredients-content a {
+  @apply text-red-600 hover:underline;
+}
+
+.ingredients-content blockquote {
+  @apply border-l-4 border-gray-300 pl-4 italic text-gray-600 my-4;
+}
+
+.ingredients-content code {
+  @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+}
+
+.ingredients-content pre {
+  @apply bg-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+}
+
+.ingredients-content table {
+  @apply w-full border-collapse my-6;
+}
+
+.ingredients-content th,
+.ingredients-content td {
+  @apply border border-gray-300 px-4 py-2 text-left;
+}
+
+.ingredients-content th {
+  @apply bg-gray-50 font-semibold;
+}
+
+.ingredients-content img {
+  @apply max-w-full h-auto rounded-lg my-4;
+}
+
+.ingredients-content hr {
+  @apply my-8 border-gray-200;
+}
+
+/* Swiper Custom Styles */
+.product-detail-swiper .swiper-button-next,
+.product-detail-swiper .swiper-button-prev {
+  @apply text-white bg-black/30 hover:bg-black/50 rounded-full w-10 h-10 transition-colors;
+}
+
+.product-detail-swiper .swiper-button-next:after,
+.product-detail-swiper .swiper-button-prev:after {
+  @apply text-sm;
+}
+
+.product-thumbs-swiper .swiper-slide-thumb-active img {
+  @apply border-red-600;
+}

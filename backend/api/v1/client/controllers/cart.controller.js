@@ -182,3 +182,32 @@ export const removeFromCart = async (req, res) => {
     });
   }
 };
+
+// [POST] /api/v1/cart/clear
+export const clearCart = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const cart = await Cart.findOneAndUpdate(
+      { userId: userId },
+      { items: [] },
+      { new: true },
+    );
+
+    if (!cart) {
+      return res.status(404).json({
+        message: "Giỏ hàng không tồn tại",
+      });
+    }
+
+    res.status(200).json({
+      message: "Đã xóa tất cả sản phẩm khỏi giỏ hàng",
+      cart: cart,
+    });
+  } catch (error) {
+    console.log("Lỗi khi xóa giỏ hàng", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
