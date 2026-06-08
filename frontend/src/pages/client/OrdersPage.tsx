@@ -4,6 +4,14 @@ import { useOrderStore } from "@/stores/useOrderStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useCartStore } from "@/stores/useCartStore";
 import { toast } from "sonner";
+import api from "@/lib/axios";
+
+interface ReviewStatus {
+  [orderId: string]: {
+    hasReviewed: boolean;
+    canReview: boolean;
+  };
+}
 
 const statusConfig = {
   Pending: {
@@ -41,6 +49,7 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [reordering, setReordering] = useState(false);
+  const [reviewStatuses, setReviewStatuses] = useState<ReviewStatus>({});
 
   const fetchOrders = async () => {
     try {
@@ -48,6 +57,32 @@ export default function OrdersPage() {
     } catch (error) {
       toast.error("Lỗi khi tải danh sách đơn hàng");
     }
+  };
+
+  // Fetch review statuses for delivered orders
+  const fetchReviewStatuses = async () => {
+    const deliveredOrders = orders.filter(
+      (order) => order.orderStatus === "Delivered"
+    );
+
+    const statuses: ReviewStatus = {};
+
+    await Promise.all(
+      deliveredOrders.map(async (order) => {
+        try {
+          const response = await api.get(`/order/${order._id}/review-status`);
+          statuses[order._id] = response.data.data;
+        } catch (error) {
+          // If error, assume not reviewed
+          statuses[order._id] = {
+            hasReviewed: false,
+            canReview: true,
+          };
+        }
+      })
+    );
+
+    setReviewStatuses(statuses);
   };
 
   useEffect(() => {
@@ -58,6 +93,13 @@ export default function OrdersPage() {
     }
     fetchOrders();
   }, [user, currentPage, filterStatus]);
+
+  // Fetch review statuses after orders are loaded
+  useEffect(() => {
+    if (orders.length > 0) {
+      fetchReviewStatuses();
+    }
+  }, [orders]);
 
   const handleReorder = async (order: any) => {
     try {
@@ -297,7 +339,7 @@ export default function OrdersPage() {
                       </button>
                     )}
 
-                    {/* Đơn đã hoàn thành - Nút "Xem chi tiết" + "Đánh giá" + "Đặt lại" */}
+                    {/* Đơn đã hoàn thành - Nút "Xem chi tiết" + "Đánh giá/Xem đánh giá" + "Đặt lại" */}
                     {isDelivered && (
                       <>
                         <button
@@ -309,15 +351,30 @@ export default function OrdersPage() {
                         >
                           Xem chi tiết
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReview(order._id);
-                          }}
-                          className="flex-1 md:flex-none px-5 py-2.5 rounded-xl border-2 border-[#b51c00] text-[#b51c00] font-bold text-sm hover:bg-red-50 transition"
-                        >
-                          Đánh giá
-                        </button>
+                        {reviewStatuses[order._id]?.hasReviewed ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/orders/${order._id}/reviews`);
+                            }}
+                            className="flex-1 md:flex-none px-5 py-2.5 rounded-xl border-2 border-green-500 text-green-600 font-bold text-sm hover:bg-green-50 transition flex items-center justify-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              check_circle
+                            </span>
+                            Xem đánh giá
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReview(order._id);
+                            }}
+                            className="flex-1 md:flex-none px-5 py-2.5 rounded-xl border-2 border-[#b51c00] text-[#b51c00] font-bold text-sm hover:bg-red-50 transition"
+                          >
+                            Đánh giá
+                          </button>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

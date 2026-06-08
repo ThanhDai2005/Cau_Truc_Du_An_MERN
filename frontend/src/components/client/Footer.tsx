@@ -1,95 +1,187 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-neutral-900 text-white pt-16 pb-8 px-4 md:px-8 mt-auto w-full">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {/* Column 1 */}
-        <div>
-          <h3 className="text-xl font-bold mb-4 text-white">FoodieVN</h3>
-          <p className="text-sm text-neutral-300 leading-relaxed">
-            Hệ thống đặt món trực tuyến nhanh chóng và tiện lợi. Giao hàng tận nơi — đảm bảo chất lượng.
-          </p>
-        </div>
+    <footer className="w-full">
+      {/* --- Footer Top (Đăng ký nhận tin) --- */}
+      <div className="bg-[#f2f2f2] border-t-4 border-[#e30019] pt-8">
+        <div className="max-w-5xl mx-auto px-4 md:px-8">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pb-8 border-b border-[#e6e6e6]">
+            {/* Logo */}
+            <div className="lg:w-1/4 flex justify-center lg:justify-start lg:border-r border-[#ddd] pr-4">
+              <img
+                src="logo.png"
+                alt="Đặc Sản 3 Miền"
+                className="w-[120px] object-contain"
+              />
+            </div>
 
-        {/* Column 2 */}
-        <div>
-          <h3 className="text-lg font-bold mb-4 text-white">Liên kết</h3>
-          <ul className="space-y-2">
-            <li>
-              <Link to="/" className="text-sm text-neutral-300 hover:text-white transition-colors">
-                Trang chủ
-              </Link>
-            </li>
-            <li>
-              <Link to="/products" className="text-sm text-neutral-300 hover:text-white transition-colors">
-                Sản phẩm
-              </Link>
-            </li>
-            <li>
-              <Link to="/orders" className="text-sm text-neutral-300 hover:text-white transition-colors">
-                Đơn hàng
-              </Link>
-            </li>
-          </ul>
-        </div>
+            {/* Title */}
+            <div className="lg:w-1/3 text-center lg:text-left pl-0 lg:pl-6">
+              <h3 className="text-2xl font-semibold uppercase mb-1 text-gray-900">
+                Đăng ký nhận tin
+              </h3>
+              <p className="text-[#666666] text-[15px]">
+                Nhận thông tin mới nhất từ chúng tôi
+              </p>
+            </div>
 
-        {/* Column 3 */}
-        <div>
-          <h3 className="text-lg font-bold mb-4 text-white">Hỗ trợ</h3>
-          <ul className="space-y-2">
-            <li>
-              <a href="#" className="text-sm text-neutral-300 hover:text-white transition-colors">
-                Chính sách bảo mật
-              </a>
-            </li>
-            <li>
-              <a href="#" className="text-sm text-neutral-300 hover:text-white transition-colors">
-                Điều khoản sử dụng
-              </a>
-            </li>
-            <li>
-              <a href="#" className="text-sm text-neutral-300 hover:text-white transition-colors">
-                Trung tâm trợ giúp
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Column 4 */}
-        <div>
-          <h3 className="text-lg font-bold mb-4 text-white">Liên hệ</h3>
-          <ul className="space-y-2 text-sm text-neutral-300">
-            <li className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">mail</span>
-              email@foodievn.com
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">call</span>
-              1900 xxxx
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">schedule</span>
-              07:00 - 22:00 hằng ngày
-            </li>
-          </ul>
+            {/* Form */}
+            <div className="lg:w-5/12 w-full flex justify-center lg:justify-end">
+              <form className="flex flex-col sm:flex-row w-full max-w-md items-center gap-2">
+                <input
+                  type="email"
+                  placeholder="Nhập email của bạn"
+                  className="w-full px-6 py-3 rounded-full border border-[#ccc] outline-none text-[15px] focus:border-[#e30019] transition-colors"
+                />
+                <button
+                  type="button"
+                  className="whitespace-nowrap bg-[#e30019] text-white px-8 py-3 rounded-full text-[16px] hover:bg-white hover:text-[#010f1c] hover:border-[#010f1c] border border-transparent transition-all duration-300 flex items-center justify-center gap-2 mt-3 sm:mt-0"
+                >
+                  ĐĂNG KÝ <i className="fa-solid fa-arrow-right"></i>
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto border-t border-neutral-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-        <p className="text-xs text-neutral-400">
-          &copy; {new Date().getFullYear()} FoodieVN. All rights reserved.
-        </p>
-        <div className="flex gap-4">
-          <a href="#" className="text-neutral-400 hover:text-white transition-colors">
-            Facebook
-          </a>
-          <a href="#" className="text-neutral-400 hover:text-white transition-colors">
-            Instagram
-          </a>
-          <a href="#" className="text-neutral-400 hover:text-white transition-colors">
-            Tiktok
-          </a>
+      {/* --- Footer Middle (Links & Info) --- */}
+      <div className="bg-[#f2f2f2] py-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Cột 1: Về chúng tôi */}
+          <div>
+            <h3 className="text-[18px] font-bold uppercase mb-7 relative pb-2 after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-[100px] after:h-[3px] after:bg-gradient-to-r after:from-[#e30019] after:to-transparent text-gray-900">
+              Về chúng tôi
+            </h3>
+            <p className="text-[16px] text-gray-800 mb-5 leading-relaxed">
+              Đặc Sản 3 Miền là thương hiệu được thành lập vào năm 2023 với tiêu
+              chí đặt chất lượng sản phẩm lên hàng đầu.
+            </p>
+            <div className="flex gap-3">
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full border border-[#2c2c2c] text-[#2c2c2c] flex items-center justify-center hover:bg-[#e30019] hover:text-white hover:border-[#e30019] transition-all duration-300 hover:scale-110"
+              >
+                <i className="fa-brands fa-facebook-f"></i>
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full border border-[#2c2c2c] text-[#2c2c2c] flex items-center justify-center hover:bg-[#e30019] hover:text-white hover:border-[#e30019] transition-all duration-300 hover:scale-110"
+              >
+                <i className="fa-brands fa-twitter"></i>
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full border border-[#2c2c2c] text-[#2c2c2c] flex items-center justify-center hover:bg-[#e30019] hover:text-white hover:border-[#e30019] transition-all duration-300 hover:scale-110"
+              >
+                <i className="fa-brands fa-instagram"></i>
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full border border-[#2c2c2c] text-[#2c2c2c] flex items-center justify-center hover:bg-[#e30019] hover:text-white hover:border-[#e30019] transition-all duration-300 hover:scale-110"
+              >
+                <i className="fa-brands fa-tiktok"></i>
+              </a>
+            </div>
+          </div>
+
+          {/* Cột 2: Liên kết */}
+          <div>
+            <h3 className="text-[18px] font-bold uppercase mb-7 relative pb-2 after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-[100px] after:h-[3px] after:bg-gradient-to-r after:from-[#e30019] after:to-transparent text-gray-900">
+              Liên kết
+            </h3>
+            <ul className="space-y-3">
+              {[
+                { name: "Về chúng tôi", path: "/about" },
+                { name: "Thực đơn", path: "/menu" },
+                { name: "Điều khoản", path: "/terms" },
+                { name: "Liên Hệ", path: "/contact" },
+                { name: "Tin tức", path: "/news" },
+              ].map((item, index) => (
+                <li key={index}>
+                  <Link
+                    to={item.path}
+                    className="text-[16px] text-[#2c2c2c] flex items-center group"
+                  >
+                    <i className="fa-solid fa-arrow-right mr-3 text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Cột 3: Thực đơn */}
+          <div>
+            <h3 className="text-[18px] font-bold uppercase mb-7 relative pb-2 after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-[100px] after:h-[3px] after:bg-gradient-to-r after:from-[#e30019] after:to-transparent text-gray-900">
+              Thực đơn
+            </h3>
+            <ul className="space-y-3">
+              {[
+                { name: "Món lẩu", path: "/category/lau" },
+                { name: "Món chay", path: "/category/mon-chay" },
+                { name: "Món mặn", path: "/category/mon-man" },
+                { name: "Nước uống", path: "/category/nuoc-uong" },
+                { name: "Tráng miệng", path: "/category/trang-mieng" },
+              ].map((item, index) => (
+                <li key={index}>
+                  <Link
+                    to={item.path}
+                    className="text-[16px] text-[#2c2c2c] flex items-center group"
+                  >
+                    <i className="fa-solid fa-arrow-right mr-3 text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Cột 4: Liên hệ */}
+          <div>
+            <h3 className="text-[18px] font-bold uppercase mb-7 relative pb-2 after:content-[''] after:absolute after:-bottom-2 after:left-0 after:w-[100px] after:h-[3px] after:bg-gradient-to-r after:from-[#e30019] after:to-transparent text-gray-900">
+              Liên hệ
+            </h3>
+            <div className="space-y-4 text-[15px] text-gray-900">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#e30019] text-white flex items-center justify-center shrink-0">
+                  <i className="fa-solid fa-location-dot"></i>
+                </div>
+                <div>
+                  <p>40/15 Tô Hiệu, P. Tân Thới Hòa</p>
+                  <p>Quận Tân Phú, TP Hồ Chí Minh</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#e30019] text-white flex items-center justify-center shrink-0">
+                  <i className="fa-solid fa-phone"></i>
+                </div>
+                <div>
+                  <p>0123 456 789</p>
+                  <p>0987 654 321</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#e30019] text-white flex items-center justify-center shrink-0">
+                  <i className="fa-regular fa-envelope"></i>
+                </div>
+                <div>
+                  <p>hdkn@gmail.com</p>
+                  <p>gacon@domain.com</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- Footer Bottom (Copyright) --- */}
+      <div className="bg-[#f3f5f7] py-4 border-t border-[#e6e6e6]">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-[15px] text-gray-800">
+            Copyright {new Date().getFullYear()} ĐS3M. All Rights Reserved.
+          </p>
         </div>
       </div>
     </footer>

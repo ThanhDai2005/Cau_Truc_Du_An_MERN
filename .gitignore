@@ -28,3 +28,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude & AI Agents tools (Chặn thư mục ẩn của AI)
+.claude/
+.codegraph/
+
+# Chặn toàn bộ các file báo cáo .md do AI tự sinh ở thư mục gốc
+*.md
+docs/
+
+# Giữ lại file hướng dẫn README.md của dự án (nếu có)
+!README.md

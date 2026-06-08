@@ -15,6 +15,7 @@ import CheckoutPage from "@/pages/client/CheckoutPage";
 import OrdersPage from "@/pages/client/OrdersPage";
 import OrderDetailPage from "@/pages/client/OrderDetailPage";
 import OrderReviewPage from "@/pages/client/OrderReviewPage";
+import OrderReviewsViewPage from "@/pages/client/OrderReviewsViewPage";
 
 const clientRoute = {
   path: "/",
@@ -80,6 +81,10 @@ const clientRoute = {
             {
               path: "orders/:orderId/review",
               element: <OrderReviewPage />,
+            },
+            {
+              path: "orders/:orderId/reviews",
+              element: <OrderReviewsViewPage />,
             },
           ],
         },
