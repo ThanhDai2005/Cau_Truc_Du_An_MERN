@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { authService } from "@/services/authService";
 import type { AuthState } from "@/types/store";
 import { persist } from "zustand/middleware";
+import { useCartStore } from "./useCartStore";
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -22,9 +23,10 @@ export const useAuthStore = create<AuthState>()(
 
       clearState: () => {
         set({ accessToken: null, user: null, loading: false });
-        // useProductStore.getState().reset();
+        useCartStore.getState().clearCart();
         localStorage.removeItem("authStorage");
         sessionStorage.removeItem("authStorage");
+        localStorage.removeItem("cart-storage");
       },
 
       signUp: async (firstName, lastName, phone, email, password) => {
@@ -60,6 +62,7 @@ export const useAuthStore = create<AuthState>()(
           const res = await authService.signIn(phone, password);
           get().setAccessToken(res.accessToken);
           await get().getDetail();
+          await useCartStore.getState().getCart();
 
           toast.success("Chào mừng bạn quay lại 🎉");
           return res;

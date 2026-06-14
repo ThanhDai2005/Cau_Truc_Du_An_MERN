@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,6 +5,7 @@ import { z } from "zod";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
@@ -34,12 +34,8 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user, accessToken } = useAuthStore();
-  const { uploadAvatar, updateInfo, changePassword } = useUserStore();
-
-  const [uploading, setUploading] = useState(false);
-  const [updating, setUpdating] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
+  const { user } = useAuthStore();
+  const { uploadAvatar, updateInfo, changePassword, loading } = useUserStore();
 
   const {
     register,
@@ -50,6 +46,15 @@ const ProfilePage = () => {
     resolver: zodResolver(profileSchema),
   });
 
+  useEffect(() => {
+    if (!user) return;
+
+    setValue("displayName", user.displayName || "");
+    setValue("email", user.email || "");
+    setValue("phone", user.phone || "");
+    setValue("address", user.address || "");
+  }, [user, setValue]);
+
   const {
     register: registerPassword,
     handleSubmit: handlePasswordSubmit,
@@ -59,41 +64,22 @@ const ProfilePage = () => {
     resolver: zodResolver(passwordSchema),
   });
 
-  useEffect(() => {
-    if (!accessToken) {
-      toast.error("Vui lòng đăng nhập");
-      navigate("/signin");
-      return;
-    }
-
-    if (user) {
-      setValue("displayName", user.displayName || "");
-      setValue("email", user.email || "");
-      setValue("phone", user.phone || "");
-      setValue("address", user.address || "");
-    }
-  }, [user, accessToken, setValue, navigate]);
-
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      setUploading(true);
       const formData = new FormData();
       formData.append("avatar", file);
       await uploadAvatar(formData);
       toast.success("Cập nhật ảnh đại diện thành công");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Lỗi khi tải ảnh lên");
-    } finally {
-      setUploading(false);
     }
   };
 
   const onSubmitProfile = async (data: ProfileForm) => {
     try {
-      setUpdating(true);
       await updateInfo(
         data.displayName,
         data.email,
@@ -105,15 +91,16 @@ const ProfilePage = () => {
       toast.error(
         error.response?.data?.message || "Lỗi khi cập nhật thông tin",
       );
-    } finally {
-      setUpdating(false);
     }
   };
 
   const onSubmitPassword = async (data: PasswordForm) => {
     try {
-      setChangingPassword(true);
-      await changePassword(data.currentPassword, data.newPassword, data.confirmNewPassword);
+      await changePassword(
+        data.currentPassword,
+        data.newPassword,
+        data.confirmNewPassword,
+      );
       toast.success("Đổi mật khẩu thành công. Vui lòng đăng nhập lại.");
       resetPasswordForm();
       // Redirect to signin after password change
@@ -122,8 +109,6 @@ const ProfilePage = () => {
       }, 2000);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Lỗi khi đổi mật khẩu");
-    } finally {
-      setChangingPassword(false);
     }
   };
 
@@ -253,10 +238,10 @@ const ProfilePage = () => {
 
               <button
                 type="submit"
-                disabled={updating}
-                className="w-full h-12 bg-[#b51c00] hover:bg-[#8e1400] text-white font-bold text-lg rounded-2xl transition disabled:opacity-70"
+                disabled={loading}
+                className="w-full h-12 bg-[#b51c00] hover:bg-[#8e1400] text-white font-bold text-lg rounded-2xl transition disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {updating ? "Đang lưu..." : "Lưu thay đổi"}
+                {loading ? "Đang lưu..." : "Lưu thay đổi"}
               </button>
             </form>
           </div>
@@ -328,10 +313,10 @@ const ProfilePage = () => {
 
               <button
                 type="submit"
-                disabled={changingPassword}
-                className="w-full h-12 border-2 border-[#b51c00] text-[#b51c00] font-bold text-lg rounded-2xl hover:bg-red-50 transition disabled:opacity-70"
+                disabled={loading}
+                className="w-full h-12 border-2 border-[#b51c00] text-[#b51c00] font-bold text-lg rounded-2xl hover:bg-red-50 transition disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {changingPassword ? "Đang xử lý..." : "Đổi mật khẩu"}
+                {loading ? "Đang xử lý..." : "Đổi mật khẩu"}
               </button>
             </form>
           </div>

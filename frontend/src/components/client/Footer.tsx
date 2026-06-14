@@ -93,11 +93,11 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               {[
-                { name: "Về chúng tôi", path: "/about" },
-                { name: "Thực đơn", path: "/menu" },
-                { name: "Điều khoản", path: "/terms" },
-                { name: "Liên Hệ", path: "/contact" },
-                { name: "Tin tức", path: "/news" },
+                { name: "Trang chủ", path: "/" },
+                { name: "Thực đơn", path: "/products" },
+                { name: "Giỏ hàng", path: "/cart" },
+                { name: "Đơn hàng", path: "/orders" },
+                { name: "Tài khoản", path: "/profile" },
               ].map((item, index) => (
                 <li key={index}>
                   <Link
@@ -119,11 +119,11 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               {[
-                { name: "Món lẩu", path: "/category/lau" },
-                { name: "Món chay", path: "/category/mon-chay" },
-                { name: "Món mặn", path: "/category/mon-man" },
-                { name: "Nước uống", path: "/category/nuoc-uong" },
-                { name: "Tráng miệng", path: "/category/trang-mieng" },
+                { name: "Món lẩu", path: "/products?category=mon-lau" },
+                { name: "Tráng miệng", path: "/products?category=mon-trang-mieng" },
+                { name: "Món chay", path: "/products?category=mon-chay" },
+                { name: "Món mặn", path: "/products?category=mon-man" },
+                { name: "Nước uống", path: "/products?category=nuoc-uong" },
               ].map((item, index) => (
                 <li key={index}>
                   <Link

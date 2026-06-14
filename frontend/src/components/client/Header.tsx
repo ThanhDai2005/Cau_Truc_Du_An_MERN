@@ -2,6 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useCartStore } from "@/stores/useCartStore";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -9,6 +16,7 @@ const Header = () => {
   const { cart } = useCartStore();
   const [searchValue, setSearchValue] = useState("");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const cartCount =
     cart?.items?.reduce((total, item) => total + item.quantity, 0) ?? 0;
@@ -24,13 +32,131 @@ const Header = () => {
   const handleLogout = async () => {
     await signOut();
     setUserMenuOpen(false);
-    navigate("/signin");
+    navigate("/");
+  };
+
+  const handleMobileNavClick = (path: string) => {
+    setMobileMenuOpen(false);
+    navigate(path);
   };
 
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="flex justify-between items-center px-4 h-16 max-w-7xl mx-auto">
         <div className="flex items-center gap-4">
+          {/* Mobile Hamburger Menu */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <button className="md:hidden w-10 h-10 flex items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors active:scale-95">
+                <span className="material-symbols-outlined">menu</span>
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] sm:w-[320px]">
+              <SheetHeader className="mb-6">
+                <SheetTitle className="text-2xl font-bold text-[#b51c00]">
+                  FoodieVN
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col gap-2">
+                <button
+                  onClick={() => handleMobileNavClick("/")}
+                  className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <span className="material-symbols-outlined text-[24px]">
+                    home
+                  </span>
+                  <span className="text-base font-medium">Trang chủ</span>
+                </button>
+                <button
+                  onClick={() => handleMobileNavClick("/products")}
+                  className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <span className="material-symbols-outlined text-[24px]">
+                    restaurant
+                  </span>
+                  <span className="text-base font-medium">Sản phẩm</span>
+                </button>
+                <button
+                  onClick={() => handleMobileNavClick("/blog")}
+                  className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <span className="material-symbols-outlined text-[24px]">
+                    article
+                  </span>
+                  <span className="text-base font-medium">Góc Ẩm Thực</span>
+                </button>
+                <button
+                  onClick={() => handleMobileNavClick("/about")}
+                  className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <span className="material-symbols-outlined text-[24px]">
+                    info
+                  </span>
+                  <span className="text-base font-medium">Về Chúng Tôi</span>
+                </button>
+                {user && (
+                  <button
+                    onClick={() => handleMobileNavClick("/orders")}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <span className="material-symbols-outlined text-[24px]">
+                      receipt_long
+                    </span>
+                    <span className="text-base font-medium">Đơn hàng</span>
+                  </button>
+                )}
+                {user && (
+                  <button
+                    onClick={() => handleMobileNavClick("/profile")}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <span className="material-symbols-outlined text-[24px]">
+                      person
+                    </span>
+                    <span className="text-base font-medium">Hồ sơ</span>
+                  </button>
+                )}
+                <div className="border-t border-gray-200 my-4" />
+                {!user ? (
+                  <>
+                    <button
+                      onClick={() => handleMobileNavClick("/signin")}
+                      className="flex items-center gap-4 px-4 py-3 rounded-lg text-[#b51c00] hover:bg-red-50 transition-colors text-left font-medium"
+                    >
+                      <span className="material-symbols-outlined text-[24px]">
+                        login
+                      </span>
+                      <span className="text-base">Đăng nhập</span>
+                    </button>
+                    <button
+                      onClick={() => handleMobileNavClick("/signup")}
+                      className="flex items-center gap-4 px-4 py-3 rounded-lg bg-[#b51c00] text-white hover:bg-[#8e1400] transition-colors text-left font-medium"
+                    >
+                      <span className="material-symbols-outlined text-[24px]">
+                        person_add
+                      </span>
+                      <span className="text-base">Đăng ký</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      setMobileMenuOpen(false);
+                      navigate("/");
+                    }}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors text-left font-medium"
+                  >
+                    <span className="material-symbols-outlined text-[24px]">
+                      logout
+                    </span>
+                    <span className="text-base">Đăng xuất</span>
+                  </button>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
+
           <Link to="/" className="text-2xl font-bold text-[#b51c00]">
             FoodieVN
           </Link>
@@ -48,16 +174,20 @@ const Header = () => {
             to="/products"
             className="text-[14px] font-medium text-gray-600 hover:opacity-80 transition-opacity"
           >
-            Sản phẩm
+            Thực đơn
           </Link>
-          {user && (
-            <Link
-              to="/orders"
-              className="text-[14px] font-medium text-gray-600 hover:opacity-80 transition-opacity"
-            >
-              Đơn hàng
-            </Link>
-          )}
+          <Link
+            to="/blog"
+            className="text-[14px] font-medium text-gray-600 hover:opacity-80 transition-opacity"
+          >
+            Góc Ẩm Thực
+          </Link>
+          <Link
+            to="/about"
+            className="text-[14px] font-medium text-gray-600 hover:opacity-80 transition-opacity"
+          >
+            Về Chúng Tôi
+          </Link>
         </nav>
 
         <div className="flex items-center gap-4">
@@ -134,6 +264,18 @@ const Header = () => {
                         person
                       </span>
                       Hồ sơ
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate("/orders");
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition text-left"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        receipt_long
+                      </span>
+                      Đơn hàng
                     </button>
                     <button
                       onClick={handleLogout}

@@ -2,7 +2,6 @@ export interface Category {
   _id: string;
   name: string;
   slug: string;
-  description?: string;
   parentCategory?: string | null;
   status: string;
   deleted: boolean;

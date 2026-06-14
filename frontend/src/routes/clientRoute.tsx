@@ -16,6 +16,9 @@ import OrdersPage from "@/pages/client/OrdersPage";
 import OrderDetailPage from "@/pages/client/OrderDetailPage";
 import OrderReviewPage from "@/pages/client/OrderReviewPage";
 import OrderReviewsViewPage from "@/pages/client/OrderReviewsViewPage";
+import BlogPage from "@/pages/client/BlogPage";
+import BlogDetailPage from "@/pages/client/BlogDetailPage";
+import AboutPage from "@/pages/client/AboutPage";
 
 const clientRoute = {
   path: "/",
@@ -54,6 +57,18 @@ const clientRoute = {
         {
           path: "product/:slug",
           element: <ProductDetailPage />,
+        },
+        {
+          path: "blog",
+          element: <BlogPage />,
+        },
+        {
+          path: "blog/:slug",
+          element: <BlogDetailPage />,
+        },
+        {
+          path: "about",
+          element: <AboutPage />,
         },
         {
           element: <PrivateRouter />,

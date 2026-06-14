@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const categorySchema = new mongoose.Schema(
+const blogCategorySchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -14,11 +14,6 @@ const categorySchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
-    parentCategory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      default: null,
-    },
     status: {
       type: String,
       enum: ["active", "inactive"],
@@ -30,6 +25,10 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Category = mongoose.model("Category", categorySchema, "categories");
+const BlogCategory = mongoose.model(
+  "BlogCategory",
+  blogCategorySchema,
+  "blogCategories",
+);
 
-export default Category;
+export default BlogCategory;

@@ -8,6 +8,8 @@ import productRoute from "./product.route.js";
 import orderRoute from "./order.route.js";
 import roleRoute from "./role.route.js";
 import promotionRoute from "./promotion.route.js";
+import blogRoute from "./blog.route.js";
+import blogCategoryRoute from "./blogCategory.route.js";
 
 export const adminV1Routes = (app) => {
   const version = "/api/v1/admin";
@@ -29,4 +31,8 @@ export const adminV1Routes = (app) => {
   app.use(version + "/role", requireAuth, roleRoute);
 
   app.use(version + "/promotion", requireAuth, promotionRoute);
+
+  app.use(version + "/blog", requireAuth, blogRoute);
+
+  app.use(version + "/blog-category", requireAuth, blogCategoryRoute);
 };

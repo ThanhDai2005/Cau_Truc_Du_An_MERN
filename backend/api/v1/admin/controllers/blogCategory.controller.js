@@ -1,8 +1,8 @@
-import Category from "../../../../models/category.model.js";
-import Product from "../../../../models/product.model.js";
+import BlogCategory from "../../../../models/blogCategory.model.js";
+import Blog from "../../../../models/blog.model.js";
 import slugify from "slugify";
 
-// [GET] /api/v1/admin/category
+// [GET] /api/v1/admin/blog-category
 export const list = async (req, res) => {
   try {
     const keyword = req.query.keyword;
@@ -19,65 +19,65 @@ export const list = async (req, res) => {
     }
 
     const [data, totalItems] = await Promise.all([
-      Category.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
-      Category.countDocuments(filter),
+      BlogCategory.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      BlogCategory.countDocuments(filter),
     ]);
 
     res.status(200).json({
-      message: "Lấy danh sách category thành công",
+      message: "Lấy danh sách blog category thành công",
       data: data,
       totalItems: totalItems,
       totalPages: Math.ceil(totalItems / limit),
     });
   } catch (error) {
-    console.log("Lỗi khi gọi list category", error);
+    console.log("Lỗi khi gọi list blog category", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
   }
 };
 
-// [POST] /api/v1/admin/category
+// [POST] /api/v1/admin/blog-category
 export const create = async (req, res) => {
   try {
     const { name, status } = req.body;
 
     if (!name) {
       return res.status(400).json({
-        message: "Tên category là bắt buộc",
+        message: "Tên blog category là bắt buộc",
       });
     }
 
     const slug = slugify(name, { lower: true, strict: true });
-    const existedCategory = await Category.findOne({ slug: slug });
-    if (existedCategory) {
+    const existedBlogCategory = await BlogCategory.findOne({ slug: slug });
+    if (existedBlogCategory) {
       return res.status(409).json({
-        message: "Slug category đã tồn tại",
+        message: "Slug blog category đã tồn tại",
       });
     }
 
-    const createdCategory = await Category.create({
+    const createdBlogCategory = await BlogCategory.create({
       name: name,
       slug: slug,
       status: status || "active",
     });
 
     res.status(201).json({
-      message: "Tạo category thành công",
-      data: createdCategory,
+      message: "Tạo blog category thành công",
+      data: createdBlogCategory,
     });
   } catch (error) {
-    console.log("Lỗi khi gọi create category", error);
+    console.log("Lỗi khi gọi create blog category", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
   }
 };
 
-// [PATCH] /api/v1/admin/category/update/:categoryId
+// [PATCH] /api/v1/admin/blog-category/update/:blogCategoryId
 export const update = async (req, res) => {
   try {
-    const categoryId = req.params.categoryId;
+    const blogCategoryId = req.params.blogCategoryId;
     const { name, status } = req.body;
 
     if (!name && !status) {
@@ -86,32 +86,32 @@ export const update = async (req, res) => {
       });
     }
 
-    const existedCategory = await Category.findOne({
-      _id: categoryId,
+    const existedBlogCategory = await BlogCategory.findOne({
+      _id: blogCategoryId,
       deleted: false,
     });
-    if (!existedCategory) {
+    if (!existedBlogCategory) {
       return res.status(404).json({
-        message: "Category không tồn tại",
+        message: "Blog category không tồn tại",
       });
     }
 
-    let slug = existedCategory.slug;
+    let slug = existedBlogCategory.slug;
     if (name) {
       slug = slugify(name, { lower: true, strict: true });
-      const duplicateSlug = await Category.findOne({
+      const duplicateSlug = await BlogCategory.findOne({
         slug: slug,
-        _id: { $ne: categoryId },
+        _id: { $ne: blogCategoryId },
       });
       if (duplicateSlug) {
         return res.status(409).json({
-          message: "Slug category đã tồn tại",
+          message: "Slug blog category đã tồn tại",
         });
       }
     }
 
-    const updatedCategory = await Category.findOneAndUpdate(
-      { _id: categoryId },
+    const updatedBlogCategory = await BlogCategory.findOneAndUpdate(
+      { _id: blogCategoryId },
       {
         name: name,
         slug: slug,
@@ -121,50 +121,50 @@ export const update = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "Cập nhật category thành công",
-      data: updatedCategory,
+      message: "Cập nhật blog category thành công",
+      data: updatedBlogCategory,
     });
   } catch (error) {
-    console.log("Lỗi khi gọi update category", error);
+    console.log("Lỗi khi gọi update blog category", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
   }
 };
 
-// [PATCH] /api/v1/admin/category/delete/:categoryId
+// [PATCH] /api/v1/admin/blog-category/delete/:blogCategoryId
 export const softDelete = async (req, res) => {
   try {
-    const categoryId = req.params.categoryId;
-    const existedCategory = await Category.findOne({
-      _id: categoryId,
+    const blogCategoryId = req.params.blogCategoryId;
+    const existedBlogCategory = await BlogCategory.findOne({
+      _id: blogCategoryId,
       deleted: false,
     });
 
-    if (!existedCategory) {
+    if (!existedBlogCategory) {
       return res.status(404).json({
-        message: "Category không tồn tại",
+        message: "Blog category không tồn tại",
       });
     }
 
-    await Category.updateOne(
-      { _id: categoryId },
+    await BlogCategory.updateOne(
+      { _id: blogCategoryId },
       {
         deleted: true,
         deletedAt: new Date(),
       },
     );
 
-    await Product.updateMany(
-      { categoryId: categoryId, deleted: false },
-      { categoryId: null },
+    await Blog.updateMany(
+      { blogCategoryId: blogCategoryId, deleted: false },
+      { blogCategoryId: null },
     );
 
     res.status(200).json({
-      message: "Xóa category thành công",
+      message: "Xóa blog category thành công",
     });
   } catch (error) {
-    console.log("Lỗi khi gọi delete category", error);
+    console.log("Lỗi khi gọi delete blog category", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });

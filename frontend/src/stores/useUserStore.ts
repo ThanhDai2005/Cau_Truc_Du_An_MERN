@@ -4,9 +4,12 @@ import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
 import { toast } from "sonner";
 
-export const useUserStore = create<UserState>()(() => ({
+export const useUserStore = create<UserState>()((set) => ({
+  loading: false,
+
   uploadAvatar: async (formData) => {
     try {
+      set({ loading: true });
       const { user, setUser } = useAuthStore.getState();
       const res = await userService.uploadAvatar(formData);
       if (user) {
@@ -16,11 +19,14 @@ export const useUserStore = create<UserState>()(() => ({
       const error = err as { response?: { data?: { message?: string } } };
       toast.error(error?.response?.data?.message || "Upload Avatar that bai!");
       throw err;
+    } finally {
+      set({ loading: false });
     }
   },
 
   updateInfo: async (displayName, email, phone, address) => {
     try {
+      set({ loading: true });
       const { user, setUser } = useAuthStore.getState();
       const res = await userService.updateInfo(
         displayName,
@@ -41,11 +47,14 @@ export const useUserStore = create<UserState>()(() => ({
       const error = err as { response?: { data?: { message?: string } } };
       console.log("Error updateInfo", error);
       throw err;
+    } finally {
+      set({ loading: false });
     }
   },
 
   changePassword: async (currentPassword, newPassword, confirmNewPassword) => {
     try {
+      set({ loading: true });
       const res = await userService.changePassword(
         currentPassword,
         newPassword,
@@ -56,6 +65,8 @@ export const useUserStore = create<UserState>()(() => ({
       const error = err as { response?: { data?: { message?: string } } };
       console.log("Error changePassword", error);
       throw err;
+    } finally {
+      set({ loading: false });
     }
   },
 }));

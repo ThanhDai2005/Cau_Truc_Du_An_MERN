@@ -6,6 +6,8 @@ import type { Order } from "./order";
 import type { CreateOrderData } from "../services/orderService";
 import type { ApplyPromotionResponse } from "./promotion";
 import type { Review } from "./review";
+import type { BlogCategory } from "./blogCategory";
+import type { Blog } from "./blog";
 
 export interface AuthState {
   accessToken: string | null;
@@ -50,6 +52,8 @@ export interface AdminState {
 }
 
 export interface UserState {
+  loading: boolean;
+
   uploadAvatar: (formData: FormData) => Promise<void>;
   updateInfo: (
     displayName: string,
@@ -61,7 +65,7 @@ export interface UserState {
     currentPassword: string,
     newPassword: string,
     confirmNewPassword: string,
-  ) => Promise<any>;
+  ) => Promise<void>;
 }
 
 export interface CategoryState {
@@ -83,8 +87,29 @@ export interface ProductState {
     limit: number,
     sortKey: string,
     sortValue: string,
-  ) => Promise<any>;
-  getDetail: (slug: string) => Promise<any>;
+  ) => Promise<void>;
+  getDetail: (slug: string) => Promise<void>;
+}
+
+export interface BlogCategoryState {
+  blogCategory: BlogCategory[];
+  loading: boolean;
+
+  fetchBlogCategories: () => Promise<void>;
+}
+
+export interface BlogState {
+  blog: Blog[];
+  currentBlog: Blog | null;
+  loading: boolean;
+
+  getList: (
+    keyword?: string,
+    blogCategorySlug?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  getDetail: (slug: string) => Promise<void>;
 }
 
 export interface CartState {
@@ -101,8 +126,11 @@ export interface CartState {
 export interface OrderState {
   orders: Order[];
   currentOrder: Order | null;
+  orderReviews: {
+    order: Order | null;
+    reviews: Review[];
+  } | null;
   loading: boolean;
-  error: string | null;
   totalPages: number;
 
   createOrder: (data: CreateOrderData) => Promise<Order>;
@@ -112,6 +140,7 @@ export interface OrderState {
     orderStatus?: string,
   ) => Promise<void>;
   getOrderDetail: (orderId: string) => Promise<void>;
+  getOrderReviews: (orderId: string) => Promise<void>;
   clearCurrentOrder: () => void;
 }
 
@@ -133,8 +162,8 @@ export interface ReviewState {
     productId: string,
     rating: number,
     comment: string,
-    images?: File[]
-  ) => Promise<any>;
+    images?: File[],
+  ) => Promise<void>;
   getReviewsByProduct: (
     productId: string,
     page?: number,

@@ -35,4 +35,9 @@ export const orderService = {
     const response = await api.get(`/order/detail/${orderId}`);
     return response.data;
   },
+
+  getOrderReviews: async (orderId: string) => {
+    const response = await api.get(`/order/${orderId}/reviews`);
+    return response.data;
+  },
 };
