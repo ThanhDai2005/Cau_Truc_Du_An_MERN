@@ -17,4 +17,6 @@ router.post("/verify-otp", controller.verifyOtp);
 
 router.post("/reset-password", controller.resetPassword);
 
+router.post("/google", controller.googleAuth);
+
 export default router;

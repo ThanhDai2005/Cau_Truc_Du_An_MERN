@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { Link, useNavigate } from "react-router";
 import { useState } from "react";
+import { GoogleLogin } from "@react-oauth/google";
 
 const signInSchema = z.object({
   phone: z
@@ -33,7 +34,7 @@ export function SignInForm({
     resolver: zodResolver(signInSchema),
   });
 
-  const { signIn } = useAuthStore();
+  const { signIn, googleSignIn } = useAuthStore();
   const navigate = useNavigate();
 
   const onSubmit = async (data: signInForm) => {
@@ -42,6 +43,17 @@ export function SignInForm({
     if (res?.accessToken) {
       navigate("/");
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    const res = await googleSignIn(credentialResponse.credential);
+    if (res?.accessToken) {
+      navigate("/");
+    }
+  };
+
+  const handleGoogleError = () => {
+    console.error("Google login failed");
   };
 
   return (
@@ -149,29 +161,24 @@ export function SignInForm({
 
           {/* Social Login */}
           <div className="flex flex-col gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
-            >
-              <img
-                alt="Google"
-                className="w-5 h-5"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA477ABBnqm8NA0dxlWlCsXtx0EvaDLdyzPj9AensRCO-MQVs4OVufXJAyXPFQgoWUch4tZd39rEbXSfXgzRQVQip3MPY2Dede7JnvQANbH-pY4mar_Vzn7e_yn3HMksqnq8WTDnWAcz8e0DDAgnBVc8mRK6_CLBt8FDdWrYwpaYRrMo7Ntii088eVcm53iAiPp4XQ4nGhvjDCPgf1g1ZUMhY6rq9ME3-OCGb5DyVA_QJpTa7haZjEX08Ibv8o1IlIZmnzoLWM2L04"
-              />
-              Đăng nhập với Google
-            </Button>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="outline"
+              size="large"
+              text="signin_with"
+              width="100%"
+            />
 
             <Button
               type="button"
-              className="h-12 bg-[#1877F2] hover:bg-[#1666d4] text-white rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
+              className="h-12 bg-[#1877F2] hover:bg-[#1666d4] text-white rounded-xl flex items-center justify-center gap-3 text-sm font-bold shadow-md transition-colors"
             >
-              <img
-                alt="Facebook"
-                className="w-5 h-5 brightness-0 invert"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBx2MvKg9vH2nFcVUV3v9Mc94Etr2mS__6q_4ILJ5NWpCf6qf-0ZrbKEhJFJe14tGXyd8EN5rxCLpY6k46DjYazB3lovphm3pAEASpFtqKjHKqscCjYgkktSBd9dIeUCBCDtTdIPdxKtMvxmrqQzAnOts9gxV8cKhKZhpQn0TPRMO1hztwsiOQ4LgRcfZW9PYYfKxedAdCmffhzeZ8wZtexCd7lxU1u4CqYptfZCBl7Qy15cWVcIoB3LpLjTBGG7qWfXj-mnpmhLfc"
-              />
-              Đăng nhập với Facebook
+              {/* Facebook SVG xịn */}
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+              </svg>
+              Facebook
             </Button>
           </div>
 

@@ -17,7 +17,7 @@ import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import ReviewSection from "@/components/client/ReviewSection";
 
-export default function ProductDetailPage() {
+const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
@@ -72,6 +72,8 @@ export default function ProductDetailPage() {
           }
 
           setNotableProducts(notableRes.data || []);
+
+          window.scrollTo({ top: 0, behavior: "smooth" });
         }
       } catch (error: any) {
         toast.error(error.response?.data?.message || "Lỗi khi tải sản phẩm");
@@ -608,4 +610,6 @@ export default function ProductDetailPage() {
       </div>
     </div>
   );
-}
+};
+
+export default ProductDetailPage;

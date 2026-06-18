@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useOrderStore } from "@/stores/useOrderStore";
 import { useReviewStore } from "@/stores/useReviewStore";
-import { useAuthStore } from "@/stores/useAuthStore";
 import { toast } from "sonner";
 
 interface ReviewData {
@@ -12,12 +11,11 @@ interface ReviewData {
   imagePreviews: string[];
 }
 
-export default function OrderReviewPage() {
+const OrderReviewPage = () => {
   const navigate = useNavigate();
   const { orderId } = useParams<{ orderId: string }>();
   const { orders, getMyOrders } = useOrderStore();
   const { createReview } = useReviewStore();
-  const { accessToken } = useAuthStore();
 
   const [order, setOrder] = useState<any>(null);
   const [reviews, setReviews] = useState<Record<string, ReviewData>>({});
@@ -26,16 +24,12 @@ export default function OrderReviewPage() {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
-    if (!accessToken) {
-      toast.error("Vui lòng đăng nhập");
-      navigate("/signin");
-      return;
-    }
-
     if (orders.length === 0) {
       getMyOrders(1, 100);
     }
-  }, [accessToken, navigate, orders.length, getMyOrders]);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [navigate, orders.length, getMyOrders]);
 
   useEffect(() => {
     if (orders.length > 0 && orderId) {
@@ -77,7 +71,7 @@ export default function OrderReviewPage() {
 
   const handleImageSelect = (
     productId: string,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = Array.from(e.target.files || []);
     const currentImages = reviews[productId]?.images || [];
@@ -134,7 +128,7 @@ export default function OrderReviewPage() {
         ...prev[productId],
         images: prev[productId].images.filter((_, i) => i !== index),
         imagePreviews: prev[productId].imagePreviews.filter(
-          (_, i) => i !== index
+          (_, i) => i !== index,
         ),
       },
     }));
@@ -160,8 +154,8 @@ export default function OrderReviewPage() {
           productId,
           review.rating,
           review.comment || "",
-          review.images
-        )
+          review.images,
+        ),
       );
 
       await Promise.all(promises);
@@ -262,7 +256,10 @@ export default function OrderReviewPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nhận xét của bạn <span className="text-gray-400 text-xs">(Không bắt buộc)</span>
+                    Nhận xét của bạn{" "}
+                    <span className="text-gray-400 text-xs">
+                      (Không bắt buộc)
+                    </span>
                   </label>
                   <textarea
                     value={reviews[product._id]?.comment || ""}
@@ -284,7 +281,7 @@ export default function OrderReviewPage() {
                   <input
                     ref={(el) => (fileInputRefs.current[product._id] = el)}
                     type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    accept="image/*"
                     multiple
                     onChange={(e) => handleImageSelect(product._id, e)}
                     className="hidden"
@@ -312,7 +309,7 @@ export default function OrderReviewPage() {
                             </span>
                           </button>
                         </div>
-                      )
+                      ),
                     )}
 
                     {(reviews[product._id]?.images?.length || 0) < 5 && (
@@ -357,4 +354,6 @@ export default function OrderReviewPage() {
       </div>
     </div>
   );
-}
+};
+
+export default OrderReviewPage;

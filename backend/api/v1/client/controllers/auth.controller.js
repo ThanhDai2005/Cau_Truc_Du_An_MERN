@@ -6,10 +6,13 @@ import { forgotPasswordTemplate } from "../../../../helpers/forgotPasswordTempla
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
 
 const ACCESS_TOKEN_TIME = "30m";
 const REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000; // 14 ngày
 const PHONE_REGEX = /^(03|05|07|08|09)\d{8}$/;
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // [POST] /api/v1/auth/signup
 export const signUp = async (req, res) => {
@@ -345,6 +348,85 @@ export const resetPassword = async (req, res) => {
     });
   } catch (error) {
     console.log("Lỗi khi gọi resetPassword", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [POST] /api/v1/auth/google
+export const googleAuth = async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({
+        message: "Thiếu Google credential",
+      });
+    }
+
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub: googleId } = payload;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Không thể lấy email từ Google",
+      });
+    }
+
+    // Tìm hoặc tạo user
+    let user = await User.findOne({ email: email });
+
+    if (!user) {
+      // Tạo user mới từ Google OAuth
+      user = new User({
+        displayName: name,
+        email: email,
+        avatarUrl: picture,
+        phone: `GOOGLE_${googleId.slice(0, 10)}`, // Tạo phone giả từ googleId để unique
+        hashedPassword: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10), // Random password
+        status: "active",
+      });
+
+      await user.save();
+    }
+
+    // Tạo accessToken và refreshToken
+    const accessToken = jwt.sign(
+      { userId: user._id },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: ACCESS_TOKEN_TIME },
+    );
+
+    const refreshToken = crypto.randomBytes(64).toString("hex");
+
+    const session = new Session({
+      userId: user._id,
+      refreshToken: refreshToken,
+      expireAt: new Date(Date.now() + REFRESH_TOKEN_TIME),
+    });
+
+    res.cookie("clientRefreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV == "production",
+      sameSite: process.env.NODE_ENV == "production" ? "none" : "lax",
+      maxAge: REFRESH_TOKEN_TIME,
+    });
+
+    await session.save();
+
+    res.status(200).json({
+      message: `User ${user.displayName} đã đăng nhập với Google`,
+      accessToken: accessToken,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi googleAuth", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });

@@ -36,6 +36,18 @@ export const authService = {
     return res.data;
   },
 
+  googleAuth: async (credential: string) => {
+    const res = await api.post(
+      "/auth/google",
+      {
+        credential,
+      },
+      { withCredentials: true },
+    );
+
+    return res.data;
+  },
+
   signOut: async () => {
     const res = await api.post(
       "/auth/signout",

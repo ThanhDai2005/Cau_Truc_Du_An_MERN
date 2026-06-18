@@ -63,7 +63,6 @@ const blogSchema = new mongoose.Schema(
 );
 
 blogSchema.index({ deleted: 1, status: 1, createdAt: -1 });
-blogSchema.index({ slug: 1 });
 
 const Blog = mongoose.model("Blog", blogSchema, "blogs");
 

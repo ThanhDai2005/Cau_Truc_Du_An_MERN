@@ -74,6 +74,26 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      googleSignIn: async (credential) => {
+        try {
+          get().clearState();
+          set({ loading: true });
+
+          const res = await authService.googleAuth(credential);
+          get().setAccessToken(res.accessToken);
+          await get().getDetail();
+          await useCartStore.getState().getCart();
+
+          toast.success("Chào mừng bạn quay lại 🎉");
+          return res;
+        } catch (error) {
+          console.error(error);
+          toast.error(error?.response?.data?.message || "Đăng nhập Google thất bại");
+        } finally {
+          set({ loading: false });
+        }
+      },
+
       signOut: async () => {
         try {
           get().clearState();

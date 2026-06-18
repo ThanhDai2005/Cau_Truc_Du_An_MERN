@@ -1,36 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router";
-import { Helmet } from "react-helmet-async";
 import { useBlogStore } from "@/stores/useBlogStore";
 import { useBlogCategoryStore } from "@/stores/useBlogCategoryStore";
-
-// Hàm lấy excerpt thông minh (giải quyết chữ dính liền)
-const getExcerpt = (html: string, maxLength: number = 160): string => {
-  if (!html) return "";
-
-  const tmp = document.createElement("DIV");
-  tmp.innerHTML = html;
-
-  // Giữ khoảng cách giữa các đoạn
-  tmp.querySelectorAll("p, br, div, h1, h2, h3, li, ul, ol").forEach((el) => {
-    if (el.tagName !== "BR") {
-      el.after(document.createTextNode(" "));
-    }
-  });
-
-  let text = tmp.textContent || tmp.innerText || "";
-
-  // Chuẩn hóa khoảng trắng
-  text = text.replace(/\s+/g, " ").trim();
-
-  if (text.length <= maxLength) return text;
-
-  // Cắt tại dấu câu hoàn chỉnh
-  const truncated = text.substring(0, maxLength);
-  const lastSentence = truncated.match(/.*[.!?]/);
-
-  return (lastSentence ? lastSentence[0] : truncated) + "...";
-};
 
 const BlogPage = () => {
   const [selectedCategorySlug, setSelectedCategorySlug] = useState("");
@@ -54,14 +25,6 @@ const BlogPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Góc Ẩm Thực - Khám Phá Món Ngon | FoodieVN</title>
-        <meta
-          name="description"
-          content="Cẩm nang ẩm thực FoodieVN: Khám phá bí quyết chọn món ngon, review đánh giá chi tiết và các câu chuyện đằng sau gian bếp."
-        />
-      </Helmet>
-
       <div className="min-h-screen bg-gray-50 pb-20">
         {/* ================= HERO HEADER ================= */}
         <div className="bg-gradient-to-b from-red-50 to-white pt-20 pb-12 border-b border-gray-100">
@@ -141,9 +104,6 @@ const BlogPage = () => {
                       <h2 className="text-2xl md:text-4xl font-extrabold mb-3 group-hover:text-red-200 transition-colors leading-tight">
                         {featuredPost.title}
                       </h2>
-                      <p className="blog-excerpt text-gray-200 text-sm md:text-base mb-4 line-clamp-3 leading-relaxed">
-                        {getExcerpt(featuredPost.content, 220)}
-                      </p>
                       <div className="flex items-center gap-3 text-xs md:text-sm text-gray-300 font-medium">
                         <span className="material-symbols-outlined text-[16px]">
                           person
@@ -188,9 +148,6 @@ const BlogPage = () => {
                         <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#b51c00] transition-colors line-clamp-2 leading-snug">
                           {post.title}
                         </h3>
-                        <p className="blog-excerpt text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed flex-grow">
-                          {getExcerpt(post.content, 145)}
-                        </p>
 
                         <div className="mt-auto flex items-center justify-between text-xs text-gray-500 font-medium pt-3 border-t border-gray-100">
                           <div className="flex items-center gap-2">

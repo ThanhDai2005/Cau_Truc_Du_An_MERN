@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useAuthStore } from "@/stores/useAuthStore";
 import { useOrderStore } from "@/stores/useOrderStore";
 import { toast } from "sonner";
 import Viewer from "viewerjs";
@@ -9,18 +8,11 @@ import "viewerjs/dist/viewer.css";
 const OrderReviewsViewPage = () => {
   const navigate = useNavigate();
   const { orderId } = useParams<{ orderId: string }>();
-  const { accessToken } = useAuthStore();
   const { orderReviews, loading, getOrderReviews } = useOrderStore();
 
   const imageGalleryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   useEffect(() => {
-    if (!accessToken) {
-      toast.error("Vui lòng đăng nhập");
-      navigate("/signin");
-      return;
-    }
-
     const fetchOrderReviews = async () => {
       try {
         await getOrderReviews(orderId!);
@@ -30,8 +22,10 @@ const OrderReviewsViewPage = () => {
       }
     };
 
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     fetchOrderReviews();
-  }, [orderId, accessToken, navigate, getOrderReviews]);
+  }, [orderId, navigate, getOrderReviews]);
 
   // Initialize viewer for each review's images
   useEffect(() => {

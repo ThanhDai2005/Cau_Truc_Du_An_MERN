@@ -1,7 +1,12 @@
 import api from "@/lib/axios";
 
 export const blogService = {
-  getList: async (keyword = "", blogCategorySlug = "", page = 1, limit = 12) => {
+  getList: async (
+    keyword = "",
+    blogCategorySlug = "",
+    page = 1,
+    limit = 12,
+  ) => {
     const res = await api.get(
       `/blog?keyword=${keyword}&blogCategorySlug=${blogCategorySlug}&page=${page}&limit=${limit}`,
     );
@@ -9,7 +14,7 @@ export const blogService = {
   },
 
   getDetail: async (slug: string) => {
-    const { data } = await api.get(`/blog/${slug}`);
-    return data;
+    const res = await api.get(`/blog/${slug}`);
+    return res.data;
   },
 };

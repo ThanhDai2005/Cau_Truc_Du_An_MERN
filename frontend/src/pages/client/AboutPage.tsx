@@ -1,17 +1,8 @@
-import { Helmet } from "react-helmet-async";
 import { Link } from "react-router";
 
 const AboutPage = () => {
   return (
     <>
-      <Helmet>
-        <title>Về Chúng Tôi - FoodieVN | Khám Phá Câu Chuyện Ẩm Thực</title>
-        <meta
-          name="description"
-          content="Hành trình của FoodieVN - Nền tảng đặt đồ ăn trực tuyến ưu tiên chất lượng hàng đầu. Khám phá đội ngũ và giá trị cốt lõi của chúng tôi."
-        />
-      </Helmet>
-
       <div className="min-h-screen bg-white pb-20">
         {/* ================= HERO SECTION ================= */}
         <div className="relative h-[450px] bg-gradient-to-br from-[#b51c00] to-[#8e1400] overflow-hidden">
@@ -248,7 +239,7 @@ const AboutPage = () => {
                 <span className="material-symbols-outlined">arrow_forward</span>
               </Link>
               <Link
-                to="/blog"
+                to="/blogs"
                 className="px-10 py-4 bg-white border-2 border-gray-200 text-gray-900 rounded-xl font-bold hover:border-[#b51c00] hover:text-[#b51c00] transition-all active:scale-95"
               >
                 Đọc Góc Ẩm Thực

@@ -59,7 +59,7 @@ const clientRoute = {
           element: <ProductDetailPage />,
         },
         {
-          path: "blog",
+          path: "blogs",
           element: <BlogPage />,
         },
         {

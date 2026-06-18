@@ -9,21 +9,18 @@ export default function CartPage() {
   const navigate = useNavigate();
   const { cart, loading, getCart, updateQuantity, removeFromCart } =
     useCartStore();
-  const { accessToken } = useAuthStore();
-  const { applyPromotion, appliedPromotion, clearPromotion } = usePromotionStore();
+  const { applyPromotion, appliedPromotion, clearPromotion } =
+    usePromotionStore();
 
   // State cho mã khuyến mãi
   const [promoCode, setPromoCode] = useState("");
   const [applyingPromo, setApplyingPromo] = useState(false);
 
   useEffect(() => {
-    if (!accessToken) {
-      toast.error("Vui lòng đăng nhập để xem giỏ hàng");
-      navigate("/signin");
-      return;
-    }
     getCart();
-  }, [accessToken, getCart, navigate]);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [getCart, navigate]);
 
   const handleUpdateQuantity = async (
     productId: string,
@@ -64,7 +61,9 @@ export default function CartPage() {
       await applyPromotion(promoCode.trim().toUpperCase(), subtotal);
       toast.success(`Đã áp dụng mã ${promoCode.toUpperCase()}`);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Mã khuyến mãi không hợp lệ");
+      toast.error(
+        error.response?.data?.message || "Mã khuyến mãi không hợp lệ",
+      );
     } finally {
       setApplyingPromo(false);
     }

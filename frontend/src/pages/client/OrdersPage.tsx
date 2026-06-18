@@ -41,7 +41,7 @@ const statusConfig = {
   },
 };
 
-export default function OrdersPage() {
+const OrdersPage = () => {
   const navigate = useNavigate();
   const { orders, loading, totalPages, getMyOrders } = useOrderStore();
   const { user } = useAuthStore();
@@ -62,7 +62,7 @@ export default function OrdersPage() {
   // Fetch review statuses for delivered orders
   const fetchReviewStatuses = async () => {
     const deliveredOrders = orders.filter(
-      (order) => order.orderStatus === "Delivered"
+      (order) => order.orderStatus === "Delivered",
     );
 
     const statuses: ReviewStatus = {};
@@ -79,18 +79,13 @@ export default function OrdersPage() {
             canReview: true,
           };
         }
-      })
+      }),
     );
 
     setReviewStatuses(statuses);
   };
 
   useEffect(() => {
-    if (!user) {
-      toast.error("Vui lòng đăng nhập để xem đơn hàng");
-      navigate("/signin");
-      return;
-    }
     fetchOrders();
   }, [user, currentPage, filterStatus]);
 
@@ -428,4 +423,6 @@ export default function OrdersPage() {
       )}
     </div>
   );
-}
+};
+
+export default OrdersPage;

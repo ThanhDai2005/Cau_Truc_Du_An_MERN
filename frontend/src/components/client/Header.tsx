@@ -74,10 +74,10 @@ const Header = () => {
                   <span className="material-symbols-outlined text-[24px]">
                     restaurant
                   </span>
-                  <span className="text-base font-medium">Sản phẩm</span>
+                  <span className="text-base font-medium">Thực đơn</span>
                 </button>
                 <button
-                  onClick={() => handleMobileNavClick("/blog")}
+                  onClick={() => handleMobileNavClick("/blogs")}
                   className="flex items-center gap-4 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-left"
                 >
                   <span className="material-symbols-outlined text-[24px]">
@@ -177,7 +177,7 @@ const Header = () => {
             Thực đơn
           </Link>
           <Link
-            to="/blog"
+            to="/blogs"
             className="text-[14px] font-medium text-gray-600 hover:opacity-80 transition-opacity"
           >
             Góc Ẩm Thực
