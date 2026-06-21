@@ -1,53 +1,42 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import Viewer from "viewerjs";
 import "viewerjs/dist/viewer.css";
 import { useReviewStore } from "@/stores/useReviewStore";
-import type { Review } from "@/types/review";
 
 interface ReviewSectionProps {
   productId: string;
-  initialReviews: Review[];
-  totalReviews: number;
 }
 
-export default function ReviewSection({
-  productId,
-  initialReviews,
-  totalReviews,
-}: ReviewSectionProps) {
-  const { loadMoreReviews, loading } = useReviewStore();
+const ReviewSection = ({ productId }: ReviewSectionProps) => {
+  const {
+    reviews,
+    loading,
+    currentPage,
+    totalPages,
+    getReviewsByProduct,
+    loadMoreReviews,
+    resetReviews,
+  } = useReviewStore();
 
-  const [reviews, setReviews] = useState<Review[]>(initialReviews);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(
-    Math.ceil(totalReviews / 5) || 1
-  );
-
-  // Viewer refs for each review
   const imageGalleryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
+  // Reset và load reviews khi đổi sản phẩm
   useEffect(() => {
-    setReviews(initialReviews);
-    setTotalPages(Math.ceil(totalReviews / 5) || 1);
-  }, [initialReviews, totalReviews]);
+    resetReviews();
+    getReviewsByProduct(productId, 1, 5); // Load 5 đánh giá ban đầu (khuyến nghị)
+  }, [productId, resetReviews, getReviewsByProduct]);
 
-  // Initialize viewer for each review's images
+  // Initialize Viewer cho ảnh
   useEffect(() => {
     const viewers: { [key: string]: Viewer } = {};
 
     reviews.forEach((review) => {
-      if (review.images && review.images.length > 0) {
-        const galleryElement = imageGalleryRefs.current[review._id];
-        if (galleryElement) {
-          viewers[review._id] = new Viewer(galleryElement, {
-            toolbar: {
-              zoomIn: 1,
-              zoomOut: 1,
-              reset: 1,
-              rotateLeft: 1,
-              rotateRight: 1,
-            },
+      if (review.images?.length > 0) {
+        const el = imageGalleryRefs.current[review._id];
+        if (el) {
+          viewers[review._id] = new Viewer(el, {
+            toolbar: { zoomIn: true, zoomOut: true, reset: true },
             navbar: false,
             title: false,
           });
@@ -56,7 +45,7 @@ export default function ReviewSection({
     });
 
     return () => {
-      Object.values(viewers).forEach((viewer) => viewer.destroy());
+      Object.values(viewers).forEach((v) => v.destroy());
     };
   }, [reviews]);
 
@@ -64,62 +53,56 @@ export default function ReviewSection({
     if (loading || currentPage >= totalPages) return;
 
     try {
-      const nextPage = currentPage + 1;
-      const result = await loadMoreReviews(productId, nextPage, 5);
-
-      if (result.data && result.data.length > 0) {
-        setReviews([...reviews, ...result.data]);
-        setCurrentPage(nextPage);
-        setTotalPages(result.totalPages);
-      }
+      await loadMoreReviews(productId, 5);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Lỗi khi tải thêm đánh giá");
+      toast.error(
+        error.response?.data?.message || "Không thể tải thêm đánh giá",
+      );
     }
   };
 
+  const hasMore = currentPage < totalPages;
+  const totalLoaded = reviews.length;
+
   return (
-    <div className="mt-8 space-y-6">
-      {/* Reviews List */}
-      {reviews.length > 0 ? (
+    <div className="mt-8 space-y-8">
+      {totalLoaded > 0 ? (
         <>
           {reviews.map((review) => (
             <div
               key={review._id}
-              className="border-b border-gray-200 pb-6 last:border-none"
+              className="border-b border-gray-200 pb-8 last:border-b-0"
             >
               <div className="flex gap-4">
-                {/* Avatar */}
                 <div className="shrink-0">
                   {review.userId?.avatarUrl ? (
                     <img
                       src={review.userId.avatarUrl}
                       alt={review.userId.displayName}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-12 h-12 rounded-full object-cover border"
                     />
                   ) : (
-                    <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                    <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
                       {review.userId?.displayName?.[0]?.toUpperCase() || "U"}
                     </div>
                   )}
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
+                <div className="flex-1">
+                  <div className="flex justify-between items-start">
                     <p className="font-semibold text-gray-900">
-                      {review.userId?.displayName || "Người dùng"}
+                      {review.userId?.displayName || "Người dùng ẩn danh"}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-xs text-gray-500">
                       {new Date(review.createdAt).toLocaleDateString("vi-VN")}
                     </p>
                   </div>
 
-                  {/* Stars */}
-                  <div className="flex gap-0.5 mb-2">
+                  <div className="flex gap-0.5 my-1.5">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <span
                         key={i}
-                        className={`text-xl ${
+                        className={`text-2xl ${
                           i < review.rating
                             ? "text-yellow-400"
                             : "text-gray-200"
@@ -130,23 +113,25 @@ export default function ReviewSection({
                     ))}
                   </div>
 
-                  {/* Comment */}
-                  <p className="text-gray-700 leading-relaxed mb-3">
-                    {review.comment}
-                  </p>
+                  {review.comment && (
+                    <p className="text-gray-700 leading-relaxed mb-4">
+                      {review.comment}
+                    </p>
+                  )}
 
-                  {/* Images */}
-                  {review.images && review.images.length > 0 && (
+                  {review.images?.length > 0 && (
                     <div
-                      ref={(el) => (imageGalleryRefs.current[review._id] = el)}
-                      className="flex gap-2 flex-wrap"
+                      ref={(el) => {
+                        imageGalleryRefs.current[review._id] = el;
+                      }}
+                      className="flex flex-wrap gap-3"
                     >
                       {review.images.map((img, idx) => (
                         <img
                           key={idx}
                           src={img}
-                          alt={`Review image ${idx + 1}`}
-                          className="w-20 h-20 object-cover rounded-lg cursor-pointer border border-gray-200 hover:border-red-500 transition-colors"
+                          alt={`Review ${idx + 1}`}
+                          className="w-20 h-20 object-cover rounded-xl cursor-pointer border border-gray-200 hover:border-red-400 transition-all"
                         />
                       ))}
                     </div>
@@ -157,43 +142,46 @@ export default function ReviewSection({
           ))}
 
           {/* Load More Button */}
-          {currentPage < totalPages && (
-            <div className="flex justify-center pt-4">
+          {hasMore && (
+            <div className="flex justify-center pt-6">
               <button
                 onClick={handleLoadMore}
                 disabled={loading}
-                className="px-8 py-3 bg-white border-2 border-gray-300 rounded-xl font-semibold text-gray-700 hover:border-red-500 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-10 py-3.5 bg-white border-2 border-gray-300 rounded-2xl font-semibold text-gray-700 hover:border-[#b51c00] hover:text-[#b51c00] transition-all disabled:opacity-50 flex items-center gap-2"
               >
                 {loading ? (
                   <>
-                    <span className="material-symbols-outlined animate-spin text-xl">
+                    <span className="material-symbols-outlined animate-spin">
                       progress_activity
                     </span>
                     Đang tải...
                   </>
                 ) : (
-                  <>
-                    Xem thêm đánh giá
-                    <span className="material-symbols-outlined text-xl">
-                      expand_more
-                    </span>
-                  </>
+                  `Xem thêm đánh giá`
                 )}
               </button>
             </div>
           )}
+
+          {!hasMore && totalLoaded > 0 && (
+            <p className="text-center text-gray-400 text-sm py-4">
+              Đã hiển thị tất cả đánh giá
+            </p>
+          )}
         </>
       ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-2xl">
-          <span className="material-symbols-outlined text-gray-300 text-6xl mb-3 block">
+        <div className="text-center py-16 bg-gray-50 rounded-2xl">
+          <span className="material-symbols-outlined text-6xl text-gray-300 mb-4 block">
             rate_review
           </span>
-          <p className="text-gray-500 text-lg">Chưa có đánh giá nào.</p>
+          <p className="text-gray-600 font-medium">Chưa có đánh giá nào</p>
           <p className="text-gray-400 text-sm mt-1">
-            Sản phẩm này chưa được đánh giá
+            Hãy là người đầu tiên đánh giá sản phẩm này!
           </p>
         </div>
       )}
     </div>
   );
-}
+};
+
+export default ReviewSection;

@@ -33,8 +33,11 @@ export const apply = async (req, res) => {
       });
     }
 
-    // Kiem tra han muc su dung
-    if (promotion.usedCount >= promotion.usageLimit) {
+    // Chỉ kiểm tra usageLimit nếu nó KHÔNG phải null
+    if (
+      promotion.usageLimit != null &&
+      promotion.usedCount >= promotion.usageLimit
+    ) {
       return res
         .status(400)
         .json({ message: "Ma khuyen mai da het luot su dung" });

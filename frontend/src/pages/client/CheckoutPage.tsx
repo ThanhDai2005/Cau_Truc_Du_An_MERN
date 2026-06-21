@@ -11,7 +11,9 @@ import { toast } from "sonner";
 
 const checkoutSchema = z.object({
   recipient: z.string().min(2, "Tên người nhận phải có ít nhất 2 ký tự"),
-  phone: z.string().regex(/^(03|05|07|08|09)\d{8}$/, "Số điện thoại không hợp lệ"),
+  phone: z
+    .string()
+    .regex(/^(03|05|07|08|09)\d{8}$/, "Số điện thoại không hợp lệ"),
   address: z.string().min(10, "Địa chỉ phải có ít nhất 10 ký tự"),
   paymentMethod: z.enum(["COD", "VNPAY", "MOMO", "STRIPE"]),
 });
@@ -22,7 +24,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const { cart, getCart, clearCart } = useCartStore();
   const { createOrder } = useOrderStore();
-  const { accessToken, user } = useAuthStore();
+  const { user } = useAuthStore();
   const { appliedPromotion, clearPromotion } = usePromotionStore();
   const [submitting, setSubmitting] = useState(false);
 
@@ -39,11 +41,6 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    if (!accessToken) {
-      toast.error("Vui lòng đăng nhập để thanh toán");
-      navigate("/signin");
-      return;
-    }
     getCart();
 
     if (user) {
@@ -53,12 +50,13 @@ export default function CheckoutPage() {
         setValue("address", user.address);
       }
     }
-  }, [accessToken, user, setValue, getCart, navigate]);
+  }, [user, setValue, getCart, navigate]);
 
   const calculateSubtotal = () => {
     if (!cart?.items) return 0;
     return cart.items.reduce((sum, item) => {
-      const product = typeof item.productId === "object" ? item.productId : null;
+      const product =
+        typeof item.productId === "object" ? item.productId : null;
       if (!product) return sum;
       return sum + product.price * item.quantity;
     }, 0);
@@ -79,7 +77,8 @@ export default function CheckoutPage() {
       setSubmitting(true);
       const orderData = {
         items: cart.items.map((item) => {
-          const product = typeof item.productId === "object" ? item.productId : null;
+          const product =
+            typeof item.productId === "object" ? item.productId : null;
           return {
             productId: product?._id || "",
             quantity: item.quantity,
@@ -111,7 +110,9 @@ export default function CheckoutPage() {
   if (!cart?.items || cart.items.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Giỏ hàng trống</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Giỏ hàng trống
+        </h2>
         <button
           onClick={() => navigate("/")}
           className="bg-[#b51c00] text-white px-8 py-3 rounded-xl font-bold hover:opacity-90 transition shadow-md"
@@ -130,12 +131,15 @@ export default function CheckoutPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Form Area */}
           <div className="lg:col-span-2 space-y-6">
-
             {/* Delivery Info */}
             <section className="bg-white rounded-xl p-5 md:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100">
               <div className="flex items-center gap-2 mb-6 border-b border-gray-50 pb-4">
-                <span className="material-symbols-outlined text-[#b51c00]">local_shipping</span>
-                <h2 className="text-lg font-bold text-gray-900">Địa chỉ giao hàng</h2>
+                <span className="material-symbols-outlined text-[#b51c00]">
+                  local_shipping
+                </span>
+                <h2 className="text-lg font-bold text-gray-900">
+                  Địa chỉ giao hàng
+                </h2>
               </div>
               <div className="space-y-5">
                 <div>
@@ -149,7 +153,9 @@ export default function CheckoutPage() {
                   />
                   {errors.recipient && (
                     <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">error</span>
+                      <span className="material-symbols-outlined text-[14px]">
+                        error
+                      </span>
                       {errors.recipient.message}
                     </p>
                   )}
@@ -166,7 +172,9 @@ export default function CheckoutPage() {
                   />
                   {errors.phone && (
                     <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">error</span>
+                      <span className="material-symbols-outlined text-[14px]">
+                        error
+                      </span>
                       {errors.phone.message}
                     </p>
                   )}
@@ -184,7 +192,9 @@ export default function CheckoutPage() {
                   />
                   {errors.address && (
                     <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[14px]">error</span>
+                      <span className="material-symbols-outlined text-[14px]">
+                        error
+                      </span>
                       {errors.address.message}
                     </p>
                   )}
@@ -195,15 +205,35 @@ export default function CheckoutPage() {
             {/* Payment Method */}
             <section className="bg-white rounded-xl p-5 md:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100">
               <div className="flex items-center gap-2 mb-6 border-b border-gray-50 pb-4">
-                <span className="material-symbols-outlined text-[#b51c00]">payments</span>
-                <h2 className="text-lg font-bold text-gray-900">Phương thức thanh toán</h2>
+                <span className="material-symbols-outlined text-[#b51c00]">
+                  payments
+                </span>
+                <h2 className="text-lg font-bold text-gray-900">
+                  Phương thức thanh toán
+                </h2>
               </div>
               <div className="space-y-3">
                 {[
-                  { value: "COD", label: "Thanh toán tiền mặt khi nhận hàng (COD)", icon: "payments" },
-                  { value: "VNPAY", label: "Ví VNPAY", icon: "account_balance_wallet" },
-                  { value: "MOMO", label: "Ví MoMo", icon: "account_balance_wallet" },
-                  { value: "STRIPE", label: "Thẻ tín dụng/Ghi nợ", icon: "credit_card" },
+                  {
+                    value: "COD",
+                    label: "Thanh toán tiền mặt khi nhận hàng (COD)",
+                    icon: "payments",
+                  },
+                  {
+                    value: "VNPAY",
+                    label: "Ví VNPAY",
+                    icon: "account_balance_wallet",
+                  },
+                  {
+                    value: "MOMO",
+                    label: "Ví MoMo",
+                    icon: "account_balance_wallet",
+                  },
+                  {
+                    value: "STRIPE",
+                    label: "Thẻ tín dụng/Ghi nợ",
+                    icon: "credit_card",
+                  },
                 ].map((method) => (
                   <label
                     key={method.value}
@@ -215,24 +245,30 @@ export default function CheckoutPage() {
                       value={method.value}
                       className="w-4 h-4 text-[#b51c00] focus:ring-[#b51c00] cursor-pointer"
                     />
-                    <span className="material-symbols-outlined text-gray-500 text-[20px]">{method.icon}</span>
-                    <span className="font-semibold text-gray-800 text-sm">{method.label}</span>
+                    <span className="material-symbols-outlined text-gray-500 text-[20px]">
+                      {method.icon}
+                    </span>
+                    <span className="font-semibold text-gray-800 text-sm">
+                      {method.label}
+                    </span>
                   </label>
                 ))}
               </div>
             </section>
-
           </div>
 
           {/* Right Sidebar: Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl p-5 md:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100 sticky top-24">
-              <h2 className="text-lg font-bold text-gray-900 mb-6 border-b border-gray-50 pb-4">Đơn hàng của bạn</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-6 border-b border-gray-50 pb-4">
+                Đơn hàng của bạn
+              </h2>
 
               {/* Order Items List */}
               <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                 {cart.items.map((item) => {
-                  const product = typeof item.productId === "object" ? item.productId : null;
+                  const product =
+                    typeof item.productId === "object" ? item.productId : null;
                   if (!product) return null;
                   return (
                     <div key={product._id} className="flex gap-3">
@@ -242,11 +278,18 @@ export default function CheckoutPage() {
                         className="w-14 h-14 object-cover rounded-md bg-gray-50 border border-gray-100 shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-gray-900 line-clamp-2">{product.name}</p>
+                        <p className="font-semibold text-sm text-gray-900 line-clamp-2">
+                          {product.name}
+                        </p>
                         <div className="flex justify-between items-center mt-1">
-                          <p className="text-xs text-gray-500 font-medium">SL: x{item.quantity}</p>
+                          <p className="text-xs text-gray-500 font-medium">
+                            SL: x{item.quantity}
+                          </p>
                           <p className="text-sm font-bold text-[#b51c00]">
-                            {(product.price * item.quantity).toLocaleString("vi-VN")}đ
+                            {(product.price * item.quantity).toLocaleString(
+                              "vi-VN",
+                            )}
+                            đ
                           </p>
                         </div>
                       </div>
@@ -259,20 +302,28 @@ export default function CheckoutPage() {
               <div className="border-t border-gray-100 pt-4 space-y-3">
                 <div className="flex justify-between text-gray-600 text-sm">
                   <span>Tạm tính</span>
-                  <span className="font-semibold">{subtotal.toLocaleString("vi-VN")}đ</span>
+                  <span className="font-semibold">
+                    {subtotal.toLocaleString("vi-VN")}đ
+                  </span>
                 </div>
                 <div className="flex justify-between text-gray-600 text-sm">
                   <span>Phí giao hàng</span>
-                  <span className="font-semibold">{shippingFee.toLocaleString("vi-VN")}đ</span>
+                  <span className="font-semibold">
+                    {shippingFee.toLocaleString("vi-VN")}đ
+                  </span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600 text-sm">
                     <span>Khuyến mãi</span>
-                    <span className="font-semibold">- {discount.toLocaleString("vi-VN")}đ</span>
+                    <span className="font-semibold">
+                      - {discount.toLocaleString("vi-VN")}đ
+                    </span>
                   </div>
                 )}
                 <div className="border-t border-gray-100 pt-4 flex justify-between items-center">
-                  <span className="text-gray-900 font-bold">Tổng thanh toán</span>
+                  <span className="text-gray-900 font-bold">
+                    Tổng thanh toán
+                  </span>
                   <span className="text-xl font-bold text-[#b51c00]">
                     {total.toLocaleString("vi-VN")}đ
                   </span>
@@ -286,7 +337,9 @@ export default function CheckoutPage() {
               >
                 {submitting ? (
                   <>
-                    <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+                    <span className="material-symbols-outlined animate-spin text-[20px]">
+                      progress_activity
+                    </span>
                     Đang xử lý...
                   </>
                 ) : (

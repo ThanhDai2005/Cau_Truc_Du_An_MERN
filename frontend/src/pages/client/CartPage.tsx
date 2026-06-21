@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { useCartStore } from "@/stores/useCartStore";
-import { useAuthStore } from "@/stores/useAuthStore";
 import { usePromotionStore } from "@/stores/usePromotionStore";
 import { toast } from "sonner";
 
-export default function CartPage() {
+const CartPage = () => {
   const navigate = useNavigate();
   const { cart, loading, getCart, updateQuantity, removeFromCart } =
     useCartStore();
   const { applyPromotion, appliedPromotion, clearPromotion } =
     usePromotionStore();
 
-  // State cho mã khuyến mãi
   const [promoCode, setPromoCode] = useState("");
   const [applyingPromo, setApplyingPromo] = useState(false);
 
@@ -22,6 +20,21 @@ export default function CartPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [getCart, navigate]);
 
+  const calculateSubtotal = () => {
+    if (!cart?.items) return 0;
+    return cart.items.reduce((sum, item) => {
+      const product =
+        typeof item.productId === "object" ? item.productId : null;
+      if (!product) return sum;
+      return sum + product.price * item.quantity;
+    }, 0);
+  };
+
+  const subtotal = calculateSubtotal();
+  const shippingFee = subtotal > 0 ? 30000 : 0;
+  const discount = appliedPromotion?.discountAmount || 0;
+  const total = Math.max(0, subtotal + shippingFee - discount);
+
   const handleUpdateQuantity = async (
     productId: string,
     newQuantity: number,
@@ -29,6 +42,14 @@ export default function CartPage() {
     if (newQuantity < 1) return;
     try {
       await updateQuantity(productId, newQuantity);
+
+      if (appliedPromotion) {
+        clearPromotion();
+        setPromoCode("");
+        toast.info(
+          "Đơn hàng thay đổi, vui lòng áp dụng lại mã khuyến mãi nếu có.",
+        );
+      }
     } catch (error) {
       toast.error("Lỗi khi cập nhật số lượng");
     }
@@ -37,20 +58,21 @@ export default function CartPage() {
   const handleRemove = async (productId: string) => {
     try {
       await removeFromCart(productId);
+      if (appliedPromotion) {
+        clearPromotion();
+        setPromoCode("");
+      }
       toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
     } catch (error) {
       toast.error("Lỗi khi xóa sản phẩm");
     }
   };
 
-  // Xử lý áp dụng mã khuyến mãi
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) {
       toast.error("Vui lòng nhập mã khuyến mãi");
       return;
     }
-
-    const subtotal = calculateSubtotal();
     if (subtotal === 0) {
       toast.error("Giỏ hàng trống");
       return;
@@ -69,21 +91,7 @@ export default function CartPage() {
     }
   };
 
-  const calculateSubtotal = () => {
-    if (!cart?.items) return 0;
-    return cart.items.reduce((sum, item) => {
-      const product =
-        typeof item.productId === "object" ? item.productId : null;
-      if (!product) return sum;
-      return sum + product.price * item.quantity;
-    }, 0);
-  };
-
-  const subtotal = calculateSubtotal();
-  const shippingFee = subtotal > 0 ? 30000 : 0;
-  const discount = appliedPromotion?.discountAmount || 0;
-  const total = subtotal + shippingFee - discount;
-
+  // Skeleton
   if (loading && (!cart || cart.items.length === 0)) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8 animate-pulse space-y-6">
@@ -114,7 +122,7 @@ export default function CartPage() {
           Hãy thêm món ăn ngon vào giỏ hàng ngay nhé!
         </p>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/products")}
           className="bg-[#b51c00] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#8e1400] transition shadow-md shadow-red-100"
         >
           Tiếp tục chọn món
@@ -125,15 +133,17 @@ export default function CartPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-      <div className="flex items-center gap-2 mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Giỏ hàng</h1>
-        <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-bold">
+      <div className="flex items-center gap-3 mb-8">
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+          Giỏ hàng
+        </h1>
+        <span className="bg-[#b51c00] text-white px-3 py-1 rounded-full text-sm font-bold shadow-sm">
           {cart.items.length} món
         </span>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Cart Items */}
+        {/* Danh sách sản phẩm */}
         <div className="lg:col-span-2 space-y-4">
           {cart.items.map((item) => {
             const product =
@@ -164,17 +174,19 @@ export default function CartPage() {
                       </span>
                     </button>
                   </div>
+
                   <p className="text-[#b51c00] font-bold mt-1">
                     {product.price.toLocaleString("vi-VN")}đ
                   </p>
+
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
                       <button
                         onClick={() =>
                           handleUpdateQuantity(product._id, item.quantity - 1)
                         }
-                        className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
                         disabled={item.quantity <= 1}
+                        className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           remove
@@ -187,8 +199,8 @@ export default function CartPage() {
                         onClick={() =>
                           handleUpdateQuantity(product._id, item.quantity + 1)
                         }
-                        className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
                         disabled={item.quantity >= product.stock}
+                        className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           add
@@ -205,13 +217,13 @@ export default function CartPage() {
           })}
 
           <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-[#b51c00] font-bold text-sm hover:underline mt-4"
+            to="/products"
+            className="inline-flex items-center gap-2 text-[#b51c00] font-bold hover:text-[#8e1400] transition-colors mt-4 px-2"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              arrow_back
+            <span className="material-symbols-outlined text-[20px]">
+              add_circle
             </span>
-            Thêm món ăn khác
+            Chọn thêm món khác
           </Link>
         </div>
 
@@ -253,7 +265,7 @@ export default function CartPage() {
               </div>
             </div>
 
-            {/* ==================== PHẦN NHẬP MÃ KHUYẾN MÃI ==================== */}
+            {/* Promo Code */}
             <div className="mb-6 relative">
               <input
                 type="text"
@@ -265,8 +277,8 @@ export default function CartPage() {
               />
               <button
                 onClick={handleApplyPromo}
-                disabled={applyingPromo}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={applyingPromo || !promoCode.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
               >
                 {applyingPromo ? "Đang xử lý..." : "Áp dụng"}
               </button>
@@ -297,7 +309,6 @@ export default function CartPage() {
                 </button>
               </div>
             )}
-            {/* ============================================================ */}
 
             <button
               onClick={() => navigate("/checkout")}
@@ -314,4 +325,6 @@ export default function CartPage() {
       </div>
     </div>
   );
-}
+};
+
+export default CartPage;

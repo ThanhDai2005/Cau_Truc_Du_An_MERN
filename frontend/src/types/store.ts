@@ -88,8 +88,8 @@ export interface ProductState {
     limit: number,
     sortKey: string,
     sortValue: string,
-  ) => Promise<void>;
-  getDetail: (slug: string) => Promise<void>;
+  ) => Promise<any>;
+  getDetail: (slug: string) => Promise<any>;
 }
 
 export interface BlogCategoryState {
@@ -159,6 +159,7 @@ export interface ReviewState {
   reviews: Review[];
   loading: boolean;
   totalPages: number;
+  currentPage: number;
   createReview: (
     productId: string,
     rating: number,
@@ -172,7 +173,7 @@ export interface ReviewState {
   ) => Promise<{ data: Review[]; totalItems: number; totalPages: number }>;
   loadMoreReviews: (
     productId: string,
-    page: number,
     limit?: number,
-  ) => Promise<{ data: Review[]; totalItems: number; totalPages: number }>;
+  ) => Promise<{ data: Review[]; totalItems: number; totalPages: number } | undefined>;
+  resetReviews: () => void;
 }

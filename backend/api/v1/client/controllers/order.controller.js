@@ -45,10 +45,11 @@ export const create = async (req, res) => {
 
       const product = await Product.findOne({
         _id: item.productId,
+        status: "active",
         deleted: false,
       });
 
-      if (!product || product.status !== "active") {
+      if (!product) {
         return res.status(404).json({
           message: `Sản phẩm không tồn tại hoặc đã ngừng kinh doanh`,
         });
@@ -74,6 +75,37 @@ export const create = async (req, res) => {
     const discountAmountValue = Number(discountAmount || 0);
     const totalAmount = subtotal + shippingFeeValue - discountAmountValue;
 
+    // Atomic stock deduction - prevent race condition
+    const stockUpdates = [];
+    for (const item of normalizedItems) {
+      const updateResult = await Product.findOneAndUpdate(
+        {
+          _id: item.productId,
+          stock: { $gte: item.quantity },
+          deleted: false,
+          status: "active",
+        },
+        { $inc: { stock: -item.quantity } },
+        { new: true },
+      );
+
+      if (!updateResult) {
+        // Rollback previous stock changes
+        for (const rollbackItem of stockUpdates) {
+          await Product.updateOne(
+            { _id: rollbackItem.productId },
+            { $inc: { stock: rollbackItem.quantity } },
+          );
+        }
+
+        return res.status(409).json({
+          message: `Sản phẩm không đủ tồn kho (có thể đã được mua bởi người khác)`,
+        });
+      }
+
+      stockUpdates.push(item);
+    }
+
     const createdOrder = await Order.create({
       userId: req.user._id,
       items: normalizedItems,
@@ -89,15 +121,66 @@ export const create = async (req, res) => {
       totalAmount: totalAmount,
     });
 
-    for (const item of normalizedItems) {
-      await Product.updateOne(
-        { _id: item.productId },
-        { $inc: { stock: -item.quantity } },
-      );
-    }
-
-    // Update promotion usedCount and usersUsed if promotion was applied
+    // Re-validate and update promotion if applied
     if (promotionId) {
+      const now = new Date();
+      const promotion = await Promotion.findOne({
+        _id: promotionId,
+        deleted: false,
+        status: "active",
+        startDate: { $lte: now },
+        endDate: { $gte: now },
+      });
+
+      if (!promotion) {
+        // Rollback stock changes
+        for (const item of stockUpdates) {
+          await Product.updateOne(
+            { _id: item.productId },
+            { $inc: { stock: item.quantity } },
+          );
+        }
+        return res.status(400).json({
+          message: "Mã khuyến mãi không còn hợp lệ",
+        });
+      }
+
+      // Check if user already used this promotion
+      if (
+        promotion.usersUsed.some(
+          (uid) => uid.toString() === req.user._id.toString(),
+        )
+      ) {
+        // Rollback stock changes
+        for (const item of stockUpdates) {
+          await Product.updateOne(
+            { _id: item.productId },
+            { $inc: { stock: item.quantity } },
+          );
+        }
+        return res.status(400).json({
+          message: "Bạn đã sử dụng mã khuyến mãi này rồi",
+        });
+      }
+
+      // Check usage limit
+      if (
+        promotion.usageLimit != null &&
+        promotion.usedCount >= promotion.usageLimit
+      ) {
+        // Rollback stock changes
+        for (const item of stockUpdates) {
+          await Product.updateOne(
+            { _id: item.productId },
+            { $inc: { stock: item.quantity } },
+          );
+        }
+        return res.status(400).json({
+          message: "Mã khuyến mãi đã hết lượt sử dụng",
+        });
+      }
+
+      // Atomic promotion update
       await Promotion.updateOne(
         { _id: promotionId },
         {
@@ -229,7 +312,7 @@ export const getReviewStatus = async (req, res) => {
     }).select("productId");
 
     const reviewedProductIds = reviewedProducts.map((r) =>
-      r.productId.toString()
+      r.productId.toString(),
     );
     const hasReviewedAll =
       reviewedProductIds.length === productIds.length &&

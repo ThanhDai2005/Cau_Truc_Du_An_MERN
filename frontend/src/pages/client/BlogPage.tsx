@@ -5,28 +5,79 @@ import { useBlogCategoryStore } from "@/stores/useBlogCategoryStore";
 
 const BlogPage = () => {
   const [selectedCategorySlug, setSelectedCategorySlug] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [displayedBlogs, setDisplayedBlogs] = useState<any[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const { blog, loading, getList } = useBlogStore();
+  const { loading, getList } = useBlogStore();
   const { blogCategory, fetchBlogCategories } = useBlogCategoryStore();
+
+  const BLOGS_PER_LOAD = 5;
 
   useEffect(() => {
     fetchBlogCategories();
   }, [fetchBlogCategories]);
 
   useEffect(() => {
-    getList("", selectedCategorySlug, 1, 10);
+    const fetchInitialBlogs = async () => {
+      setCurrentPage(1);
+      setHasMore(true);
+
+      const data = await getList("", selectedCategorySlug, 1, BLOGS_PER_LOAD);
+
+      if (data && data.length > 0) {
+        setDisplayedBlogs(data);
+        setHasMore(data.length === BLOGS_PER_LOAD);
+      } else {
+        setDisplayedBlogs([]);
+        setHasMore(false);
+      }
+    };
+
+    fetchInitialBlogs();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [selectedCategorySlug, getList]);
 
-  const featuredPost = blog.find((post) => post.featured);
+  // Xử lý khi bấm nút XEM THÊM
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+      const nextPage = currentPage + 1;
+
+      // Lấy data trang tiếp theo
+      const data = await getList(
+        "",
+        selectedCategorySlug,
+        nextPage,
+        BLOGS_PER_LOAD,
+      );
+
+      if (data && data.length > 0) {
+        // NỐI MẢNG: Giữ bài cũ (...prev), thêm bài mới (...data)
+        setDisplayedBlogs((prev) => [...prev, ...data]);
+        setCurrentPage(nextPage);
+        setHasMore(data.length === BLOGS_PER_LOAD);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error loading more blogs:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const featuredPost = displayedBlogs.find((post) => post.featured);
   const regularPosts = featuredPost
-    ? blog.filter((post) => post._id !== featuredPost._id)
-    : blog;
+    ? displayedBlogs.filter((post) => post._id !== featuredPost._id)
+    : displayedBlogs;
 
   return (
     <>
       <div className="min-h-screen bg-gray-50 pb-20">
-        {/* ================= HERO HEADER ================= */}
         <div className="bg-gradient-to-b from-red-50 to-white pt-20 pb-12 border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 md:px-6 text-center">
             <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight">
@@ -67,25 +118,52 @@ const BlogPage = () => {
             ))}
           </div>
 
-          {loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className="animate-pulse flex flex-col gap-4 bg-white p-4 rounded-2xl border border-gray-100"
-                >
-                  <div className="w-full aspect-[4/3] bg-gray-200 rounded-xl"></div>
-                  <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          {/* Loading State - Chỉ hiện khi ở trang 1 */}
+          {loading && currentPage === 1 && (
+            <div className="space-y-10">
+              <div className="animate-pulse">
+                <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-lg">
+                  <div className="w-full h-full bg-gray-200" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                    <div className="inline-block px-3 py-1.5 bg-gray-300 rounded-full w-28 h-6 mb-4" />
+                    <div className="h-9 md:h-12 bg-gray-300 rounded-lg w-4/5 mb-4" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-gray-300 rounded-full" />
+                      <div className="h-4 bg-gray-300 rounded w-40" />
+                    </div>
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="animate-pulse flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100"
+                  >
+                    <div className="aspect-[4/3] bg-gray-200" />
+                    <div className="flex-1 p-5 space-y-3">
+                      <div className="h-6 bg-gray-200 rounded w-11/12" />
+                      <div className="h-4 bg-gray-200 rounded w-full" />
+                      <div className="h-4 bg-gray-200 rounded w-4/5" />
+                      <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-gray-200 rounded-full" />
+                          <div className="h-4 bg-gray-200 rounded w-28" />
+                        </div>
+                        <div className="h-4 bg-gray-200 rounded w-20" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {!loading && blog.length > 0 && (
+          {/* List Bài Viết */}
+          {(!loading || currentPage > 1) && displayedBlogs.length > 0 && (
             <div className="space-y-10">
-              {/* Featured Post */}
               {featuredPost && selectedCategorySlug === "" && (
                 <Link to={`/blog/${featuredPost.slug}`} className="block group">
                   <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-lg border border-gray-200">
@@ -123,7 +201,6 @@ const BlogPage = () => {
                 </Link>
               )}
 
-              {/* Regular Posts */}
               {regularPosts.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {regularPosts.map((post) => (
@@ -171,10 +248,46 @@ const BlogPage = () => {
                   ))}
                 </div>
               )}
+
+              {/* Nút Xem Thêm */}
+              {hasMore && (
+                <div className="flex justify-center pt-6">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="px-8 py-3.5 bg-white border-2 border-gray-300 rounded-xl font-bold text-gray-700 hover:border-[#b51c00] hover:text-[#b51c00] hover:bg-red-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm active:scale-95"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <span className="material-symbols-outlined animate-spin text-xl">
+                          progress_activity
+                        </span>
+                        Đang tải...
+                      </>
+                    ) : (
+                      <>
+                        Xem thêm bài viết
+                        <span className="material-symbols-outlined text-xl">
+                          expand_more
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Dòng chữ báo hết bài */}
+              {!hasMore && displayedBlogs.length > BLOGS_PER_LOAD && (
+                <div className="text-center pt-6 border-t border-gray-200 mt-8">
+                  <p className="text-sm text-gray-400 font-medium italic">
+                    Đã hiển thị toàn bộ bài viết
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
-          {!loading && blog.length === 0 && (
+          {!loading && displayedBlogs.length === 0 && (
             <div className="text-center py-20 bg-white rounded-2xl border border-gray-200">
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-5">
                 <span className="material-symbols-outlined text-4xl text-gray-400">

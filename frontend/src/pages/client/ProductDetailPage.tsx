@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useProductStore } from "@/stores/useProductStore";
 import { useCartStore } from "@/stores/useCartStore";
-import { useAuthStore } from "@/stores/useAuthStore";
 import { useReviewStore } from "@/stores/useReviewStore";
-import type { Review } from "@/types/review";
 import type { Product } from "@/types/product";
 import { toast } from "sonner";
 
@@ -21,7 +19,6 @@ const ProductDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [activeTab, setActiveTab] = useState<"desc" | "reviews">("desc");
@@ -31,20 +28,22 @@ const ProductDetailPage = () => {
 
   const { currentProduct, loading, getDetail, getList } = useProductStore();
   const { addToCart } = useCartStore();
-  const { accessToken } = useAuthStore();
-  const { getReviewsByProduct } = useReviewStore();
+  const { getReviewsByProduct, resetReviews, reviews } = useReviewStore();
 
   useEffect(() => {
     const fetchProduct = async () => {
       if (!slug) return;
 
       try {
+        // Reset reviews khi vào trang mới
+        resetReviews();
+
         // Fetch main product
         const res = await getDetail(slug);
 
         if (res.data?._id) {
           // Parallel fetch reviews, related, and notable products
-          const [reviewRes, relatedRes, notableRes] = await Promise.all([
+          const [relatedRes, notableRes] = await Promise.all([
             getReviewsByProduct(res.data._id).catch(() => ({ data: [] })),
             res.data.categoryId?.slug
               ? getList(
@@ -60,8 +59,6 @@ const ProductDetailPage = () => {
               data: [],
             })),
           ]);
-
-          setReviews(reviewRes?.data || reviewRes || []);
 
           // Filter out current product from related
           if (relatedRes.data) {
@@ -82,14 +79,9 @@ const ProductDetailPage = () => {
     };
 
     fetchProduct();
-  }, [slug, getDetail, getReviewsByProduct, getList, navigate]);
+  }, [slug, getDetail, getReviewsByProduct, getList, navigate, resetReviews]);
 
   const handleAddToCart = async () => {
-    if (!accessToken) {
-      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
-      navigate("/signin");
-      return;
-    }
     if (!currentProduct) return;
     if (quantity > currentProduct.stock) {
       toast.error("Số lượng vượt quá tồn kho");
@@ -443,11 +435,7 @@ const ProductDetailPage = () => {
 
               {/* REVIEWS */}
               {activeTab === "reviews" && (
-                <ReviewSection
-                  productId={currentProduct._id}
-                  initialReviews={reviews}
-                  totalReviews={reviews.length}
-                />
+                <ReviewSection productId={currentProduct._id} />
               )}
             </div>
           </div>

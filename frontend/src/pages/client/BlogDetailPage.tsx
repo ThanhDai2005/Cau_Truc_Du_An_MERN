@@ -48,7 +48,7 @@ const BlogDetailPage = () => {
       await addToCart(productId, 1);
       toast.success(`Đã thêm ${productName} vào giỏ hàng`);
     } catch (error) {
-      toast.error("Vui lòng đăng nhập để đặt món");
+      toast.error(error.response?.data?.message);
     } finally {
       setAddingId(null);
     }

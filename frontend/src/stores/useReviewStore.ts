@@ -1,17 +1,18 @@
 import { create } from "zustand";
-import api from "@/lib/axios";
+import { reviewService } from "@/services/reviewService";
 import type { ReviewState } from "@/types/store";
 
 export const useReviewStore = create<ReviewState>((set, get) => ({
   reviews: [],
   loading: false,
+  currentPage: 1,
   totalPages: 1,
 
   createReview: async (
     productId: string,
     rating: number,
     comment: string,
-    images?: File[]
+    images?: File[],
   ) => {
     set({ loading: true });
     try {
@@ -26,14 +27,10 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
         });
       }
 
-      const response = await api.post("/review", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await reviewService.create(formData);
       set({ loading: false });
-      return response.data;
-    } catch (error: any) {
+      return response;
+    } catch (error) {
       set({ loading: false });
       throw error;
     }
@@ -42,38 +39,48 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   getReviewsByProduct: async (productId: string, page = 1, limit = 5) => {
     set({ loading: true });
     try {
-      const response = await api.get(`/review/${productId}`, {
-        params: { page, limit },
-      });
+      const response = await reviewService.getList(productId, page, limit);
       set({
-        reviews: response.data.data,
-        totalPages: response.data.totalPages,
+        reviews: response.data,
+        totalPages: response.totalPages,
+        currentPage: page,
         loading: false,
       });
-      return response.data;
-    } catch (error: any) {
+      return response;
+    } catch (error) {
       set({ loading: false });
       throw error;
     }
   },
 
-  loadMoreReviews: async (productId: string, page: number, limit = 5) => {
+  loadMoreReviews: async (productId: string, limit = 5) => {
+    const { currentPage, totalPages } = get();
+
+    // Kiểm tra đã tải hết trang cuối
+    if (currentPage >= totalPages) {
+      return;
+    }
+
     set({ loading: true });
     try {
-      const response = await api.get(`/review/${productId}`, {
-        params: { page, limit },
-      });
+      const nextPage = currentPage + 1;
+      const response = await reviewService.getList(productId, nextPage, limit);
 
       const currentReviews = get().reviews;
       set({
-        reviews: [...currentReviews, ...response.data.data],
-        totalPages: response.data.totalPages,
+        reviews: [...currentReviews, ...response.data],
+        totalPages: response.totalPages,
+        currentPage: nextPage,
         loading: false,
       });
-      return response.data;
-    } catch (error: any) {
+      return response;
+    } catch (error) {
       set({ loading: false });
       throw error;
     }
+  },
+
+  resetReviews: () => {
+    set({ reviews: [], currentPage: 1, totalPages: 1 });
   },
 }));

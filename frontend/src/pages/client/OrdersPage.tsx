@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useOrderStore } from "@/stores/useOrderStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useCartStore } from "@/stores/useCartStore";
@@ -43,17 +43,37 @@ const statusConfig = {
 
 const OrdersPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { orders, loading, totalPages, getMyOrders } = useOrderStore();
   const { user } = useAuthStore();
   const { addToCart } = useCartStore();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filterStatus, setFilterStatus] = useState<string>("");
+
+  // Đọc state từ URL Parameters thay vì React State để khi Back lại vẫn giữ nguyên trang
+  const currentPage = parseInt(searchParams.get("page") || "1");
+  const filterStatus = searchParams.get("status") || "";
+
   const [reordering, setReordering] = useState(false);
   const [reviewStatuses, setReviewStatuses] = useState<ReviewStatus>({});
 
+  const updateURL = (newParams: Record<string, string>) => {
+    const params = Object.fromEntries(searchParams.entries());
+    const mergedParams = { ...params, ...newParams };
+
+    Object.keys(mergedParams).forEach((key) => {
+      if (!mergedParams[key] || (key === "page" && mergedParams[key] === "1")) {
+        delete mergedParams[key];
+      }
+    });
+    setSearchParams(mergedParams);
+  };
+
+  const handleStatusChange = (status: string) => {
+    updateURL({ status: status, page: "1" });
+  };
+
   const fetchOrders = async () => {
     try {
-      await getMyOrders(currentPage, 10, filterStatus || undefined);
+      await getMyOrders(currentPage, 5, filterStatus || undefined);
     } catch (error) {
       toast.error("Lỗi khi tải danh sách đơn hàng");
     }
@@ -73,7 +93,6 @@ const OrdersPage = () => {
           const response = await api.get(`/order/${order._id}/review-status`);
           statuses[order._id] = response.data.data;
         } catch (error) {
-          // If error, assume not reviewed
           statuses[order._id] = {
             hasReviewed: false,
             canReview: true,
@@ -89,7 +108,6 @@ const OrdersPage = () => {
     fetchOrders();
   }, [user, currentPage, filterStatus]);
 
-  // Fetch review statuses after orders are loaded
   useEffect(() => {
     if (orders.length > 0) {
       fetchReviewStatuses();
@@ -102,17 +120,13 @@ const OrdersPage = () => {
       const successItems: string[] = [];
       const failedItems: string[] = [];
 
-      // Duyệt qua từng sản phẩm trong đơn hàng
       for (const item of order.items) {
         const product =
           typeof item.productId === "object" ? item.productId : null;
 
-        if (!product) {
-          continue;
-        }
+        if (!product) continue;
 
         try {
-          // Kiểm tra nếu sản phẩm còn tồn kho
           if (product.stock && product.stock < item.quantity) {
             failedItems.push(
               `${product.name} (chỉ còn ${product.stock} sản phẩm)`,
@@ -120,16 +134,13 @@ const OrdersPage = () => {
             continue;
           }
 
-          // Thêm sản phẩm vào giỏ hàng
           await addToCart(product._id, item.quantity);
           successItems.push(product.name);
         } catch (error: any) {
-          // Nếu sản phẩm không còn tồn tại hoặc bị lỗi
           failedItems.push(product.name);
         }
       }
 
-      // Hiển thị thông báo kết quả
       if (successItems.length > 0 && failedItems.length === 0) {
         toast.success(`Đã thêm ${successItems.length} món vào giỏ hàng!`);
         navigate("/cart");
@@ -150,7 +161,6 @@ const OrdersPage = () => {
 
   const handleReview = (orderId: string) => {
     navigate(`/orders/${orderId}/review`);
-    // Hoặc mở modal đánh giá nếu bạn có
   };
 
   if (loading && orders.length === 0) {
@@ -173,7 +183,7 @@ const OrdersPage = () => {
       {/* Status Filter Tabs */}
       <div className="mb-8 flex gap-2 overflow-x-auto pb-4 no-scrollbar">
         <button
-          onClick={() => setFilterStatus("")}
+          onClick={() => handleStatusChange("")}
           className={`px-5 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap ${
             filterStatus === ""
               ? "bg-[#b51c00] text-white shadow-md shadow-red-100"
@@ -185,7 +195,7 @@ const OrdersPage = () => {
         {Object.entries(statusConfig).map(([key, config]) => (
           <button
             key={key}
-            onClick={() => setFilterStatus(key)}
+            onClick={() => handleStatusChange(key)}
             className={`px-5 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
               filterStatus === key
                 ? "bg-[#b51c00] text-white shadow-md shadow-red-100"
@@ -244,7 +254,9 @@ const OrdersPage = () => {
                       className={`p-2 rounded-lg ${config.color.split(" ")[0]}`}
                     >
                       <span
-                        className={`material-symbols-outlined ${config.color.split(" ")[1]}`}
+                        className={`material-symbols-outlined ${
+                          config.color.split(" ")[1]
+                        }`}
                       >
                         {config.icon}
                       </span>
@@ -318,7 +330,6 @@ const OrdersPage = () => {
 
                   {/* Action Buttons */}
                   <div className="flex gap-3 w-full md:w-auto">
-                    {/* Đơn đang xử lý (Pending, Processing, Shipped) - Nút "Theo dõi đơn" */}
                     {isProcessing && (
                       <button
                         onClick={(e) => {
@@ -334,7 +345,6 @@ const OrdersPage = () => {
                       </button>
                     )}
 
-                    {/* Đơn đã hoàn thành - Nút "Xem chi tiết" + "Đánh giá/Xem đánh giá" + "Đặt lại" */}
                     {isDelivered && (
                       <>
                         <button
@@ -383,7 +393,6 @@ const OrdersPage = () => {
                       </>
                     )}
 
-                    {/* Đơn đã hủy - Nút "Xem chi tiết" */}
                     {isCancelled && (
                       <button
                         onClick={(e) => {
@@ -403,22 +412,89 @@ const OrdersPage = () => {
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-12">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`w-10 h-10 rounded-xl font-bold transition-all ${
-                currentPage === page
-                  ? "bg-[#b51c00] text-white shadow-md shadow-red-100"
-                  : "bg-white text-gray-600 border border-gray-200 hover:border-[#b51c00]/30"
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+      {/* Traditional Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-10">
+          {/* Previous Button */}
+          <button
+            onClick={() => updateURL({ page: (currentPage - 1).toString() })}
+            disabled={currentPage === 1}
+            className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#b51c00] hover:text-[#b51c00] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-600"
+            aria-label="Trang trước"
+          >
+            <span className="material-symbols-outlined text-[20px]">
+              chevron_left
+            </span>
+          </button>
+
+          {/* Page Numbers with Ellipsis Logic */}
+          {(() => {
+            const pages = [];
+
+            if (totalPages <= 6) {
+              for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+              }
+            } else {
+              if (currentPage <= 3) {
+                pages.push(1, 2, 3, 4, "...", totalPages);
+              } else if (currentPage >= totalPages - 2) {
+                pages.push(
+                  1,
+                  "...",
+                  totalPages - 3,
+                  totalPages - 2,
+                  totalPages - 1,
+                  totalPages,
+                );
+              } else {
+                pages.push(
+                  1,
+                  "...",
+                  currentPage - 1,
+                  currentPage,
+                  currentPage + 1,
+                  "...",
+                  totalPages,
+                );
+              }
+            }
+
+            return pages.map((page, index) =>
+              page === "..." ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="w-10 h-10 flex items-center justify-center text-gray-400 font-medium tracking-widest"
+                >
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={page}
+                  onClick={() => updateURL({ page: page.toString() })}
+                  className={`w-10 h-10 rounded-lg font-semibold transition-all ${
+                    currentPage === page
+                      ? "bg-[#b51c00] text-white shadow-md shadow-red-100"
+                      : "border border-gray-300 text-gray-700 hover:border-[#b51c00] hover:text-[#b51c00]"
+                  }`}
+                >
+                  {page}
+                </button>
+              ),
+            );
+          })()}
+
+          {/* Next Button */}
+          <button
+            onClick={() => updateURL({ page: (currentPage + 1).toString() })}
+            disabled={currentPage === totalPages}
+            className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center text-gray-600 hover:border-[#b51c00] hover:text-[#b51c00] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:text-gray-600"
+            aria-label="Trang sau"
+          >
+            <span className="material-symbols-outlined text-[20px]">
+              chevron_right
+            </span>
+          </button>
         </div>
       )}
     </div>

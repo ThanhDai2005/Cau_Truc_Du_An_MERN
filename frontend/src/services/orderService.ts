@@ -1,20 +1,5 @@
 import api from "@/lib/axios";
-
-export interface CreateOrderData {
-  items: Array<{
-    productId: string;
-    quantity: number;
-  }>;
-  shippingAddress: {
-    recipient: string;
-    phone: string;
-    address: string;
-  };
-  paymentMethod: "COD" | "VNPAY" | "MOMO" | "STRIPE";
-  shippingFee: number;
-  promotionId?: string;
-  discountAmount?: number;
-}
+import type { CreateOrderData } from "@/types/order";
 
 export const orderService = {
   create: async (data: CreateOrderData) => {

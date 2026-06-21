@@ -29,9 +29,13 @@ export const list = async (req, res) => {
       }
     }
 
-    // Filter theo tên khách hàng hoặc số điện thoại
+    // Filter theo tên khách hàng hoặc số điện thoại - sanitize input to prevent NoSQL injection
     if (req.query.search) {
-      const searchRegex = new RegExp(req.query.search, "i");
+      const sanitizedSearch = String(req.query.search).replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&",
+      );
+      const searchRegex = new RegExp(sanitizedSearch, "i");
       filter.$or = [
         { "shippingAddress.recipient": searchRegex },
         { "shippingAddress.phone": searchRegex },
@@ -136,7 +140,7 @@ export const updateStatus = async (req, res) => {
       },
       {
         new: true,
-      }
+      },
     )
       .populate("userId", "displayName email")
       .populate("items.productId", "name images price");

@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
-const ACCESS_TOKEN_TIME = "30m";
+const ACCESS_TOKEN_TIME = "15m";
 const REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000;
 const PHONE_REGEX = /^(03|05|07|08|09)\d{8}$/;
 

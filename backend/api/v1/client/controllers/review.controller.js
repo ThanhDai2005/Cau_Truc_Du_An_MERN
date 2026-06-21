@@ -9,9 +9,7 @@ export const create = async (req, res) => {
     const { productId, rating, comment, images } = req.body;
 
     if (!productId || !rating) {
-      return res
-        .status(400)
-        .json({ message: "Thiếu productId hoặc rating" });
+      return res.status(400).json({ message: "Thiếu productId hoặc rating" });
     }
 
     if (rating < 1 || rating > 5) {
@@ -20,9 +18,7 @@ export const create = async (req, res) => {
 
     // Validate images array if provided
     if (images && Array.isArray(images) && images.length > 5) {
-      return res
-        .status(400)
-        .json({ message: "Tối đa 5 ảnh cho mỗi đánh giá" });
+      return res.status(400).json({ message: "Tối đa 5 ảnh cho mỗi đánh giá" });
     }
 
     // Kiểm tra sản phẩm tồn tại
@@ -101,12 +97,13 @@ export const listByProduct = async (req, res) => {
   try {
     const { productId } = req.params;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
     // Kiểm tra sản phẩm tồn tại
     const product = await Product.findOne({
       _id: productId,
+      status: "active",
       deleted: false,
     });
     if (!product) {

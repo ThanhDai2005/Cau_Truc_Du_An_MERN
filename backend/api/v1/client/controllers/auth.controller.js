@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
 
-const ACCESS_TOKEN_TIME = "30m";
+const ACCESS_TOKEN_TIME = "15m";
 const REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000; // 14 ngày
 const PHONE_REGEX = /^(03|05|07|08|09)\d{8}$/;
 
@@ -390,7 +390,10 @@ export const googleAuth = async (req, res) => {
         email: email,
         avatarUrl: picture,
         phone: `GOOGLE_${googleId.slice(0, 10)}`, // Tạo phone giả từ googleId để unique
-        hashedPassword: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10), // Random password
+        hashedPassword: await bcrypt.hash(
+          crypto.randomBytes(32).toString("hex"),
+          10,
+        ), // Random password
         status: "active",
       });
 

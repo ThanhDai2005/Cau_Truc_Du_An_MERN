@@ -42,8 +42,16 @@ export const addToCart = async (req, res) => {
       });
     }
 
+    if (quantity < 1) {
+      return res.status(400).json({
+        message: "Số lượng phải lớn hơn 0",
+      });
+    }
+
     const product = await Product.findOne({
       _id: productId,
+      deleted: false,
+      status: "active",
     });
 
     if (!product) {
@@ -64,6 +72,16 @@ export const addToCart = async (req, res) => {
     const existingItem = cart.items.find(
       (item) => item.productId.toString() == productId,
     );
+
+    const newTotalQuantity = existingItem
+      ? existingItem.quantity + quantity
+      : quantity;
+
+    if (newTotalQuantity > product.stock) {
+      return res.status(400).json({
+        message: `Sản phẩm đã hết hàng`,
+      });
+    }
 
     if (existingItem) {
       existingItem.quantity += quantity;
