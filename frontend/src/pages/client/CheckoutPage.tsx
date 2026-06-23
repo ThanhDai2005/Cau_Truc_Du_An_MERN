@@ -96,6 +96,18 @@ export default function CheckoutPage() {
       };
 
       const order = await createOrder(orderData);
+
+      // Handle Momo payment redirect
+      if (data.paymentMethod === "MOMO" && order.paymentUrl) {
+        clearCart();
+        clearPromotion();
+        toast.success("Đang chuyển đến trang thanh toán Momo...");
+        // Redirect to Momo payment page
+        window.location.href = order.paymentUrl;
+        return;
+      }
+
+      // Handle other payment methods (COD, VNPAY, STRIPE)
       clearCart();
       clearPromotion();
       toast.success("Đặt hàng thành công!");

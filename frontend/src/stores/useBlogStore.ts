@@ -23,12 +23,10 @@ export const useBlogStore = create<BlogState>((set) => ({
       );
       set({ blog: response.data || [], loading: false });
 
-      // BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ MÀN HÌNH BLOGPAGE NHẬN ĐƯỢC DATA VÀ NỐI MẢNG
       return response.data;
     } catch (error) {
       console.error("Error fetching blog:", error);
       set({ loading: false });
-      return null; // Trả về null nếu lỗi
     }
   },
 

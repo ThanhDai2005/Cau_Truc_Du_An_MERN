@@ -3,6 +3,8 @@ import Product from "../../../../models/product.model.js";
 import Promotion from "../../../../models/promotion.model.js";
 import Cart from "../../../../models/cart.model.js";
 import Review from "../../../../models/review.model.js";
+import axios from "axios";
+import crypto from "crypto";
 
 // [POST] /api/v1/order
 export const create = async (req, res) => {
@@ -115,6 +117,8 @@ export const create = async (req, res) => {
         address: shippingAddress.address,
       },
       paymentMethod: paymentMethod || "COD",
+      paymentStatus: "Pending", // Mặc định chờ xử lý
+      orderStatus: "Pending", // Mặc định chờ xử lý
       shippingFee: shippingFeeValue,
       promotionId: promotionId || null,
       discountAmount: discountAmountValue,
@@ -197,6 +201,87 @@ export const create = async (req, res) => {
       .populate("userId", "displayName email")
       .populate("items.productId", "name images price");
 
+    if (paymentMethod === "MOMO") {
+      const partnerCode = "MOMO";
+      const accessKey = "F8BBA842ECF85";
+      const secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+      const requestId = partnerCode + new Date().getTime();
+      const orderId = createdOrder._id.toString();
+
+      const orderInfo = `Thanh toan don hang #${orderId}`;
+
+      const redirectUrl = `${process.env.CLIENT_URL}/order-success/${createdOrder._id.toString()}`;
+      const ipnUrl = "http://localhost:3000/api/v1/order/momo-callback";
+      const amount = totalAmount;
+      const requestType = "payWithMethod";
+      const extraData = "";
+
+      const rawSignature =
+        "accessKey=" +
+        accessKey +
+        "&amount=" +
+        amount +
+        "&extraData=" +
+        extraData +
+        "&ipnUrl=" +
+        ipnUrl +
+        "&orderId=" +
+        orderId +
+        "&orderInfo=" +
+        orderInfo +
+        "&partnerCode=" +
+        partnerCode +
+        "&redirectUrl=" +
+        redirectUrl +
+        "&requestId=" +
+        requestId +
+        "&requestType=" +
+        requestType;
+
+      const signature = crypto
+        .createHmac("sha256", secretkey)
+        .update(rawSignature)
+        .digest("hex");
+
+      const requestBody = JSON.stringify({
+        partnerCode,
+        accessKey,
+        requestId,
+        amount,
+        orderId,
+        orderInfo,
+        redirectUrl,
+        ipnUrl,
+        extraData,
+        requestType,
+        signature,
+        lang: "vi",
+      });
+
+      try {
+        const momoResponse = await axios.post(
+          `https://test-payment.momo.vn/v2/gateway/api/create`,
+          requestBody,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Content-Length": Buffer.byteLength(requestBody),
+            },
+          },
+        );
+
+        if (momoResponse.data && momoResponse.data.payUrl) {
+          return res.status(201).json({
+            message: "Tạo đơn hàng thành công, đang chuyển hướng sang MoMo...",
+            data: populatedOrder,
+            paymentUrl: momoResponse.data.payUrl,
+          });
+        }
+      } catch (error) {
+        console.error("Lỗi kết nối cổng MoMo:", error);
+      }
+    }
+
     res.status(201).json({
       message: "Tạo đơn hàng thành công",
       data: populatedOrder,
@@ -206,6 +291,78 @@ export const create = async (req, res) => {
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
+  }
+};
+
+// [POST] /api/v1/order/momo-callback
+export const momoCallback = async (req, res) => {
+  try {
+    const {
+      partnerCode,
+      orderId,
+      requestId,
+      amount,
+      orderInfo,
+      orderType,
+      transId,
+      resultCode,
+      message,
+      payType,
+      responseTime,
+      extraData,
+      signature,
+    } = req.body;
+
+    const secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+    const accessKey = "F8BBA842ECF85";
+
+    const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
+
+    const calculatedSignature = crypto
+      .createHmac("sha256", secretkey)
+      .update(rawSignature)
+      .digest("hex");
+
+    if (calculatedSignature !== signature) {
+      console.error("CẢNH BÁO BẢO MẬT: Chữ ký MoMo IPN không hợp lệ!");
+      return res.status(400).json({ message: "Sai chữ ký bảo mật" });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      console.error(`MoMo IPN: Không tìm thấy đơn hàng ID ${orderId}`);
+      return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
+    }
+
+    if (order.paymentStatus !== "Pending") {
+      return res
+        .status(200)
+        .json({ message: "Đơn hàng đã được xử lý từ trước" });
+    }
+
+    if (resultCode === 0) {
+      await Order.updateOne(
+        { _id: orderId },
+        {
+          paymentStatus: "Paid",
+          orderStatus: "Processing",
+        },
+      );
+      console.log(`MoMo IPN: Đơn hàng ${orderId} đã thanh toán THÀNH CÔNG.`);
+    } else {
+      await Order.updateOne(
+        { _id: orderId },
+        {
+          paymentStatus: "Failed",
+        },
+      );
+      console.log(`MoMo IPN: Đơn hàng ${orderId} thanh toán THẤT BẠI`);
+    }
+
+    return res.status(200).json({ message: "Đã xác nhận IPN" });
+  } catch (error) {
+    console.error("Lỗi khi xử lý MoMo IPN Callback:", error);
+    res.status(500).json({ message: "Lỗi hệ thống khi xử lý IPN" });
   }
 };
 

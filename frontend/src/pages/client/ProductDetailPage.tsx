@@ -318,7 +318,7 @@ const ProductDetailPage = () => {
                       star
                     </span>
                     <span className="font-bold text-xl">
-                      {currentProduct.averageRating.toFixed(1)}
+                      {(currentProduct.averageRating ?? 0).toFixed(1)}
                     </span>
                   </div>
                   <span className="text-gray-500">
@@ -327,7 +327,7 @@ const ProductDetailPage = () => {
                 </div>
 
                 <div className="text-4xl font-bold text-red-600 mb-6">
-                  {currentProduct.price.toLocaleString("vi-VN")} ₫
+                  {(currentProduct.price ?? 0).toLocaleString("vi-VN")} ₫
                 </div>
 
                 <div className="text-gray-600 leading-relaxed mb-8 text-[15px]">
@@ -489,7 +489,7 @@ const ProductDetailPage = () => {
                           {product.name}
                         </div>
                         <div className="text-red-600 font-bold">
-                          {product.price.toLocaleString("vi-VN")} ₫
+                          {(product.price ?? 0).toLocaleString("vi-VN")} ₫
                         </div>
                         <div className="flex items-center gap-1 mt-1">
                           <span
@@ -502,7 +502,7 @@ const ProductDetailPage = () => {
                             star
                           </span>
                           <span className="text-xs text-gray-600">
-                            {product.averageRating.toFixed(1)}
+                            {(product.averageRating ?? 0).toFixed(1)}
                           </span>
                         </div>
                       </div>
@@ -551,7 +551,7 @@ const ProductDetailPage = () => {
                         star
                       </span>
                       <span className="text-xs font-semibold text-gray-800">
-                        {item.averageRating.toFixed(1)}
+                        {(item.averageRating ?? 0).toFixed(1)}
                       </span>
                     </div>
                     {item.stock === 0 && (
@@ -571,7 +571,7 @@ const ProductDetailPage = () => {
                     </p>
                     <div className="mt-auto flex items-center justify-between">
                       <span className="text-base font-bold text-[#b51c00]">
-                        {item.price.toLocaleString("vi-VN")}đ
+                        {(item.price ?? 0).toLocaleString("vi-VN")}đ
                       </span>
                       <button
                         onClick={(e) => {

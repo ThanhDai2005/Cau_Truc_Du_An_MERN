@@ -13,6 +13,7 @@ import ProductDetailPage from "@/pages/client/ProductDetailPage";
 import CartPage from "@/pages/client/CartPage";
 import CheckoutPage from "@/pages/client/CheckoutPage";
 import OrdersPage from "@/pages/client/OrdersPage";
+import OrderSuccessPage from "@/pages/client/OrderSuccessPage";
 import OrderDetailPage from "@/pages/client/OrderDetailPage";
 import OrderReviewPage from "@/pages/client/OrderReviewPage";
 import OrderReviewsViewPage from "@/pages/client/OrderReviewsViewPage";
@@ -69,6 +70,10 @@ const clientRoute = {
         {
           path: "about",
           element: <AboutPage />,
+        },
+        {
+          path: "order-success/:orderId",
+          element: <OrderSuccessPage />,
         },
         {
           element: <PrivateRouter />,

@@ -2,8 +2,7 @@ import type { User } from "./user";
 import type { Category } from "./category";
 import type { Product } from "./product";
 import type { Cart } from "./cart";
-import type { Order } from "./order";
-import type { CreateOrderData } from "../services/orderService";
+import type { CreateOrderData, Order } from "./order";
 import type { ApplyPromotionResponse } from "./promotion";
 import type { Review } from "./review";
 import type { BlogCategory } from "./blogCategory";
@@ -88,8 +87,8 @@ export interface ProductState {
     limit: number,
     sortKey: string,
     sortValue: string,
-  ) => Promise<any>;
-  getDetail: (slug: string) => Promise<any>;
+  ) => Promise<void>;
+  getDetail: (slug: string) => Promise<void>;
 }
 
 export interface BlogCategoryState {
@@ -134,7 +133,7 @@ export interface OrderState {
   loading: boolean;
   totalPages: number;
 
-  createOrder: (data: CreateOrderData) => Promise<Order>;
+  createOrder: (data: CreateOrderData) => Promise<Order & { paymentUrl?: string }>;
   getMyOrders: (
     page?: number,
     limit?: number,
@@ -170,10 +169,7 @@ export interface ReviewState {
     productId: string,
     page?: number,
     limit?: number,
-  ) => Promise<{ data: Review[]; totalItems: number; totalPages: number }>;
-  loadMoreReviews: (
-    productId: string,
-    limit?: number,
-  ) => Promise<{ data: Review[]; totalItems: number; totalPages: number } | undefined>;
+  ) => Promise<void>;
+  loadMoreReviews: (productId: string, limit?: number) => Promise<void>;
   resetReviews: () => void;
 }

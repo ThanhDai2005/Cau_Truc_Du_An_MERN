@@ -14,6 +14,11 @@ const CartPage = () => {
   const [promoCode, setPromoCode] = useState("");
   const [applyingPromo, setApplyingPromo] = useState(false);
 
+  const cartLength = cart?.items.reduce(
+    (tong, item) => tong + item.quantity,
+    0,
+  );
+
   useEffect(() => {
     getCart();
 
@@ -138,7 +143,7 @@ const CartPage = () => {
           Giỏ hàng
         </h1>
         <span className="bg-[#b51c00] text-white px-3 py-1 rounded-full text-sm font-bold shadow-sm">
-          {cart.items.length} món
+          {cartLength} món
         </span>
       </div>
 

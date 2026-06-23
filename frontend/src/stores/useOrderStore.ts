@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { orderService } from "@/services/orderService";
-import type { CreateOrderData } from "@/services/orderService";
+import type { CreateOrderData } from "@/types/order";
 import type { OrderState } from "@/types/store";
 
 export const useOrderStore = create<OrderState>((set, get) => ({
@@ -15,9 +15,14 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       set({ loading: true });
       const response = await orderService.create(data);
       set({ loading: false, currentOrder: response.data });
-      return response.data;
+      // Return full response including paymentUrl if exists
+      return {
+        ...response.data,
+        paymentUrl: response.paymentUrl,
+      };
     } catch (error: any) {
       console.error("Error creating order:", error);
+      set({ loading: false });
       throw error;
     }
   },
