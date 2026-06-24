@@ -1,8 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@radix-ui/react-label";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,89 +41,76 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="p-0 overflow-hidden border border-[#E0D9E3]">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col items-center gap-2">
-                <a className="inline-block mx-auto" href="/signin">
-                  <img
-                    className="object-contain w-12 h-12"
-                    src="/logo.png"
-                    alt=""
-                  />
-                </a>
-                <h2 className="text-2xl font-bold">Chào mừng quay lại</h2>
-                <p className="text-[#6C6C93]">
-                  Đăng nhập vào tài khoản PingMe của bạn
-                </p>
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label className="block text-sm font-semibold" htmlFor="phone">
-                  Số điện thoại
-                </Label>
-                <Input
-                  type="tel"
-                  id="phone"
-                  placeholder="0909123456"
-                  {...register("phone")}
-                />
-                {errors.phone && (
-                  <p className="text-sm text-[#EF4444]">
-                    {errors.phone.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-3">
-                <Label
-                  className="block text-sm font-semibold"
-                  htmlFor="password"
-                >
-                  Mật khẩu
-                </Label>
-                <Input
-                  type="password"
-                  id="password"
-                  {...register("password")}
-                />
-                {errors.password && (
-                  <p className="text-sm text-[#EF4444]">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-              <Button disabled={isSubmitting} className="w-full" type="submit">
-                Đăng nhập
-              </Button>
-              <p className="text-sm text-center">
-                Chưa có tài khoản?{" "}
-                <a className="underline underline-offset-4" href="/signup">
-                  Đăng ký
-                </a>
-              </p>
+    <div className={cn("flex flex-col w-full", className)} {...props}>
+      <div className="flex items-center justify-center">
+        <img
+          src="/logo.png"
+          alt="Logo"
+          className="h-[120px] w-[120px] object-cover"
+        />
+      </div>
+
+      <h2 className="text-[32px] font-bold text-white text-center mb-8">
+        Đăng nhập quản trị
+      </h2>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        {/* Input: Tài khoản */}
+        <div className="flex flex-col">
+          <Input
+            type="text"
+            placeholder="Tài khoản"
+            className="h-12 px-6 rounded-full bg-black/20 border-transparent text-white placeholder:text-white/70 focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:ring-offset-0 focus-visible:border-white/50 text-[15px]"
+            {...register("phone")}
+          />
+          {errors.phone && (
+            <p className="text-sm text-red-500 mt-2 px-5">
+              {errors.phone.message}
+            </p>
+          )}
+        </div>
+
+        {/* Input: Mật khẩu */}
+        <div className="flex flex-col">
+          <Input
+            type="password"
+            placeholder="Mật khẩu"
+            className="h-12 px-6 rounded-full bg-black/20 border-transparent text-white placeholder:text-white/70 focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:ring-offset-0 focus-visible:border-white/50 text-[15px]"
+            {...register("password")}
+          />
+          {errors.password && (
+            <p className="text-sm text-red-500 mt-2 px-5">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
+
+        {/* Checkbox: Ghi nhớ tài khoản */}
+        <div className="flex items-center gap-3 px-3 mt-2">
+          <label className="flex items-center gap-2.5 cursor-pointer group">
+            <div className="relative flex items-center justify-center w-[18px] h-[18px] border border-white/60 rounded-[4px] bg-transparent group-hover:bg-white/10 transition-colors">
+              <input type="checkbox" className="peer sr-only" />
+              <span className="material-symbols-outlined text-[14px] text-white opacity-0 peer-checked:opacity-100 transition-opacity font-bold">
+                check
+              </span>
             </div>
-          </form>
-          <div className="relative hidden bg-muted md:block">
-            <img
-              src="/Login.png"
-              alt="Image"
-              className="absolute object-cover -translate-y-1/2 top-1/2"
-            />
-          </div>
-        </CardContent>
-      </Card>
-      <p className="px-6 text-xs text-[#6C6C93] text-center">
-        Bằng cách tiếp tục, bạn đồng ý với{" "}
-        <a className="underline" href="#">
-          Điều khoản dịch vụ
-        </a>{" "}
-        và{" "}
-        <a className="underline" href="#">
-          Chính sách bảo mật
-        </a>{" "}
-        của chúng tôi.
-      </p>
+            <span className="text-[14px] text-white/90 select-none">
+              Ghi nhớ tài khoản
+            </span>
+          </label>
+        </div>
+
+        {/* Button: Đăng nhập */}
+        <div className="flex justify-center mt-6">
+          <Button
+            disabled={isSubmitting}
+            type="submit"
+            className="h-11 px-12 rounded-full bg-transparent border border-white/40 hover:bg-white/10 hover:border-white/60 text-white font-medium transition-all active:scale-95 focus-visible:ring-1 focus-visible:ring-white/50 focus-visible:ring-offset-0"
+          >
+            {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -8,19 +8,20 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.roleId && typeof user.roleId !== "string" && (user.roleId.title === "admin" || user.roleId.title === "staff")) {
+    if (
+      user?.roleId?.title == "Super Admin" ||
+      user?.roleId?.title == "staff"
+    ) {
       navigate("/admin/dashboard", { replace: true });
     }
   }, [user, navigate]);
 
   return (
-    <>
-      <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-6 bg-muted min-h-svh md:p-10 bg-gradient-purple">
-        <div className="w-full max-w-sm md:max-w-4xl">
-          <LoginForm />
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[url('/banner.jpg')] bg-cover bg-center bg-no-repeat">
+      <div className="w-full max-w-[420px] relative z-10 rounded-3xl border-2 border-white bg-black/10 backdrop-blur-sm shadow-2xl py-10 px-6 sm:py-16 sm:px-12 mx-4">
+        <LoginForm />
       </div>
-    </>
+    </div>
   );
 };
 
