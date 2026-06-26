@@ -71,6 +71,16 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
+  retryPayment: async (orderId: string) => {
+    try {
+      const response = await orderService.retryPayment(orderId);
+      return response;
+    } catch (error: any) {
+      console.error("Error retrying payment:", error);
+      throw error;
+    }
+  },
+
   clearCurrentOrder: () => {
     set({ currentOrder: null });
   },

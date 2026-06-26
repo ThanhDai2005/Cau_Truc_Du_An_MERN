@@ -44,7 +44,8 @@ const statusConfig = {
 const OrdersPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { orders, loading, totalPages, getMyOrders } = useOrderStore();
+  const { orders, loading, totalPages, getMyOrders, retryPayment } =
+    useOrderStore();
   const { user } = useAuthStore();
   const { addToCart } = useCartStore();
 
@@ -54,6 +55,7 @@ const OrdersPage = () => {
 
   const [reordering, setReordering] = useState(false);
   const [reviewStatuses, setReviewStatuses] = useState<ReviewStatus>({});
+  const [retryingPayment, setRetryingPayment] = useState<string | null>(null);
 
   const updateURL = (newParams: Record<string, string>) => {
     const params = Object.fromEntries(searchParams.entries());
@@ -163,6 +165,27 @@ const OrdersPage = () => {
     navigate(`/orders/${orderId}/review`);
   };
 
+  const handleRetryPayment = async (orderId: string) => {
+    try {
+      setRetryingPayment(orderId);
+      const response = await retryPayment(orderId);
+
+      if (response?.paymentUrl) {
+        toast.success("Đang chuyển hướng đến cổng thanh toán...");
+        window.location.href = response?.paymentUrl;
+      } else {
+        toast.error("Không thể tạo liên kết thanh toán");
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(
+        error.response?.data?.message || "Lỗi khi thử thanh toán lại",
+      );
+    } finally {
+      setRetryingPayment(null);
+    }
+  };
+
   if (loading && orders.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-4 animate-pulse">
@@ -241,6 +264,10 @@ const OrdersPage = () => {
             const isProcessing = ["Pending", "Processing", "Shipped"].includes(
               order.orderStatus,
             );
+            const isPendingPayment =
+              order.paymentStatus === "Pending" &&
+              (order.paymentMethod === "MOMO" || order.paymentMethod === "VNPAY") &&
+              !isCancelled;
 
             return (
               <div
@@ -330,7 +357,25 @@ const OrdersPage = () => {
 
                   {/* Action Buttons */}
                   <div className="flex gap-3 w-full md:w-auto">
-                    {isProcessing && (
+                    {isPendingPayment && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRetryPayment(order._id);
+                        }}
+                        disabled={retryingPayment === order._id}
+                        className="flex-1 md:flex-none px-6 py-2.5 rounded-xl bg-[#b51c00] text-white font-bold text-sm hover:bg-[#8e1400] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          credit_card
+                        </span>
+                        {retryingPayment === order._id
+                          ? "Đang xử lý..."
+                          : "Thanh toán ngay"}
+                      </button>
+                    )}
+
+                    {isProcessing && !isPendingPayment && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

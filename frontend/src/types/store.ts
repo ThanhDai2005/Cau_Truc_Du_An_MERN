@@ -141,6 +141,7 @@ export interface OrderState {
   ) => Promise<void>;
   getOrderDetail: (orderId: string) => Promise<void>;
   getOrderReviews: (orderId: string) => Promise<void>;
+  retryPayment: (orderId: string) => Promise<{ paymentUrl?: string }>;
   clearCurrentOrder: () => void;
 }
 

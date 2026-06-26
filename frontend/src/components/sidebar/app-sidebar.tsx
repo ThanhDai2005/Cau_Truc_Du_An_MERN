@@ -1,27 +1,26 @@
-"use client";
-
 import * as React from "react";
 import {
-  BookOpen,
-  Bot,
-  Command,
+  FileText,
   Frame,
+  Home,
   LifeBuoy,
   Map,
   PieChart,
   Send,
-  Settings2,
-  SquareTerminal,
+  Settings,
+  ShieldCheck,
+  ShoppingCart,
+  Users,
+  Utensils,
 } from "lucide-react";
 
 import { NavMain } from "@/components/sidebar/nav-main";
-import { NavProjects } from "@/components/sidebar/nav-projects";
-import { NavSecondary } from "@/components/sidebar/nav-secondary";
 import { NavUser } from "@/components/sidebar/nav-user";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -36,86 +35,79 @@ const data = {
   },
   navMain: [
     {
-      title: "Playground",
+      title: "Quản Lý Món Ăn",
       url: "#",
-      icon: SquareTerminal,
-      isActive: true,
+      icon: Utensils,
       items: [
         {
-          title: "History",
+          title: "Danh mục sản phẩm",
           url: "#",
         },
         {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
+          title: "Sản phẩm",
           url: "#",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Quản Lý Bài Viết",
       url: "#",
-      icon: Bot,
+      icon: FileText,
       items: [
         {
-          title: "Genesis",
+          title: "Danh mục bài viết",
           url: "#",
         },
         {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
+          title: "Bài viết",
           url: "#",
         },
       ],
     },
     {
-      title: "Documentation",
+      title: "Quản lý khác",
       url: "#",
-      icon: BookOpen,
+      icon: Settings,
       items: [
         {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
+          title: "Quản lý khuyến mãi",
           url: "#",
         },
       ],
     },
     {
-      title: "Settings",
+      title: "Quản Lý Tài Khoản",
       url: "#",
-      icon: Settings2,
+      icon: Users,
       items: [
         {
-          title: "General",
+          title: "Tài khoản",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Quản Lý Đơn Hàng",
+      url: "#",
+      icon: ShoppingCart,
+      items: [
+        {
+          title: "Đơn hàng",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Quản Lý Vai Trò",
+      url: "#",
+      icon: ShieldCheck,
+      items: [
+        {
+          title: "Phân quyền",
           url: "#",
         },
         {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
+          title: "Vai trò",
           url: "#",
         },
       ],
@@ -158,24 +150,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Command className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
+            <a href="/admin/dashboard">
+              <div className="flex justify-center items-center">
+                <img
+                  className="w-[80px] h-[80px] object-cover"
+                  src="/logo.png"
+                  alt="Đặc Sản Ba Miền"
+                />
+              </div>
+            </a>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        <SidebarGroup className="pb-0">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Dashboard" isActive={true}>
+                <a href="/admin/dashboard">
+                  <Home />
+                  <span>Dashboard</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

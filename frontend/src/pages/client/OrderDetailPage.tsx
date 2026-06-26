@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useOrderStore } from "@/stores/useOrderStore";
 import { toast } from "sonner";
@@ -53,7 +53,9 @@ const paymentStatusLabels = {
 const OrderDetailPage = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-  const { currentOrder, loading, getOrderDetail } = useOrderStore();
+  const { currentOrder, loading, getOrderDetail, retryPayment } =
+    useOrderStore();
+  const [retryingPayment, setRetryingPayment] = useState(false);
 
   const fetchOrder = async () => {
     try {
@@ -101,6 +103,28 @@ const OrderDetailPage = () => {
       window.print();
       document.title = originalTitle;
     }, 100);
+  };
+
+  const handleRetryPayment = async () => {
+    if (!orderId) return;
+
+    try {
+      setRetryingPayment(true);
+      const response = await retryPayment(orderId);
+
+      if (response.paymentUrl) {
+        toast.success("Đang chuyển hướng đến cổng thanh toán...");
+        window.location.href = response.paymentUrl;
+      } else {
+        toast.error("Không thể tạo liên kết thanh toán");
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(
+        error.response?.data?.message || "Lỗi khi thử thanh toán lại",
+      );
+      setRetryingPayment(false);
+    }
   };
 
   return (
@@ -581,6 +605,23 @@ const OrderDetailPage = () => {
                     </span>
                   </div>
                 </div>
+
+                {order.paymentStatus === "Pending" &&
+                  (order.paymentMethod === "MOMO" || order.paymentMethod === "VNPAY") &&
+                  order.orderStatus !== "Cancelled" && (
+                    <div className="mt-4 pt-4 border-t border-gray-50">
+                      <button
+                        onClick={handleRetryPayment}
+                        disabled={retryingPayment}
+                        className="w-full px-4 py-2.5 rounded-xl bg-[#b51c00] text-white font-bold text-sm hover:bg-[#8e1400] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          credit_card
+                        </span>
+                        {retryingPayment ? "Đang xử lý..." : "Thanh toán ngay"}
+                      </button>
+                    </div>
+                  )}
               </div>
 
               <div className="mt-6 pt-4 border-t border-gray-50 flex justify-center">

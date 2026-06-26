@@ -25,4 +25,9 @@ export const orderService = {
     const response = await api.get(`/order/${orderId}/reviews`);
     return response.data;
   },
+
+  retryPayment: async (orderId: string) => {
+    const response = await api.post(`/order/${orderId}/retry-payment`);
+    return response.data;
+  },
 };

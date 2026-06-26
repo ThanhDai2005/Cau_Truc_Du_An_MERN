@@ -45,9 +45,14 @@ const OrderSuccessPage = () => {
     );
   }
 
-  const resultCode = searchParams.get("resultCode");
+  // MoMo uses resultCode, VNPAY uses vnp_ResponseCode
+  const momoResultCode = searchParams.get("resultCode");
+  const vnpayResponseCode = searchParams.get("vnp_ResponseCode");
+
   const isSuccess =
-    resultCode === "0" || currentOrder?.paymentStatus === "Paid";
+    momoResultCode === "0" ||
+    vnpayResponseCode === "00" ||
+    currentOrder?.paymentStatus === "Paid";
 
   return (
     <div className="min-h-screen bg-white flex flex-col py-8 px-4">

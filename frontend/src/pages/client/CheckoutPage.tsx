@@ -101,13 +101,23 @@ export default function CheckoutPage() {
       if (data.paymentMethod === "MOMO" && order.paymentUrl) {
         clearCart();
         clearPromotion();
-        toast.success("Đang chuyển đến trang thanh toán Momo...");
+        toast.success("Đang chuyển đến trang thanh toán MoMo...");
         // Redirect to Momo payment page
         window.location.href = order.paymentUrl;
         return;
       }
 
-      // Handle other payment methods (COD, VNPAY, STRIPE)
+      // Handle VNPAY payment redirect
+      if (data.paymentMethod === "VNPAY" && order.paymentUrl) {
+        clearCart();
+        clearPromotion();
+        toast.success("Đang chuyển đến trang thanh toán VNPAY...");
+        // Redirect to VNPAY payment page
+        window.location.href = order.paymentUrl;
+        return;
+      }
+
+      // Handle other payment methods (COD, STRIPE)
       clearCart();
       clearPromotion();
       toast.success("Đặt hàng thành công!");
@@ -240,11 +250,6 @@ export default function CheckoutPage() {
                     value: "MOMO",
                     label: "Ví MoMo",
                     icon: "account_balance_wallet",
-                  },
-                  {
-                    value: "STRIPE",
-                    label: "Thẻ tín dụng/Ghi nợ",
-                    icon: "credit_card",
                   },
                 ].map((method) => (
                   <label
