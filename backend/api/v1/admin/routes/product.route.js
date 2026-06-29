@@ -34,4 +34,10 @@ router.patch(
   controller.softDelete,
 );
 
+router.patch(
+  "/delete-multiple",
+  requirePermission("products_delete"),
+  controller.softDeleteMultiple,
+);
+
 export default router;

@@ -51,6 +51,88 @@ export interface AdminState {
   refreshToken: () => Promise<void>;
 }
 
+export interface AdminDashboardState {
+  stats: {
+    overview: {
+      totalUsers: number;
+      totalProducts: number;
+      totalOrders: number;
+      totalCategories: number;
+    };
+    orderStatus: {
+      pending: number;
+      processing: number;
+      shipped: number;
+      delivered: number;
+      cancelled: number;
+    };
+    revenueByDateRange: {
+      totalRevenue: number;
+      totalOrders: number;
+    };
+  };
+  loading: boolean;
+
+  fetchStats: (startDate?: string, endDate?: string) => Promise<void>;
+}
+
+export interface AdminCategoryState {
+  categories: Category[];
+  totalPages: number;
+  loading: boolean;
+
+  fetchCategories: (
+    keyword?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  createCategory: (data: { name: string; status?: string }) => Promise<void>;
+  updateCategory: (
+    categoryId: string,
+    data: { name?: string; status?: string },
+  ) => Promise<void>;
+  deleteCategory: (categoryId: string) => Promise<void>;
+  deleteMultiple: (categoryIds: string[]) => Promise<void>;
+}
+
+export interface AdminProductState {
+  products: Product[];
+  totalPages: number;
+  loading: boolean;
+
+  fetchProducts: (
+    keyword?: string,
+    categorySlug?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  createProduct: (data: {
+    name: string;
+    description: string;
+    ingredients: string;
+    category: string;
+    price: number;
+    images?: string[];
+    stock?: number;
+    status?: string;
+  }) => Promise<void>;
+  updateProduct: (
+    productId: string,
+    data: {
+      name?: string;
+      description?: string;
+      ingredients?: string;
+      category?: string;
+      price?: number;
+      images?: string[];
+      stock?: number;
+      status?: string;
+    },
+  ) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
+  deleteMultiple: (productIds: string[]) => Promise<void>;
+}
+
 export interface UserState {
   loading: boolean;
 
@@ -133,7 +215,9 @@ export interface OrderState {
   loading: boolean;
   totalPages: number;
 
-  createOrder: (data: CreateOrderData) => Promise<Order & { paymentUrl?: string }>;
+  createOrder: (
+    data: CreateOrderData,
+  ) => Promise<Order & { paymentUrl?: string }>;
   getMyOrders: (
     page?: number,
     limit?: number,

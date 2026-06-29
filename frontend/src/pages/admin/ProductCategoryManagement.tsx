@@ -10,53 +10,38 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Search, Plus, Trash2, Loader2, Pencil } from "lucide-react";
-import { useAdminProductStore } from "@/stores/useAdminProductStore";
 import { useAdminCategoryStore } from "@/stores/useAdminCategoryStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-const ProductManagement = () => {
+const ProductCategoryManagement = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
   const {
-    products,
+    categories,
     totalPages,
     loading,
-    fetchProducts,
-    deleteProduct,
+    fetchCategories,
+    deleteCategory,
     deleteMultiple,
-  } = useAdminProductStore();
-
-  const { categories, fetchCategories } = useAdminCategoryStore();
+  } = useAdminCategoryStore();
 
   useEffect(() => {
-    fetchCategories("", 1, 100);
-  }, [fetchCategories]);
+    fetchCategories(searchTerm, currentPage, limit);
+  }, [currentPage, limit, searchTerm, fetchCategories]);
 
-  useEffect(() => {
-    const categorySlug =
-      categoryFilter !== "all"
-        ? categories.find((c) => c._id === categoryFilter)?.slug || ""
-        : "";
-    fetchProducts(searchTerm, categorySlug, currentPage, limit);
-  }, [currentPage, limit, searchTerm, categoryFilter, fetchProducts]);
-
-  const handleDelete = async (productId: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+  const handleDelete = async (categoryId: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
 
     try {
-      await deleteProduct(productId);
-      const categorySlug =
-        categoryFilter !== "all"
-          ? categories.find((c) => c._id === categoryFilter)?.slug || ""
-          : "";
-      await fetchProducts(searchTerm, categorySlug, currentPage, limit);
-      setSelectedItems(selectedItems.filter((id) => id !== productId));
+      await deleteCategory(categoryId);
+      await fetchCategories(searchTerm, currentPage, limit);
+      setSelectedItems(selectedItems.filter((id) => id !== categoryId));
     } catch (error) {
       // Error already handled in store
     }
@@ -64,31 +49,25 @@ const ProductManagement = () => {
 
   const handleDeleteSelected = async () => {
     if (selectedItems.length === 0) {
-      toast.warning("Vui lòng chọn ít nhất một sản phẩm để xóa");
+      toast.warning("Vui lòng chọn ít nhất một danh mục để xóa");
       return;
     }
 
-    if (
-      !confirm(
-        `Bạn có chắc chắn muốn xóa ${selectedItems.length} sản phẩm đã chọn?`,
-      )
-    )
-      return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedItems.length} danh mục đã chọn?`)) return;
 
     try {
       await deleteMultiple(selectedItems);
-      const categorySlug =
-        categoryFilter !== "all"
-          ? categories.find((c) => c._id === categoryFilter)?.slug || ""
-          : "";
-      await fetchProducts(searchTerm, categorySlug, currentPage, limit);
+      await fetchCategories(searchTerm, currentPage, limit);
       setSelectedItems([]);
     } catch (error) {
       // Error already handled in store
     }
   };
 
-  const filteredData = products;
+  const filteredData = categories.filter((item) => {
+    const matchStatus = statusFilter === "all" || item.status === statusFilter;
+    return matchStatus;
+  });
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -125,7 +104,7 @@ const ProductManagement = () => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage className="font-bold text-[#b51c00]">
-                Quản lý sản phẩm
+                Quản lý danh mục sản phẩm
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -136,19 +115,19 @@ const ProductManagement = () => {
         {/* TITLE & FILTERS */}
         <div>
           <h1 className="text-[24px] font-bold text-gray-900 mb-6 tracking-tight">
-            Quản lý sản phẩm
+            Quản lý danh mục sản phẩm
           </h1>
 
-          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             {/* Left: Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-              <div className="relative w-full sm:w-64">
+            <div className="flex gap-3 w-full md:w-auto">
+              <div className="relative w-full md:w-64">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Tên sản phẩm..."
+                  placeholder="Tên danh mục..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white transition-shadow"
@@ -156,36 +135,33 @@ const ProductManagement = () => {
               </div>
 
               <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full sm:w-48 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full md:w-40 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
               >
-                <option value="all">Tất cả danh mục</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name}
-                  </option>
-                ))}
+                <option value="all">Tất cả trạng thái</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Ngưng hoạt động</option>
               </select>
             </div>
 
             {/* Right: Actions */}
-            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+            <div className="flex gap-3 w-full md:w-auto">
               <button
                 onClick={handleDeleteSelected}
                 disabled={selectedItems.length === 0}
-                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-[20px] font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-lg font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 className="w-4 h-4" />
                 Xóa mục đã chọn
               </button>
 
               <button
-                onClick={() => navigate("/admin/product/create")}
-                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
+                onClick={() => navigate("/admin/product-category/create")}
+                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-lg font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95"
               >
                 <Plus className="w-4 h-4" />
-                Thêm sản phẩm
+                Thêm danh mục
               </button>
             </div>
           </div>
@@ -211,7 +187,7 @@ const ProductManagement = () => {
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
+                            className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-[#b51c00] cursor-pointer accent-[#b51c00]"
                             onChange={handleSelectAll}
                             checked={
                               selectedItems.length === filteredData.length &&
@@ -223,23 +199,17 @@ const ProductManagement = () => {
                       <th scope="col" className="px-6 py-4">
                         STT
                       </th>
-                      <th scope="col" className="px-6 py-4 text-center">
-                        Hình ảnh
-                      </th>
                       <th scope="col" className="px-6 py-4">
-                        Tên sản phẩm
-                      </th>
-                      <th scope="col" className="px-6 py-4 text-center">
-                        Danh mục
+                        Tên danh mục
                       </th>
                       <th scope="col" className="px-6 py-4 text-center">
                         Trạng thái
                       </th>
-                      <th scope="col" className="px-6 py-4 text-right">
-                        Giá
+                      <th scope="col" className="px-6 py-4 text-center">
+                        Ngày tạo
                       </th>
                       <th scope="col" className="px-6 py-4 text-center">
-                        Kho
+                        Ngày cập nhật
                       </th>
                       <th scope="col" className="px-6 py-4 text-center">
                         Thao tác
@@ -257,7 +227,7 @@ const ProductManagement = () => {
                             <div className="flex items-center">
                               <input
                                 type="checkbox"
-                                className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
+                                className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-[#b51c00] cursor-pointer accent-[#b51c00]"
                                 checked={selectedItems.includes(item._id)}
                                 onChange={() => handleSelectItem(item._id)}
                               />
@@ -266,21 +236,11 @@ const ProductManagement = () => {
                           <td className="px-6 py-4 font-medium text-gray-900">
                             {(currentPage - 1) * limit + index + 1}
                           </td>
-                          <td className="px-6 py-4 flex justify-center">
-                            <img
-                              src={item.images[0]}
-                              alt={item.name}
-                              className="w-12 h-12 rounded-lg object-cover border border-gray-100 bg-gray-50 shadow-sm"
-                            />
-                          </td>
                           <td className="px-6 py-4 font-semibold text-gray-900">
                             {item.name}
                           </td>
-                          <td className="px-6 py-4 text-gray-600 font-medium text-center">
-                            {item.categoryId?.name || "N/A"}
-                          </td>
                           <td className="px-6 py-4 text-center">
-                            {item.status === "active" && !item.deleted ? (
+                            {item.status === "active" ? (
                               <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#d1fae5] text-[#15803d]">
                                 Hoạt động
                               </span>
@@ -290,17 +250,17 @@ const ProductManagement = () => {
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 font-bold text-gray-900 text-right">
-                            {item.price.toLocaleString("vi-VN")} VND
+                          <td className="px-6 py-4 text-gray-500 text-center">
+                            {new Date(item.createdAt).toLocaleDateString("vi-VN")}
                           </td>
-                          <td className="px-6 py-4 text-center font-medium text-gray-700">
-                            {item.stock}
+                          <td className="px-6 py-4 text-gray-500 text-center">
+                            {new Date(item.updatedAt).toLocaleDateString("vi-VN")}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center justify-center gap-2">
                               <button
                                 onClick={() =>
-                                  navigate(`/admin/product/edit/${item._id}`)
+                                  navigate(`/admin/product-category/edit/${item._id}`)
                                 }
                                 className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
                               >
@@ -321,10 +281,10 @@ const ProductManagement = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan={9}
+                          colSpan={7}
                           className="px-6 py-12 text-center text-gray-500"
                         >
-                          Không tìm thấy sản phẩm nào.
+                          Không tìm thấy danh mục nào.
                         </td>
                       </tr>
                     )}
@@ -392,4 +352,4 @@ const ProductManagement = () => {
   );
 };
 
-export default ProductManagement;
+export default ProductCategoryManagement;

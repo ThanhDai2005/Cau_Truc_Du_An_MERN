@@ -9,8 +9,9 @@ const AdminLoginPage = () => {
 
   useEffect(() => {
     if (
-      user?.roleId?.title == "Super Admin" ||
-      user?.roleId?.title == "staff"
+      user?.roleId?.title === "Super Admin" ||
+      user?.roleId?.title === "Nhân viên kho" ||
+      user?.roleId?.title === "Nhân viên marketing"
     ) {
       navigate("/admin/dashboard", { replace: true });
     }

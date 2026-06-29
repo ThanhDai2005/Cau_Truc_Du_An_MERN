@@ -13,7 +13,7 @@ export const usePromotionStore = create<PromotionState>((set) => ({
       const promotionData = response.data.data;
       set({ appliedPromotion: promotionData, loading: false });
       return promotionData;
-    } catch (error: any) {
+    } catch (error) {
       set({ loading: false });
       throw error;
     }

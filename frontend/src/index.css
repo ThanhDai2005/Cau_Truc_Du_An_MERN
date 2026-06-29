@@ -192,10 +192,6 @@
     @apply block w-[22px] h-[22px] mr-[14px] absolute top-0 left-0 border border-[#aaa] bg-white rounded-full;
   }
 
-  input[type="radio"] {
-    @apply !hidden;
-  }
-
   input[type="radio"]:checked + label:after {
     content: "";
     @apply block absolute top-[5px] left-[5.5px] w-3 h-3 rounded-full;
@@ -214,10 +210,6 @@
   input[type="checkbox"] + label:before {
     content: "";
     @apply block w-[18px] h-[18px] mr-[14px] absolute left-0 border border-[#aaa] bg-white rounded-[3px];
-  }
-
-  input[type="checkbox"] {
-    @apply !hidden;
   }
 
   input[type="checkbox"]:checked + label:after {
@@ -1064,4 +1056,67 @@
 .blog-excerpt p,
 .blog-excerpt div {
   margin-bottom: 0.6em;
+}
+
+/* Admin Sidebar Animations */
+@keyframes collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-collapsible-down {
+  animation: collapsible-down 200ms ease-out;
+}
+
+.animate-collapsible-up {
+  animation: collapsible-up 200ms ease-out;
+}
+
+/* Sidebar Enhancements */
+[data-sidebar="sidebar"] {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+[data-sidebar="menu-button"] {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+[data-sidebar="menu-sub-button"] {
+  @apply transition-all duration-150 ease-in-out;
+}
+
+/* Active state enhancements */
+[data-sidebar="menu-button"][data-active="true"] {
+  @apply shadow-sm;
+}
+
+/* Hover state improvements */
+[data-sidebar="menu-button"]:hover {
+  @apply transform translate-x-0.5;
+}
+
+[data-sidebar="menu-sub-button"]:hover {
+  @apply transform translate-x-1;
+}
+
+/* Icon rotation for chevron */
+[data-state="open"] > [data-sidebar="menu-button"] svg:last-child {
+  @apply transition-transform duration-200;
 }

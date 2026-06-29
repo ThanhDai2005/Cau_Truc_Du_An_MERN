@@ -11,7 +11,7 @@ export const useBlogCategoryStore = create<BlogCategoryState>((set) => ({
       set({ loading: true });
       const response = await blogCategoryService.getList();
       set({ blogCategory: response.data, loading: false });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching categories:", error);
       set({ loading: false });
     }

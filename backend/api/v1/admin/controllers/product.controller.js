@@ -10,10 +10,7 @@ export const list = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 12;
     const skip = (page - 1) * limit;
-    const filter = {
-      status: "active",
-      deleted: false,
-    };
+    const filter = {};
 
     if (categorySlug) {
       const category = await Category.findOne({
@@ -245,6 +242,7 @@ export const softDelete = async (req, res) => {
     await Product.updateOne(
       { _id: productId },
       {
+        status: "inactive",
         deleted: true,
         deletedAt: new Date(),
       },
@@ -255,6 +253,48 @@ export const softDelete = async (req, res) => {
     });
   } catch (error) {
     console.log("Lỗi khi gọi delete product", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/product/delete-multiple
+export const softDeleteMultiple = async (req, res) => {
+  try {
+    const { productIds } = req.body;
+
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({
+        message: "Thiếu danh sách productIds hoặc danh sách rỗng",
+      });
+    }
+
+    const existedProducts = await Product.find({
+      _id: { $in: productIds },
+      deleted: false,
+    });
+
+    if (existedProducts.length === 0) {
+      return res.status(404).json({
+        message: "Không tìm thấy product nào để xóa",
+      });
+    }
+
+    await Product.updateMany(
+      { _id: { $in: productIds }, deleted: false },
+      {
+        status: "inactive",
+        deleted: true,
+        deletedAt: new Date(),
+      },
+    );
+
+    res.status(200).json({
+      message: `Xóa ${existedProducts.length} product thành công`,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi delete multiple products", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });

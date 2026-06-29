@@ -20,7 +20,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         ...response.data,
         paymentUrl: response.paymentUrl,
       };
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating order:", error);
       set({ loading: false });
       throw error;
@@ -36,7 +36,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         totalPages: response.totalPages || 1,
         loading: false,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching orders:", error);
       set({ loading: false });
     }
@@ -47,7 +47,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       set({ loading: true });
       const response = await orderService.getDetail(orderId);
       set({ currentOrder: response.data, loading: false });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching order detail:", error);
       set({ loading: false });
     }
@@ -64,7 +64,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         },
         loading: false,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching order reviews:", error);
       set({ loading: false });
       throw error;
@@ -75,7 +75,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     try {
       const response = await orderService.retryPayment(orderId);
       return response;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error retrying payment:", error);
       throw error;
     }
