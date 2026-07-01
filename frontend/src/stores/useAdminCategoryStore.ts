@@ -8,10 +8,10 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
   totalPages: 1,
   loading: false,
 
-  fetchCategories: async (keyword = "", page = 1, limit = 10) => {
+  fetchCategories: async (keyword = "", status = "", page = 1, limit = 10) => {
     try {
       set({ loading: true });
-      const response = await adminCategoryService.getList(keyword, page, limit);
+      const response = await adminCategoryService.getList(keyword, status, page, limit);
       set({
         categories: response.data,
         totalPages: response.totalPages,
@@ -20,6 +20,20 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
     } catch (error) {
       console.error("Lỗi khi tải danh mục:", error);
       set({ loading: false });
+    }
+  },
+
+  getCategoryDetail: async (categoryId: string) => {
+    try {
+      set({ loading: true });
+      const response = await adminCategoryService.getDetail(categoryId);
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi tải chi tiết danh mục:", error);
+      toast.error("Không thể tải thông tin danh mục");
+      set({ loading: false });
+      throw error;
     }
   },
 
@@ -54,31 +68,49 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
     }
   },
 
-  deleteCategory: async (categoryId: string) => {
+  changeStatus: async (categoryId: string, status: "active" | "inactive") => {
     try {
       set({ loading: true });
-      await adminCategoryService.delete(categoryId);
-      toast.success("Xóa danh mục thành công");
+      await adminCategoryService.changeStatus(categoryId, status);
+      const message = status === "active" ? "Khôi phục danh mục thành công" : "Ngưng hoạt động danh mục thành công";
+      toast.success(message);
       set({ loading: false });
     } catch (error) {
-      console.error("Lỗi khi xóa danh mục:", error);
-      toast.error("Không thể xóa danh mục");
+      console.error("Lỗi khi thay đổi trạng thái danh mục:", error);
+      toast.error("Không thể thay đổi trạng thái danh mục");
       set({ loading: false });
       throw error;
     }
   },
 
-  deleteMultiple: async (categoryIds: string[]) => {
+  changeMulti: async (ids: string[], type: "active" | "inactive" | "delete-all") => {
     try {
       set({ loading: true });
-      await Promise.all(
-        categoryIds.map((id) => adminCategoryService.delete(id)),
-      );
-      toast.success("Xóa các danh mục thành công");
+      await adminCategoryService.changeMulti(ids, type);
+      const messages = {
+        active: "Khôi phục các danh mục thành công",
+        inactive: "Chuyển sang ngưng hoạt động thành công",
+        "delete-all": "Xóa vĩnh viễn các danh mục thành công",
+      };
+      toast.success(messages[type]);
       set({ loading: false });
     } catch (error) {
-      console.error("Lỗi khi xóa danh mục:", error);
-      toast.error("Không thể xóa một số danh mục");
+      console.error("Lỗi khi thay đổi nhiều danh mục:", error);
+      toast.error("Không thể thay đổi danh mục");
+      set({ loading: false });
+      throw error;
+    }
+  },
+
+  deleteItem: async (categoryId: string) => {
+    try {
+      set({ loading: true });
+      await adminCategoryService.deleteItem(categoryId);
+      toast.success("Xóa vĩnh viễn danh mục thành công");
+      set({ loading: false });
+    } catch (error) {
+      console.error("Lỗi khi xóa vĩnh viễn danh mục:", error);
+      toast.error("Không thể xóa vĩnh viễn danh mục");
       set({ loading: false });
       throw error;
     }

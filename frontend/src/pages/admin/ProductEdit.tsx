@@ -20,7 +20,7 @@ const ProductEdit = () => {
   const navigate = useNavigate();
   const { productId } = useParams<{ productId: string }>();
   const [fetching, setFetching] = useState(true);
-  const { products, loading, fetchProducts, updateProduct } =
+  const { loading, getProductDetail, updateProduct } =
     useAdminProductStore();
   const { categories, fetchCategories } = useAdminCategoryStore();
   const editorRef = useRef<any>(null);
@@ -32,7 +32,7 @@ const ProductEdit = () => {
     price: "",
     stock: "",
     status: "active",
-    existingImages: [] as string[],
+    existingImages: [],
   });
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
@@ -44,22 +44,10 @@ const ProductEdit = () => {
   const loadData = async () => {
     try {
       setFetching(true);
-      await Promise.all([
-        fetchCategories("", 1, 100),
-        fetchProducts("", "", 1, 100),
-      ]);
-    } catch (error) {
-      toast.error("Không thể tải thông tin sản phẩm");
-      navigate("/admin/products");
-    } finally {
-      setFetching(false);
-    }
-  };
+      await fetchCategories("", "active", 1, 100);
 
-  useEffect(() => {
-    if (products.length > 0 && productId) {
-      const product = products.find((p) => p._id === productId);
-      if (product) {
+      if (productId) {
+        const product = await getProductDetail(productId);
         setFormData({
           name: product.name,
           description: product.description,
@@ -70,12 +58,14 @@ const ProductEdit = () => {
           status: product.status,
           existingImages: product.images,
         });
-      } else if (!fetching) {
-        toast.error("Không tìm thấy sản phẩm");
-        navigate("/admin/products");
       }
+    } catch (error) {
+      toast.error("Không thể tải thông tin sản phẩm");
+      navigate("/admin/products");
+    } finally {
+      setFetching(false);
     }
-  }, [products, productId, fetching, navigate]);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

@@ -83,16 +83,25 @@ export interface AdminCategoryState {
 
   fetchCategories: (
     keyword?: string,
+    status?: string,
     page?: number,
     limit?: number,
   ) => Promise<void>;
+  getCategoryDetail: (categoryId: string) => Promise<Category>;
   createCategory: (data: { name: string; status?: string }) => Promise<void>;
   updateCategory: (
     categoryId: string,
     data: { name?: string; status?: string },
   ) => Promise<void>;
-  deleteCategory: (categoryId: string) => Promise<void>;
-  deleteMultiple: (categoryIds: string[]) => Promise<void>;
+  changeStatus: (
+    categoryId: string,
+    status: "active" | "inactive",
+  ) => Promise<void>;
+  changeMulti: (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => Promise<void>;
+  deleteItem: (categoryId: string) => Promise<void>;
 }
 
 export interface AdminProductState {
@@ -103,9 +112,11 @@ export interface AdminProductState {
   fetchProducts: (
     keyword?: string,
     categorySlug?: string,
+    status?: string,
     page?: number,
     limit?: number,
   ) => Promise<void>;
+  getProductDetail: (productId: string) => Promise<Product>;
   createProduct: (data: {
     name: string;
     description: string;
@@ -129,8 +140,15 @@ export interface AdminProductState {
       status?: string;
     },
   ) => Promise<void>;
-  deleteProduct: (productId: string) => Promise<void>;
-  deleteMultiple: (productIds: string[]) => Promise<void>;
+  changeStatus: (
+    productId: string,
+    status: "active" | "inactive",
+  ) => Promise<void>;
+  changeMulti: (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => Promise<void>;
+  deleteItem: (productId: string) => Promise<void>;
 }
 
 export interface UserState {

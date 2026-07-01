@@ -17,7 +17,7 @@ import { toast } from "sonner";
 const ProductCategoryEdit = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams<{ categoryId: string }>();
-  const { categories, loading, fetchCategories, updateCategory } = useAdminCategoryStore();
+  const { loading, getCategoryDetail, updateCategory } = useAdminCategoryStore();
   const [fetching, setFetching] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
@@ -31,7 +31,13 @@ const ProductCategoryEdit = () => {
   const loadCategory = async () => {
     try {
       setFetching(true);
-      await fetchCategories("", 1, 100);
+      if (categoryId) {
+        const category = await getCategoryDetail(categoryId);
+        setFormData({
+          name: category.name,
+          status: category.status,
+        });
+      }
     } catch (error) {
       toast.error("Không thể tải thông tin danh mục");
       navigate("/admin/product-categories");
@@ -39,21 +45,6 @@ const ProductCategoryEdit = () => {
       setFetching(false);
     }
   };
-
-  useEffect(() => {
-    if (categories.length > 0 && categoryId) {
-      const category = categories.find((c) => c._id === categoryId);
-      if (category) {
-        setFormData({
-          name: category.name,
-          status: category.status,
-        });
-      } else if (!fetching) {
-        toast.error("Không tìm thấy danh mục");
-        navigate("/admin/product-categories");
-      }
-    }
-  }, [categories, categoryId, fetching, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +109,7 @@ const ProductCategoryEdit = () => {
         {/* TITLE */}
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate("/admin/category")}
+            onClick={() => navigate("/admin/product-categories")}
             className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -204,7 +195,7 @@ const ProductCategoryEdit = () => {
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => navigate("/admin/category")}
+                onClick={() => navigate("/admin/product-categories")}
                 className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors"
               >
                 Hủy

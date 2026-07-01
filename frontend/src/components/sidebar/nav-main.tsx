@@ -1,5 +1,5 @@
 import { ChevronRight, type LucideIcon } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import {
   Collapsible,
@@ -42,7 +42,7 @@ export const NavMain = ({
       <SidebarMenu className="gap-1">
         {items.map((item) => {
           const isParentActive = item.items?.some(
-            (subItem) => location.pathname === subItem.url
+            (subItem) => location.pathname === subItem.url,
           );
           const hasChildren = item.items && item.items.length > 0;
 
@@ -60,16 +60,19 @@ export const NavMain = ({
                       "w-full cursor-pointer transition-all duration-200 group/collapsible",
                       "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                       "data-[state=open]:bg-sidebar-accent/50",
-                      isParentActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      isParentActive &&
+                        "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
                     )}
                   >
                     <item.icon className="shrink-0" />
                     <span className="flex-1 text-left">{item.title}</span>
                     {hasChildren && (
-                      <ChevronRight className={cn(
-                        "ml-auto shrink-0 transition-transform duration-200",
-                        "group-data-[state=open]/collapsible:rotate-90"
-                      )} />
+                      <ChevronRight
+                        className={cn(
+                          "ml-auto shrink-0 transition-transform duration-200",
+                          "group-data-[state=open]/collapsible:rotate-90",
+                        )}
+                      />
                     )}
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
@@ -88,12 +91,14 @@ export const NavMain = ({
                                 "cursor-pointer transition-colors duration-150 ml-4",
                                 "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
                                 isSubActive &&
-                                  "bg-sidebar-accent text-sidebar-accent-foreground font-medium border-l-2 border-primary -ml-px"
+                                  "bg-sidebar-accent text-sidebar-accent-foreground font-medium border-l-2 border-primary -ml-px",
                               )}
                             >
-                              <a href={subItem.url}>
-                                <span className="truncate">{subItem.title}</span>
-                              </a>
+                              <Link to={subItem.url}>
+                                <span className="truncate">
+                                  {subItem.title}
+                                </span>
+                              </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         );

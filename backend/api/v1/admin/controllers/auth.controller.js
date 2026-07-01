@@ -1,5 +1,6 @@
 import User from "../../../../models/user.model.js";
 import Session from "../../../../models/session.model.js";
+import Role from "../../../../models/role.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -51,7 +52,27 @@ export const login = async (req, res) => {
 
     if (!user.roleId) {
       return res.status(403).json({
-        message: "Bạn chưa được gán vai trò",
+        message:
+          "Tài khoản chưa được gán vai trò. Vui lòng liên hệ quản trị viên.",
+      });
+    }
+
+    const role = await Role.findOne({
+      _id: user.roleId,
+      deleted: false,
+    });
+
+    if (!role) {
+      return res.status(403).json({
+        message:
+          "Vai trò không tồn tại hoặc đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.",
+      });
+    }
+
+    if (!role.permissions.includes("dashboard_view")) {
+      return res.status(403).json({
+        message:
+          "Tài khoản không có quyền truy cập vào hệ thống quản trị. Vui lòng liên hệ quản trị viên.",
       });
     }
 

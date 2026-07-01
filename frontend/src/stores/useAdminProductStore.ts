@@ -11,6 +11,7 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
   fetchProducts: async (
     keyword = "",
     categorySlug = "",
+    status = "",
     page = 1,
     limit = 10,
   ) => {
@@ -19,6 +20,7 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
       const response = await adminProductService.getList(
         keyword,
         categorySlug,
+        status,
         page,
         limit,
       );
@@ -30,6 +32,20 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
     } catch (error) {
       console.error("Lỗi khi tải sản phẩm:", error);
       set({ loading: false });
+    }
+  },
+
+  getProductDetail: async (productId: string) => {
+    try {
+      set({ loading: true });
+      const response = await adminProductService.getDetail(productId);
+      set({ loading: false });
+      return response.data;
+    } catch (error) {
+      console.error("Lỗi khi tải chi tiết sản phẩm:", error);
+      toast.error("Không thể tải thông tin sản phẩm");
+      set({ loading: false });
+      throw error;
     }
   },
 
@@ -82,29 +98,48 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
     }
   },
 
-  deleteProduct: async (productId: string) => {
+  changeStatus: async (productId: string, status: "active" | "inactive") => {
     try {
       set({ loading: true });
-      await adminProductService.delete(productId);
-      toast.success("Xóa sản phẩm thành công");
+      await adminProductService.changeStatus(productId, status);
+      toast.success("Cập nhật trạng thái thành công");
       set({ loading: false });
     } catch (error) {
-      console.error("Lỗi khi xóa sản phẩm:", error);
-      toast.error("Không thể xóa sản phẩm");
+      console.error("Lỗi khi cập nhật trạng thái:", error);
+      toast.error("Không thể cập nhật trạng thái");
       set({ loading: false });
       throw error;
     }
   },
 
-  deleteMultiple: async (productIds: string[]) => {
+  changeMulti: async (ids: string[], type: "active" | "inactive" | "delete-all") => {
     try {
       set({ loading: true });
-      await adminProductService.deleteMultiple(productIds);
-      toast.success("Xóa các sản phẩm thành công");
+      await adminProductService.changeMulti(ids, type);
+      const messages = {
+        active: "Cập nhật trạng thái thành công",
+        inactive: "Cập nhật trạng thái thành công",
+        "delete-all": "Xóa các sản phẩm thành công",
+      };
+      toast.success(messages[type]);
+      set({ loading: false });
+    } catch (error) {
+      console.error("Lỗi khi thay đổi nhiều sản phẩm:", error);
+      toast.error("Không thể thực hiện thao tác");
+      set({ loading: false });
+      throw error;
+    }
+  },
+
+  deleteItem: async (productId: string) => {
+    try {
+      set({ loading: true });
+      await adminProductService.deleteItem(productId);
+      toast.success("Xóa sản phẩm thành công");
       set({ loading: false });
     } catch (error) {
       console.error("Lỗi khi xóa sản phẩm:", error);
-      toast.error("Không thể xóa một số sản phẩm");
+      toast.error("Không thể xóa sản phẩm");
       set({ loading: false });
       throw error;
     }

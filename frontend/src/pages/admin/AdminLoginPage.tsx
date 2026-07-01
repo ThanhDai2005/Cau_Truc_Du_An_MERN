@@ -8,11 +8,7 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (
-      user?.roleId?.title === "Super Admin" ||
-      user?.roleId?.title === "Nhân viên kho" ||
-      user?.roleId?.title === "Nhân viên marketing"
-    ) {
+    if (user?.roleId?.permissions.includes("dashboard_view")) {
       navigate("/admin/dashboard", { replace: true });
     }
   }, [user, navigate]);

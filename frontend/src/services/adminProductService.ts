@@ -1,16 +1,21 @@
 import adminApi from "@/lib/adminAxios";
-import type { Product } from "@/types/product";
 
 export const adminProductService = {
-  getList: async (keyword = "", categorySlug = "", page = 1, limit = 10) => {
-    const res = await adminApi.get<{
-      message: string;
-      data: Product[];
-      totalItems: number;
-      totalPages: number;
-    }>(
-      `/admin/product?keyword=${keyword}&categorySlug=${categorySlug}&page=${page}&limit=${limit}`,
+  getList: async (
+    keyword = "",
+    categorySlug = "",
+    status = "",
+    page = 1,
+    limit = 10,
+  ) => {
+    const res = await adminApi.get(
+      `/admin/product?keyword=${keyword}&categorySlug=${categorySlug}&status=${status}&page=${page}&limit=${limit}`,
     );
+    return res.data;
+  },
+
+  getDetail: async (productId: string) => {
+    const res = await adminApi.get(`/admin/product/${productId}`);
     return res.data;
   },
 
@@ -28,10 +33,7 @@ export const adminProductService = {
           status?: string;
         },
   ) => {
-    const res = await adminApi.post<{
-      message: string;
-      data: Product;
-    }>("/admin/product", data, {
+    const res = await adminApi.post("/admin/product", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data;
@@ -52,27 +54,36 @@ export const adminProductService = {
           status?: string;
         },
   ) => {
-    const res = await adminApi.patch<{
-      message: string;
-      data: Product;
-    }>(`/admin/product/update/${productId}`, data, {
-      headers: { "Content-Type": "multipart/form-data" },
+    const res = await adminApi.patch(
+      `/admin/product/update/${productId}`,
+      data,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      },
+    );
+    return res.data;
+  },
+
+  changeStatus: async (productId: string, status: "active" | "inactive") => {
+    const res = await adminApi.patch(
+      `/admin/product/change-status/${status}/${productId}`,
+    );
+    return res.data;
+  },
+
+  changeMulti: async (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => {
+    const res = await adminApi.patch(`/admin/product/change-multi`, {
+      ids,
+      type,
     });
     return res.data;
   },
 
-  delete: async (productId: string) => {
-    const res = await adminApi.patch<{ message: string }>(
-      `/admin/product/delete/${productId}`,
-    );
-    return res.data;
-  },
-
-  deleteMultiple: async (productIds: string[]) => {
-    const res = await adminApi.patch<{ message: string }>(
-      `/admin/product/delete-multiple`,
-      { productIds },
-    );
+  deleteItem: async (productId: string) => {
+    const res = await adminApi.delete(`/admin/product/delete/${productId}`);
     return res.data;
   },
 };

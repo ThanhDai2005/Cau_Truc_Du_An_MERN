@@ -69,6 +69,14 @@ const adminRoute = {
               element: <BlogCategoryManagement />,
             },
             {
+              path: "blog-category/create",
+              element: <BlogCategoryCreate />,
+            },
+            {
+              path: "blog-category/edit/:blogCategoryId",
+              element: <BlogCategoryCreate />,
+            },
+            {
               path: "blogs",
               element: <BlogManagement />,
             },

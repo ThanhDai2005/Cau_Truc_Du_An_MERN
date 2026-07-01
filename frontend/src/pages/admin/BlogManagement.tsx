@@ -148,7 +148,7 @@ const BlogManagement = () => {
                     <div className="flex items-center">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 rounded-sm border-2 border-gray-300 cursor-pointer accent-[#b51c00]"
+                        className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
                         onChange={handleSelectAll}
                         checked={
                           selectedItems.length === filteredData.length &&
@@ -185,7 +185,7 @@ const BlogManagement = () => {
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 rounded-sm border-2 border-gray-300 cursor-pointer accent-[#b51c00]"
+                            className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
                             checked={selectedItems.includes(item.id)}
                             onChange={() => handleSelectItem(item.id)}
                           />

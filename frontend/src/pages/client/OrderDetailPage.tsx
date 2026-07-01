@@ -40,7 +40,6 @@ const paymentLabels = {
   COD: "Thanh toán tiền mặt khi nhận hàng (COD)",
   VNPAY: "Ví VNPAY",
   MOMO: "Ví MoMo",
-  STRIPE: "Thẻ tín dụng/Ghi nợ",
 };
 
 const paymentStatusLabels = {
@@ -607,7 +606,8 @@ const OrderDetailPage = () => {
                 </div>
 
                 {order.paymentStatus === "Pending" &&
-                  (order.paymentMethod === "MOMO" || order.paymentMethod === "VNPAY") &&
+                  (order.paymentMethod === "MOMO" ||
+                    order.paymentMethod === "VNPAY") &&
                   order.orderStatus !== "Cancelled" && (
                     <div className="mt-4 pt-4 border-t border-gray-50">
                       <button

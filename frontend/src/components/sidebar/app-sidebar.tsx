@@ -8,8 +8,7 @@ import {
   Users,
   Utensils,
 } from "lucide-react";
-import { useLocation } from "react-router-dom";
-
+import { Link, useLocation } from "react-router-dom";
 import { NavMain } from "@/components/sidebar/nav-main";
 import { NavUser } from "@/components/sidebar/nav-user";
 import {
@@ -117,7 +116,7 @@ export const AppSidebar = ({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <a href="/admin/dashboard">
+            <Link to="/admin/dashboard">
               <div className="flex justify-center items-center">
                 <img
                   className="w-[80px] h-[80px] object-cover"
@@ -125,7 +124,7 @@ export const AppSidebar = ({
                   alt="Đặc Sản Ba Miền"
                 />
               </div>
-            </a>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -144,10 +143,10 @@ export const AppSidebar = ({
                     "bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-sm"
                   } `}
               >
-                <a href="/admin/dashboard" className="flex items-center gap-2">
+                <Link to="/admin/dashboard" className="flex items-center gap-2">
                   <Home className="shrink-0" />
                   <span>Dashboard</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

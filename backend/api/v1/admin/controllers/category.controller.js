@@ -6,16 +6,37 @@ import slugify from "slugify";
 export const list = async (req, res) => {
   try {
     const keyword = req.query.keyword;
+    const status = req.query.status;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
     const filter = {
       deleted: false,
-      status: "active",
+    };
+
+    if (status && ["active", "inactive"].includes(status)) {
+      filter.status = status;
+    }
+
+    const slugify = (str = "") => {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
     };
 
     if (keyword) {
-      filter.name = { $regex: keyword, $options: "i" };
+      const search = slugify(keyword);
+
+      filter.$or = [
+        { name: { $regex: keyword, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } },
+      ];
     }
 
     const [data, totalItems] = await Promise.all([
@@ -31,6 +52,34 @@ export const list = async (req, res) => {
     });
   } catch (error) {
     console.log("Lỗi khi gọi list category", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [GET] /api/v1/admin/category/:categoryId
+export const detail = async (req, res) => {
+  try {
+    const categoryId = req.params.categoryId;
+
+    const category = await Category.findOne({
+      _id: categoryId,
+      deleted: false,
+    });
+
+    if (!category) {
+      return res.status(404).json({
+        message: "Category không tồn tại",
+      });
+    }
+
+    res.status(200).json({
+      message: "Lấy chi tiết category thành công",
+      data: category,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi detail category", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
@@ -132,10 +181,116 @@ export const update = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/category/delete/:categoryId
-export const softDelete = async (req, res) => {
+// [PATCH] /api/v1/admin/category/change-status/:status/:categoryId
+export const changeStatus = async (req, res) => {
+  try {
+    const status = req.params.status;
+    const categoryId = req.params.categoryId;
+
+    if (!["active", "inactive"].includes(status)) {
+      return res.status(400).json({
+        message: "Status không hợp lệ. Chỉ chấp nhận: active, inactive",
+      });
+    }
+
+    const existedCategory = await Category.findOne({
+      _id: categoryId,
+      deleted: false,
+    });
+
+    if (!existedCategory) {
+      return res.status(404).json({
+        message: "Category không tồn tại",
+      });
+    }
+
+    await Category.updateOne({ _id: categoryId }, { status: status });
+
+    res.status(200).json({
+      message: "Cập nhật trạng thái thành công",
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi changeStatus category", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/category/change-multi
+export const changeMulti = async (req, res) => {
+  try {
+    const { type, ids } = req.body;
+
+    if (!type) {
+      return res.status(400).json({
+        message: "Thiếu type",
+      });
+    }
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        message: "Thiếu danh sách ids hoặc danh sách rỗng",
+      });
+    }
+
+    switch (type) {
+      case "active":
+        await Category.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          { status: "active" },
+        );
+        res.status(200).json({
+          message: `Cập nhật trạng thái thành công ${ids.length} danh mục`,
+        });
+        break;
+
+      case "inactive":
+        await Category.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          { status: "inactive" },
+        );
+        res.status(200).json({
+          message: `Cập nhật trạng thái thành công ${ids.length} danh mục`,
+        });
+        break;
+
+      case "delete-all":
+        await Category.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          {
+            deleted: true,
+            deletedAt: new Date(),
+          },
+        );
+        await Product.updateMany(
+          { categoryId: { $in: ids }, deleted: false },
+          { categoryId: null },
+        );
+        res.status(200).json({
+          message: `Đã xóa thành công ${ids.length} danh mục`,
+        });
+        break;
+
+      default:
+        res.status(400).json({
+          message: "Type không hợp lệ",
+        });
+        break;
+    }
+  } catch (error) {
+    console.log("Lỗi khi gọi changeMulti categories", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [DELETE] /api/v1/admin/category/delete/:categoryId
+export const deleteItem = async (req, res) => {
   try {
     const categoryId = req.params.categoryId;
+
     const existedCategory = await Category.findOne({
       _id: categoryId,
       deleted: false,
@@ -161,10 +316,10 @@ export const softDelete = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "Xóa category thành công",
+      message: "Đã xóa thành công danh mục",
     });
   } catch (error) {
-    console.log("Lỗi khi gọi delete category", error);
+    console.log("Lỗi khi gọi deleteItem category", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });

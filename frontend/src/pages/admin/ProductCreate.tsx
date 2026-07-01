@@ -33,7 +33,7 @@ const ProductCreate = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchCategories("", 1, 100);
+    fetchCategories("", "active", 1, 100);
   }, [fetchCategories]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

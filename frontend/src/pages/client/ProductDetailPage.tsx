@@ -43,7 +43,7 @@ const ProductDetailPage = () => {
 
         if (res.data?._id) {
           // Parallel fetch reviews, related, and notable products
-          const [relatedRes, notableRes] = await Promise.all([
+          const [, relatedRes, notableRes] = await Promise.all([
             getReviewsByProduct(res.data._id).catch(() => ({ data: [] })),
             res.data.categoryId?.slug
               ? getList(

@@ -7,7 +7,8 @@ export const requirePermission = (permission) => {
 
       if (!user.roleId._id) {
         return res.status(403).json({
-          message: "Bạn không có quyền truy cập",
+          message:
+            "Tài khoản chưa được gán vai trò. Vui lòng liên hệ quản trị viên.",
         });
       }
 
@@ -18,7 +19,8 @@ export const requirePermission = (permission) => {
 
       if (!role) {
         return res.status(403).json({
-          message: "Vai trò không tồn tại hoặc đã bị vô hiệu hóa",
+          message:
+            "Vai trò không tồn tại hoặc đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.",
         });
       }
 

@@ -6,28 +6,7 @@ export const adminDashboardService = {
     if (startDate && endDate) {
       url += `?startDate=${startDate}&endDate=${endDate}`;
     }
-    const res = await adminApi.get<{
-      message: string;
-      data: {
-        overview: {
-          totalUsers: number;
-          totalProducts: number;
-          totalOrders: number;
-          totalCategories: number;
-        };
-        orderStatus: {
-          pending: number;
-          processing: number;
-          shipped: number;
-          delivered: number;
-          cancelled: number;
-        };
-        revenueByDateRange: {
-          totalRevenue: number;
-          totalOrders: number;
-        };
-      };
-    }>(url);
+    const res = await adminApi.get(url);
     return res.data;
   },
 };

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Search, Plus, Trash2, Loader2, Pencil } from "lucide-react";
+import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw } from "lucide-react";
 import { useAdminCategoryStore } from "@/stores/useAdminCategoryStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -27,51 +27,92 @@ const ProductCategoryManagement = () => {
     totalPages,
     loading,
     fetchCategories,
-    deleteCategory,
-    deleteMultiple,
+    changeStatus,
+    changeMulti,
+    deleteItem,
   } = useAdminCategoryStore();
 
   useEffect(() => {
-    fetchCategories(searchTerm, currentPage, limit);
-  }, [currentPage, limit, searchTerm, fetchCategories]);
+    const status = statusFilter !== "all" ? statusFilter : "";
+    fetchCategories(searchTerm, status, currentPage, limit);
+  }, [currentPage, limit, searchTerm, statusFilter, fetchCategories]);
 
-  const handleDelete = async (categoryId: string) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
+  const refetchCategories = async () => {
+    const status = statusFilter !== "all" ? statusFilter : "";
+    await fetchCategories(searchTerm, status, currentPage, limit);
+  };
+
+  const handleChangeStatus = async (
+    categoryId: string,
+    status: "active" | "inactive",
+  ) => {
+    const action = status === "active" ? "khôi phục" : "ngưng hoạt động";
+    if (!confirm(`Bạn có chắc chắn muốn ${action} danh mục này?`)) return;
 
     try {
-      await deleteCategory(categoryId);
-      await fetchCategories(searchTerm, currentPage, limit);
+      await changeStatus(categoryId, status);
+      await refetchCategories();
       setSelectedItems(selectedItems.filter((id) => id !== categoryId));
     } catch (error) {
       // Error already handled in store
     }
   };
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteItem = async (categoryId: string) => {
+    if (
+      !confirm(
+        "Bạn có chắc chắn muốn XÓA VĨNH VIỄN danh mục này? Hành động này không thể hoàn tác!",
+      )
+    )
+      return;
+
+    try {
+      await deleteItem(categoryId);
+      await refetchCategories();
+      setSelectedItems(selectedItems.filter((id) => id !== categoryId));
+    } catch (error) {
+      // Error already handled in store
+    }
+  };
+
+  const handleBulkAction = async (
+    type: "active" | "inactive" | "delete-all",
+  ) => {
     if (selectedItems.length === 0) {
-      toast.warning("Vui lòng chọn ít nhất một danh mục để xóa");
+      toast.warning("Vui lòng chọn ít nhất một danh mục");
       return;
     }
 
-    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedItems.length} danh mục đã chọn?`)) return;
+    const messages = {
+      active: `khôi phục ${selectedItems.length} danh mục`,
+      inactive: `chuyển sang ngưng hoạt động ${selectedItems.length} danh mục`,
+      "delete-all": `XÓA VĨNH VIỄN ${selectedItems.length} danh mục`,
+    };
+
+    if (!confirm(`Bạn có chắc chắn muốn ${messages[type]}?`)) return;
 
     try {
-      await deleteMultiple(selectedItems);
-      await fetchCategories(searchTerm, currentPage, limit);
+      await changeMulti(selectedItems, type);
+      await refetchCategories();
       setSelectedItems([]);
     } catch (error) {
       // Error already handled in store
     }
   };
 
-  const filteredData = categories.filter((item) => {
-    const matchStatus = statusFilter === "all" || item.status === statusFilter;
-    return matchStatus;
-  });
+  const selectedCategories = categories.filter((c) =>
+    selectedItems.includes(c._id),
+  );
+  const hasActiveSelected = selectedCategories.some(
+    (c) => c.status === "active",
+  );
+  const hasInactiveSelected = selectedCategories.some(
+    (c) => c.status === "inactive",
+  );
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedItems(filteredData.map((item) => item._id));
+      setSelectedItems(categories.map((item) => item._id));
     } else {
       setSelectedItems([]);
     }
@@ -118,10 +159,10 @@ const ProductCategoryManagement = () => {
             Quản lý danh mục sản phẩm
           </h1>
 
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
             {/* Left: Filters */}
-            <div className="flex gap-3 w-full md:w-auto">
-              <div className="relative w-full md:w-64">
+            <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+              <div className="relative w-full sm:w-64">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />
                 </div>
@@ -137,7 +178,7 @@ const ProductCategoryManagement = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full md:w-40 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
+                className="w-full sm:w-48 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
               >
                 <option value="all">Tất cả trạng thái</option>
                 <option value="active">Hoạt động</option>
@@ -146,19 +187,41 @@ const ProductCategoryManagement = () => {
             </div>
 
             {/* Right: Actions */}
-            <div className="flex gap-3 w-full md:w-auto">
-              <button
-                onClick={handleDeleteSelected}
-                disabled={selectedItems.length === 0}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-lg font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Trash2 className="w-4 h-4" />
-                Xóa mục đã chọn
-              </button>
+            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+              {hasInactiveSelected && (
+                <button
+                  onClick={() => handleBulkAction("active")}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffc1cc] text-[#c2185b] rounded-[20px] font-semibold text-sm hover:bg-[#ffadc0] transition-colors active:scale-95 whitespace-nowrap"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Khôi phục mục đã chọn
+                </button>
+              )}
+
+              {hasActiveSelected && (
+                <button
+                  onClick={() => handleBulkAction("inactive")}
+                  disabled={selectedItems.length === 0}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-[20px] font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Xóa mục đã chọn
+                </button>
+              )}
+
+              {hasInactiveSelected && (
+                <button
+                  onClick={() => handleBulkAction("delete-all")}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#fee2e2] text-[#991b1b] rounded-[20px] font-semibold text-sm hover:bg-[#fecaca] transition-colors active:scale-95 whitespace-nowrap"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Xóa vĩnh viễn đã chọn
+                </button>
+              )}
 
               <button
                 onClick={() => navigate("/admin/product-category/create")}
-                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-lg font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95"
+                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
               >
                 <Plus className="w-4 h-4" />
                 Thêm danh mục
@@ -187,11 +250,11 @@ const ProductCategoryManagement = () => {
                         <div className="flex items-center">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-[#b51c00] cursor-pointer accent-[#b51c00]"
+                            className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
                             onChange={handleSelectAll}
                             checked={
-                              selectedItems.length === filteredData.length &&
-                              filteredData.length > 0
+                              selectedItems.length === categories.length &&
+                              categories.length > 0
                             }
                           />
                         </div>
@@ -217,8 +280,8 @@ const ProductCategoryManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.length > 0 ? (
-                      filteredData.map((item, index) => (
+                    {categories.length > 0 ? (
+                      categories.map((item, index) => (
                         <tr
                           key={item._id}
                           className="bg-white border-b border-gray-50 hover:bg-[#f8fafc] transition-colors group"
@@ -227,7 +290,7 @@ const ProductCategoryManagement = () => {
                             <div className="flex items-center">
                               <input
                                 type="checkbox"
-                                className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-[#b51c00] cursor-pointer accent-[#b51c00]"
+                                className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
                                 checked={selectedItems.includes(item._id)}
                                 onChange={() => handleSelectItem(item._id)}
                               />
@@ -251,29 +314,60 @@ const ProductCategoryManagement = () => {
                             )}
                           </td>
                           <td className="px-6 py-4 text-gray-500 text-center">
-                            {new Date(item.createdAt).toLocaleDateString("vi-VN")}
+                            {new Date(item.createdAt).toLocaleDateString(
+                              "vi-VN",
+                            )}
                           </td>
                           <td className="px-6 py-4 text-gray-500 text-center">
-                            {new Date(item.updatedAt).toLocaleDateString("vi-VN")}
+                            {new Date(item.updatedAt).toLocaleDateString(
+                              "vi-VN",
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() =>
-                                  navigate(`/admin/product-category/edit/${item._id}`)
-                                }
-                                className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
-                              >
-                                <Pencil className="w-3 h-3" />
-                                Sửa
-                              </button>
-                              <button
-                                onClick={() => handleDelete(item._id)}
-                                className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                                Xóa
-                              </button>
+                              {item.status === "active" ? (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      navigate(
+                                        `/admin/product-category/edit/${item._id}`,
+                                      )
+                                    }
+                                    className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                    Sửa
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "inactive")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Xóa
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "active")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Khôi phục
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteItem(item._id)}
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Xóa vĩnh viễn
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>

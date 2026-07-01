@@ -12,6 +12,12 @@ import * as controller from "../controllers/product.controller.js";
 
 router.get("/", requirePermission("products_view"), controller.list);
 
+router.get(
+  "/:productId",
+  requirePermission("products_view"),
+  controller.detail,
+);
+
 router.post(
   "/",
   requirePermission("products_create"),
@@ -29,15 +35,21 @@ router.patch(
 );
 
 router.patch(
-  "/delete/:productId",
-  requirePermission("products_delete"),
-  controller.softDelete,
+  "/change-status/:status/:productId",
+  requirePermission("products_edit"),
+  controller.changeStatus,
 );
 
 router.patch(
-  "/delete-multiple",
+  "/change-multi",
+  requirePermission("products_edit"),
+  controller.changeMulti,
+);
+
+router.delete(
+  "/delete/:productId",
   requirePermission("products_delete"),
-  controller.softDeleteMultiple,
+  controller.deleteItem,
 );
 
 export default router;

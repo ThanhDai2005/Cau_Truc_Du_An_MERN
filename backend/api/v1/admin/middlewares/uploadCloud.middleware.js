@@ -31,9 +31,15 @@ const uploadAvatar = async (buffer) => {
   });
 };
 
-const uploadImage = async (buffer) => {
+const uploadProductImage = async (buffer) => {
   return await streamUpload(buffer, {
     folder: "CAU_TRUC_DU_AN_MERN/product",
+  });
+};
+
+const uploadBlogImage = async (buffer) => {
+  return await streamUpload(buffer, {
+    folder: "CAU_TRUC_DU_AN_MERN/blog",
   });
 };
 
@@ -44,6 +50,8 @@ export const uploadSingle = async (req, res, next) => {
 
     if (req.file.fieldname == "avatar") {
       result = await uploadAvatar(req.file.buffer);
+    } else if (req.file.fieldname == "imageUrl") {
+      result = await uploadBlogImage(req.file.buffer);
     }
 
     req.body[req.file.fieldname] = result.secure_url;
@@ -62,8 +70,7 @@ export const uploadMulti = async (req, res, next) => {
       return next();
     }
 
-    const uploads = req.files.map((file) => uploadImage(file.buffer));
-
+    const uploads = req.files.map((file) => uploadProductImage(file.buffer));
     const results = await Promise.all(uploads);
     const fieldName = req.files[0].fieldname;
 
