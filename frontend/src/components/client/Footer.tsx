@@ -1,4 +1,14 @@
 import { Link } from "react-router-dom";
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Youtube,
+  MapPin,
+  Phone,
+  Mail,
+  ArrowRight,
+} from "lucide-react";
 
 const Footer = () => {
   return (
@@ -63,25 +73,25 @@ const Footer = () => {
                 href="#"
                 className="w-10 h-10 rounded-full border border-[#2c2c2c] text-[#2c2c2c] flex items-center justify-center hover:bg-[#e30019] hover:text-white hover:border-[#e30019] transition-all duration-300 hover:scale-110"
               >
-                <i className="fa-brands fa-facebook-f"></i>
+                <Facebook className="size-5" />
               </a>
               <a
                 href="#"
                 className="w-10 h-10 rounded-full border border-[#2c2c2c] text-[#2c2c2c] flex items-center justify-center hover:bg-[#e30019] hover:text-white hover:border-[#e30019] transition-all duration-300 hover:scale-110"
               >
-                <i className="fa-brands fa-twitter"></i>
+                <Twitter className="size-5" />
               </a>
               <a
                 href="#"
                 className="w-10 h-10 rounded-full border border-[#2c2c2c] text-[#2c2c2c] flex items-center justify-center hover:bg-[#e30019] hover:text-white hover:border-[#e30019] transition-all duration-300 hover:scale-110"
               >
-                <i className="fa-brands fa-instagram"></i>
+                <Instagram className="size-5" />
               </a>
               <a
                 href="#"
                 className="w-10 h-10 rounded-full border border-[#2c2c2c] text-[#2c2c2c] flex items-center justify-center hover:bg-[#e30019] hover:text-white hover:border-[#e30019] transition-all duration-300 hover:scale-110"
               >
-                <i className="fa-brands fa-tiktok"></i>
+                <Youtube className="size-5" />
               </a>
             </div>
           </div>
@@ -104,7 +114,7 @@ const Footer = () => {
                     to={item.path}
                     className="text-[16px] text-[#2c2c2c] flex items-center group"
                   >
-                    <i className="fa-solid fa-arrow-right mr-3 text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
+                    <ArrowRight className="mr-3 text-sm transition-transform duration-300 group-hover:translate-x-1" />
                     {item.name}
                   </Link>
                 </li>
@@ -133,7 +143,7 @@ const Footer = () => {
                     to={item.path}
                     className="text-[16px] text-[#2c2c2c] flex items-center group"
                   >
-                    <i className="fa-solid fa-arrow-right mr-3 text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
+                    <ArrowRight className="mr-3 text-sm transition-transform duration-300 group-hover:translate-x-1" />
                     {item.name}
                   </Link>
                 </li>
@@ -149,7 +159,7 @@ const Footer = () => {
             <div className="space-y-4 text-[15px] text-gray-900">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-[#e30019] text-white flex items-center justify-center shrink-0">
-                  <i className="fa-solid fa-location-dot"></i>
+                  <MapPin className="size-5" />
                 </div>
                 <div>
                   <p>40/15 Tô Hiệu, P. Tân Thới Hòa</p>
@@ -158,7 +168,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-[#e30019] text-white flex items-center justify-center shrink-0">
-                  <i className="fa-solid fa-phone"></i>
+                  <Phone className="size-5" />
                 </div>
                 <div>
                   <p>0123 456 789</p>
@@ -167,7 +177,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-[#e30019] text-white flex items-center justify-center shrink-0">
-                  <i className="fa-regular fa-envelope"></i>
+                  <Mail className="size-5" />
                 </div>
                 <div>
                   <p>hdkn@gmail.com</p>

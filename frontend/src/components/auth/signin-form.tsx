@@ -198,13 +198,13 @@ export function SignInForm({
       {/* Policy Text */}
       <p className="text-center text-xs text-gray-500 mt-6 px-4">
         Bằng cách tiếp tục, bạn đồng ý với{" "}
-        <a href="#" className="underline hover:text-gray-700">
+        <Link to="#" className="underline hover:text-gray-700">
           Điều khoản dịch vụ
-        </a>{" "}
+        </Link>{" "}
         và{" "}
-        <a href="#" className="underline hover:text-gray-700">
+        <Link to="#" className="underline hover:text-gray-700">
           Chính sách bảo mật
-        </a>{" "}
+        </Link>{" "}
         của chúng tôi.
       </p>
     </div>

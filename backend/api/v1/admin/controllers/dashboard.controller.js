@@ -16,6 +16,25 @@ export const dashboard = async (req, res) => {
       ]);
 
     // 2. Thống kê hóa đơn theo trạng thái (biểu đồ tròn)
+    // Lấy tham số tháng từ query (month=1 đến 12)
+    const { month } = req.query;
+
+    let orderStatusQuery = {};
+
+    if (month && month !== "all") {
+      const monthNum = parseInt(month);
+      const currentYear = new Date().getFullYear();
+      const startOfMonth = new Date(currentYear, monthNum - 1, 1);
+      const endOfMonth = new Date(currentYear, monthNum, 0, 23, 59, 59, 999);
+
+      orderStatusQuery = {
+        createdAt: {
+          $gte: startOfMonth,
+          $lte: endOfMonth,
+        },
+      };
+    }
+
     const [
       pendingOrders,
       processingOrders,
@@ -23,11 +42,11 @@ export const dashboard = async (req, res) => {
       deliveredOrders,
       cancelledOrders,
     ] = await Promise.all([
-      Order.countDocuments({ orderStatus: "Pending" }),
-      Order.countDocuments({ orderStatus: "Processing" }),
-      Order.countDocuments({ orderStatus: "Shipped" }),
-      Order.countDocuments({ orderStatus: "Delivered" }),
-      Order.countDocuments({ orderStatus: "Cancelled" }),
+      Order.countDocuments({ orderStatus: "Pending", ...orderStatusQuery }),
+      Order.countDocuments({ orderStatus: "Processing", ...orderStatusQuery }),
+      Order.countDocuments({ orderStatus: "Shipped", ...orderStatusQuery }),
+      Order.countDocuments({ orderStatus: "Delivered", ...orderStatusQuery }),
+      Order.countDocuments({ orderStatus: "Cancelled", ...orderStatusQuery }),
     ]);
 
     const orderStatusData = {
@@ -70,6 +89,33 @@ export const dashboard = async (req, res) => {
       };
     }
 
+    // 4. Thống kê doanh thu theo tháng (12 tháng trong năm hiện tại - line chart)
+    const currentYear = new Date().getFullYear();
+    const monthlyRevenue = [];
+
+    for (let month = 1; month <= 12; month++) {
+      const startOfMonth = new Date(currentYear, month - 1, 1);
+      const endOfMonth = new Date(currentYear, month, 0, 23, 59, 59, 999);
+
+      const orders = await Order.find({
+        paymentStatus: "Paid",
+        createdAt: {
+          $gte: startOfMonth,
+          $lte: endOfMonth,
+        },
+      });
+
+      const revenue = orders.reduce(
+        (total, item) => total + item.totalAmount,
+        0,
+      );
+
+      monthlyRevenue.push({
+        month: `Tháng ${month}`,
+        revenue: revenue,
+      });
+    }
+
     res.status(200).json({
       message: "Lấy thống kê dashboard thành công",
       data: {
@@ -81,6 +127,7 @@ export const dashboard = async (req, res) => {
         },
         orderStatus: orderStatusData,
         revenueByDateRange: revenueStats,
+        monthlyRevenue: monthlyRevenue,
       },
     });
   } catch (error) {

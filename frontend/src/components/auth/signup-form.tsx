@@ -67,7 +67,7 @@ export function SignupForm({
             <p className="text-xl font-semibold text-gray-900 mt-2">
               Tạo tài khoản mới
             </p>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mt-1 text-sm">
               Hãy tham gia cùng chúng tôi để đặt món ngon mỗi ngày!
             </p>
           </header>
@@ -268,13 +268,13 @@ export function SignupForm({
       {/* Policy */}
       <p className="text-center text-xs text-gray-500 mt-6 px-4">
         Bằng cách tiếp tục, bạn đồng ý với{" "}
-        <a href="#" className="underline hover:text-gray-700">
+        <Link to="#" className="underline hover:text-gray-700">
           Điều khoản dịch vụ
-        </a>{" "}
+        </Link>{" "}
         và{" "}
-        <a href="#" className="underline hover:text-gray-700">
+        <Link to="#" className="underline hover:text-gray-700">
           Chính sách bảo mật
-        </a>{" "}
+        </Link>{" "}
         của chúng tôi.
       </p>
     </div>

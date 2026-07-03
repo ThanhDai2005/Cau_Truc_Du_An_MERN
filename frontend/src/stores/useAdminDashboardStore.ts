@@ -21,6 +21,7 @@ export const useAdminDashboardStore = create<AdminDashboardState>((set) => ({
       totalRevenue: 0,
       totalOrders: 0,
     },
+    monthlyRevenue: [],
   },
   loading: false,
 
@@ -31,6 +32,22 @@ export const useAdminDashboardStore = create<AdminDashboardState>((set) => ({
       set({ stats: response.data, loading: false });
     } catch (error) {
       console.error("Lỗi khi tải thống kê:", error);
+      set({ loading: false });
+      throw error;
+    }
+  },
+
+  fetchOrderStatusByMonth: async (month?: string) => {
+    try {
+      const response = await adminDashboardService.getOrderStatusByMonth(month);
+      set((state) => ({
+        stats: {
+          ...state.stats,
+          orderStatus: response.data.orderStatus,
+        },
+      }));
+    } catch (error) {
+      console.error("Lỗi khi tải thống kê đơn hàng theo tháng:", error);
       throw error;
     }
   },
