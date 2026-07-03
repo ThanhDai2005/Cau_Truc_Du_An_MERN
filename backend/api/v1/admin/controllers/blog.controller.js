@@ -16,7 +16,7 @@ export const list = async (req, res) => {
       deleted: false,
     };
 
-    if (status) {
+    if (status && ["active", "inactive"].includes(status)) {
       filter.status = status;
     }
 
@@ -62,6 +62,37 @@ export const list = async (req, res) => {
     });
   } catch (error) {
     console.log("Lỗi khi gọi list blog", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [GET] /api/v1/admin/blog/:blogId
+export const detail = async (req, res) => {
+  try {
+    const blogId = req.params.blogId;
+
+    const blog = await Blog.findOne({
+      _id: blogId,
+      deleted: false,
+    })
+      .populate("authorId", "displayName email")
+      .populate("blogCategoryId", "name slug")
+      .populate("relatedProducts", "name slug images price");
+
+    if (!blog) {
+      return res.status(404).json({
+        message: "Blog không tồn tại",
+      });
+    }
+
+    res.status(200).json({
+      message: "Lấy chi tiết blog thành công",
+      data: blog,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi detail blog", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
@@ -234,19 +265,25 @@ export const update = async (req, res) => {
       publishedAt = new Date();
     }
 
+    // Build update object
+    const updateData = {
+      title: title,
+      slug: slug,
+      content: content,
+      blogCategoryId: blogCategory,
+      featured: featured,
+      relatedProducts: relatedProducts,
+      status: status,
+      publishedAt: publishedAt,
+    };
+
+    if (imageUrl) {
+      updateData.imageUrl = imageUrl;
+    }
+
     const updatedBlog = await Blog.findOneAndUpdate(
       { _id: blogId },
-      {
-        title: title,
-        slug: slug,
-        content: content,
-        imageUrl: imageUrl,
-        blogCategoryId: blogCategory,
-        featured: featured,
-        relatedProducts: relatedProducts,
-        status: status,
-        publishedAt: publishedAt,
-      },
+      updateData,
       { new: true },
     );
 
@@ -262,7 +299,152 @@ export const update = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/blog/delete/:blogId
+// [PATCH] /api/v1/admin/blog/change-status/:status/:blogId
+export const changeStatus = async (req, res) => {
+  try {
+    const status = req.params.status;
+    const blogId = req.params.blogId;
+
+    if (!["active", "inactive"].includes(status)) {
+      return res.status(400).json({
+        message: "Status không hợp lệ. Chỉ chấp nhận: active, inactive",
+      });
+    }
+
+    const existedBlog = await Blog.findOne({
+      _id: blogId,
+      deleted: false,
+    });
+
+    if (!existedBlog) {
+      return res.status(404).json({
+        message: "Blog không tồn tại",
+      });
+    }
+
+    // Set publishedAt when status changes to active
+    let publishedAt = existedBlog.publishedAt;
+    if (status === "active" && existedBlog.status !== "active") {
+      publishedAt = new Date();
+    }
+
+    await Blog.updateOne(
+      { _id: blogId },
+      { status: status, publishedAt: publishedAt },
+    );
+
+    res.status(200).json({
+      message: "Cập nhật trạng thái thành công",
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi changeStatus blog", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/blog/change-multi
+export const changeMulti = async (req, res) => {
+  try {
+    const { type, ids } = req.body;
+
+    if (!type) {
+      return res.status(400).json({
+        message: "Thiếu type",
+      });
+    }
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        message: "Thiếu danh sách ids hoặc danh sách rỗng",
+      });
+    }
+
+    switch (type) {
+      case "active":
+        await Blog.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          { status: "active", publishedAt: new Date() },
+        );
+        res.status(200).json({
+          message: `Cập nhật trạng thái thành công ${ids.length} bài viết`,
+        });
+        break;
+
+      case "inactive":
+        await Blog.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          { status: "inactive" },
+        );
+        res.status(200).json({
+          message: `Cập nhật trạng thái thành công ${ids.length} bài viết`,
+        });
+        break;
+
+      case "delete-all":
+        await Blog.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          {
+            deleted: true,
+            deletedAt: new Date(),
+          },
+        );
+        res.status(200).json({
+          message: `Đã xóa thành công ${ids.length} bài viết`,
+        });
+        break;
+
+      default:
+        res.status(400).json({
+          message: "Type không hợp lệ",
+        });
+        break;
+    }
+  } catch (error) {
+    console.log("Lỗi khi gọi changeMulti blogs", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [DELETE] /api/v1/admin/blog/delete/:blogId
+export const deleteItem = async (req, res) => {
+  try {
+    const blogId = req.params.blogId;
+
+    const existedBlog = await Blog.findOne({
+      _id: blogId,
+      deleted: false,
+    });
+
+    if (!existedBlog) {
+      return res.status(404).json({
+        message: "Blog không tồn tại",
+      });
+    }
+
+    await Blog.updateOne(
+      { _id: blogId },
+      {
+        deleted: true,
+        deletedAt: new Date(),
+      },
+    );
+
+    res.status(200).json({
+      message: "Đã xóa thành công bài viết",
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi deleteItem blog", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/blog/soft-delete/:blogId
 export const softDelete = async (req, res) => {
   try {
     const blogId = req.params.blogId;

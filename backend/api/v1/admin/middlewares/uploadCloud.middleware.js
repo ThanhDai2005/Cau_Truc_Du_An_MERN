@@ -43,15 +43,27 @@ const uploadBlogImage = async (buffer) => {
   });
 };
 
+const uploadEditorImage = async (buffer) => {
+  return await streamUpload(buffer, {
+    folder: "CAU_TRUC_DU_AN_MERN/editor",
+  });
+};
+
 // Upload 1 ảnh
 export const uploadSingle = async (req, res, next) => {
   try {
+    if (!req.file) {
+      return next();
+    }
+
     let result;
 
     if (req.file.fieldname == "avatar") {
       result = await uploadAvatar(req.file.buffer);
     } else if (req.file.fieldname == "imageUrl") {
       result = await uploadBlogImage(req.file.buffer);
+    } else if (req.file.fieldname == "file") {
+      result = await uploadEditorImage(req.file.buffer);
     }
 
     req.body[req.file.fieldname] = result.secure_url;

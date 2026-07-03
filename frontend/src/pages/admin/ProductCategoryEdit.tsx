@@ -17,7 +17,8 @@ import { toast } from "sonner";
 const ProductCategoryEdit = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams<{ categoryId: string }>();
-  const { loading, getCategoryDetail, updateCategory } = useAdminCategoryStore();
+  const { loading, getCategoryDetail, updateCategory } =
+    useAdminCategoryStore();
   const [fetching, setFetching] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
@@ -71,7 +72,7 @@ const ProductCategoryEdit = () => {
   }
 
   return (
-    <div className="bg-[#f7f9fb] min-h-screen pb-12 font-['Inter']">
+    <div className="bg-[#f7f9fb] min-h-screen pb-12">
       {/* HEADER BREADCRUMB */}
       <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10">
         <SidebarTrigger />

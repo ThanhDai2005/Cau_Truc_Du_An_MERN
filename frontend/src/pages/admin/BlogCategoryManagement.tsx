@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,56 +9,110 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw } from "lucide-react";
+import { useAdminBlogCategoryStore } from "@/stores/useAdminBlogCategoryStore";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-// --- MOCK DATA DỰA THEO HÌNH ẢNH ---
-const mockBlogCategories = [
-  {
-    id: "1",
-    name: "Bài thuốc hay",
-    status: "active",
-  },
-  {
-    id: "2",
-    name: "Dụng cụ nhà bếp",
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Món ngon mỗi ngày",
-    status: "active",
-  },
-  {
-    id: "4",
-    name: "Ẩm thực ngon Việt Nam",
-    status: "active",
-  },
-  {
-    id: "5",
-    name: "Mẹo vặt nấu nướng",
-    status: "active",
-  },
-];
-
-const CategoryBlogManagement = () => {
-  // --- STATES ---
+const BlogCategoryManagement = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
-  // --- LOGIC: LỌC DỮ LIỆU ---
-  const filteredData = mockBlogCategories.filter((item) => {
-    const matchName = item.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchStatus = statusFilter === "all" || item.status === statusFilter;
-    return matchName && matchStatus;
-  });
+  const {
+    blogCategories,
+    totalPages,
+    loading,
+    fetchBlogCategories,
+    changeStatus,
+    changeMulti,
+    deleteItem,
+  } = useAdminBlogCategoryStore();
 
-  // --- LOGIC: CHECKBOX ---
+  useEffect(() => {
+    const status = statusFilter !== "all" ? statusFilter : "";
+    fetchBlogCategories(searchTerm, status, currentPage, limit);
+  }, [currentPage, limit, searchTerm, statusFilter, fetchBlogCategories]);
+
+  const refetchBlogCategories = async () => {
+    const status = statusFilter !== "all" ? statusFilter : "";
+    await fetchBlogCategories(searchTerm, status, currentPage, limit);
+  };
+
+  const handleChangeStatus = async (
+    blogCategoryId: string,
+    status: "active" | "inactive",
+  ) => {
+    const action = status === "active" ? "khôi phục" : "ngưng hoạt động";
+    if (!confirm(`Bạn có chắc chắn muốn ${action} danh mục này?`)) return;
+
+    try {
+      await changeStatus(blogCategoryId, status);
+      await refetchBlogCategories();
+      setSelectedItems(selectedItems.filter((id) => id !== blogCategoryId));
+    } catch (error) {
+      // Error already handled in store
+    }
+  };
+
+  const handleDeleteItem = async (blogCategoryId: string) => {
+    if (
+      !confirm(
+        "Bạn có chắc chắn muốn XÓA VĨNH VIỄN danh mục này? Hành động này không thể hoàn tác!",
+      )
+    )
+      return;
+
+    try {
+      await deleteItem(blogCategoryId);
+      await refetchBlogCategories();
+      setSelectedItems(selectedItems.filter((id) => id !== blogCategoryId));
+    } catch (error) {
+      // Error already handled in store
+    }
+  };
+
+  const handleBulkAction = async (
+    type: "active" | "inactive" | "delete-all",
+  ) => {
+    if (selectedItems.length === 0) {
+      toast.warning("Vui lòng chọn ít nhất một danh mục");
+      return;
+    }
+
+    const messages = {
+      active: `khôi phục ${selectedItems.length} danh mục`,
+      inactive: `chuyển sang ngưng hoạt động ${selectedItems.length} danh mục`,
+      "delete-all": `XÓA VĨNH VIỄN ${selectedItems.length} danh mục`,
+    };
+
+    if (!confirm(`Bạn có chắc chắn muốn ${messages[type]}?`)) return;
+
+    try {
+      await changeMulti(selectedItems, type);
+      await refetchBlogCategories();
+      setSelectedItems([]);
+    } catch (error) {
+      // Error already handled in store
+    }
+  };
+
+  const selectedCategories = blogCategories.filter((c) =>
+    selectedItems.includes(c._id),
+  );
+  const hasActiveSelected = selectedCategories.some(
+    (c) => c.status === "active",
+  );
+  const hasInactiveSelected = selectedCategories.some(
+    (c) => c.status === "inactive",
+  );
+
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedItems(filteredData.map((item) => item.id));
+      setSelectedItems(blogCategories.map((item) => item._id));
     } else {
       setSelectedItems([]);
     }
@@ -73,7 +127,7 @@ const CategoryBlogManagement = () => {
   };
 
   return (
-    <div className="bg-[#f7f9fb] min-h-screen pb-12 font-['Inter']">
+    <div className="bg-[#f7f9fb] min-h-screen pb-12">
       {/* HEADER BREADCRUMB */}
       <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10">
         <SidebarTrigger />
@@ -105,9 +159,9 @@ const CategoryBlogManagement = () => {
             Quản lý danh mục bài viết
           </h1>
 
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
             {/* Left: Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
               <div className="relative w-full sm:w-64">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />
@@ -132,14 +186,43 @@ const CategoryBlogManagement = () => {
               </select>
             </div>
 
-            {/* Right: Actions - NÚT XÓA LUÔN HIỆN */}
-            <div className="flex flex-wrap gap-3 w-full md:w-auto">
-              <button className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-[20px] font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 whitespace-nowrap">
-                <Trash2 className="w-4 h-4" />
-                Xóa mục đã chọn
-              </button>
+            {/* Right: Actions */}
+            <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+              {hasInactiveSelected && (
+                <button
+                  onClick={() => handleBulkAction("active")}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffc1cc] text-[#c2185b] rounded-[20px] font-semibold text-sm hover:bg-[#ffadc0] transition-colors active:scale-95 whitespace-nowrap"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Khôi phục mục đã chọn
+                </button>
+              )}
 
-              <button className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap">
+              {hasActiveSelected && (
+                <button
+                  onClick={() => handleBulkAction("inactive")}
+                  disabled={selectedItems.length === 0}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-[20px] font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Xóa mục đã chọn
+                </button>
+              )}
+
+              {hasInactiveSelected && (
+                <button
+                  onClick={() => handleBulkAction("delete-all")}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#fee2e2] text-[#991b1b] rounded-[20px] font-semibold text-sm hover:bg-[#fecaca] transition-colors active:scale-95 whitespace-nowrap"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Xóa vĩnh viễn đã chọn
+                </button>
+              )}
+
+              <button
+                onClick={() => navigate("/admin/blog-category/create")}
+                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
+              >
                 <Plus className="w-4 h-4" />
                 Thêm danh mục
               </button>
@@ -153,127 +236,214 @@ const CategoryBlogManagement = () => {
             <h2 className="text-[18px] font-bold text-gray-900">Danh sách</h2>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-[12px] text-gray-500 bg-[#f1f5f9] uppercase font-bold border-b border-gray-200 tracking-wider">
-                <tr>
-                  <th scope="col" className="p-4 w-12">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
-                        onChange={handleSelectAll}
-                        checked={
-                          selectedItems.length === filteredData.length &&
-                          filteredData.length > 0
-                        }
-                      />
-                    </div>
-                  </th>
-                  <th scope="col" className="px-6 py-4">
-                    STT
-                  </th>
-                  <th scope="col" className="px-6 py-4">
-                    Tên danh mục
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-center">
-                    Trạng thái
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-center">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredData.length > 0 ? (
-                  filteredData.map((item, index) => (
-                    <tr
-                      key={item.id}
-                      className="bg-white border-b border-gray-50 hover:bg-[#f8fafc] transition-colors group"
-                    >
-                      <td className="p-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-[#b51c00]" />
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-[12px] text-gray-500 bg-[#f1f5f9] uppercase font-bold border-b border-gray-200 tracking-wider">
+                    <tr>
+                      <th scope="col" className="p-4 w-12">
                         <div className="flex items-center">
                           <input
                             type="checkbox"
                             className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
-                            checked={selectedItems.includes(item.id)}
-                            onChange={() => handleSelectItem(item.id)}
+                            onChange={handleSelectAll}
+                            checked={
+                              selectedItems.length === blogCategories.length &&
+                              blogCategories.length > 0
+                            }
                           />
                         </div>
-                      </td>
-                      <td className="px-6 py-4 font-medium text-gray-900">
-                        {index + 1}
-                      </td>
-                      <td className="px-6 py-4 font-semibold text-gray-900">
-                        {item.name}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        {item.status === "active" ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#d1fae5] text-[#15803d]">
-                            Hoạt động
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#fee2e2] text-[#b91c1c]">
-                            Ngưng hoạt động
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1">
-                            Sửa
-                          </button>
-                          <button className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1">
-                            Xóa
-                          </button>
-                        </div>
-                      </td>
+                      </th>
+                      <th scope="col" className="px-6 py-4">
+                        STT
+                      </th>
+                      <th scope="col" className="px-6 py-4">
+                        Tên danh mục
+                      </th>
+                      <th scope="col" className="px-6 py-4 text-center">
+                        Trạng thái
+                      </th>
+                      <th scope="col" className="px-6 py-4 text-center">
+                        Ngày tạo
+                      </th>
+                      <th scope="col" className="px-6 py-4 text-center">
+                        Ngày cập nhật
+                      </th>
+                      <th scope="col" className="px-6 py-4 text-center">
+                        Thao tác
+                      </th>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-6 py-12 text-center text-gray-500"
-                    >
-                      Không tìm thấy danh mục nào.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody>
+                    {blogCategories.length > 0 ? (
+                      blogCategories.map((item, index) => (
+                        <tr
+                          key={item._id}
+                          className="bg-white border-b border-gray-50 hover:bg-[#f8fafc] transition-colors group"
+                        >
+                          <td className="p-4">
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
+                                checked={selectedItems.includes(item._id)}
+                                onChange={() => handleSelectItem(item._id)}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 font-medium text-gray-900">
+                            {(currentPage - 1) * limit + index + 1}
+                          </td>
+                          <td className="px-6 py-4 font-semibold text-gray-900">
+                            {item.name}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            {item.status === "active" ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#d1fae5] text-[#15803d]">
+                                Hoạt động
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#fee2e2] text-[#b91c1c]">
+                                Ngưng hoạt động
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500 text-center">
+                            {new Date(item.createdAt).toLocaleDateString(
+                              "vi-VN",
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-gray-500 text-center">
+                            {new Date(item.updatedAt).toLocaleDateString(
+                              "vi-VN",
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center gap-2">
+                              {item.status === "active" ? (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      navigate(
+                                        `/admin/blog-category/edit/${item._id}`,
+                                      )
+                                    }
+                                    className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                    Sửa
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "inactive")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Xóa
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "active")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Khôi phục
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteItem(item._id)}
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Xóa vĩnh viễn
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="px-6 py-12 text-center text-gray-500"
+                        >
+                          Không tìm thấy danh mục nào.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-          {/* PAGINATION */}
-          <div className="flex flex-col md:flex-row items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
-              <span className="text-sm text-gray-500">Số lượng mục</span>
-              <select className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#b51c00] focus:border-[#b51c00] px-3 py-1.5 outline-none cursor-pointer">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-              </select>
-            </div>
+              {/* PAGINATION */}
+              <div className="flex flex-col md:flex-row items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
+                <div className="flex items-center gap-2 mb-4 md:mb-0">
+                  <span className="text-sm text-gray-500">Số lượng mục</span>
+                  <select
+                    value={limit}
+                    onChange={(e) => {
+                      setLimit(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#b51c00] focus:border-[#b51c00] px-3 py-1.5 outline-none cursor-pointer"
+                  >
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                  </select>
+                </div>
 
-            <div className="flex items-center gap-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50">
-                &lt;
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#b51c00] bg-[#b51c00] text-white font-semibold text-sm">
-                1
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:text-[#b51c00] hover:border-[#b51c00] font-semibold text-sm transition-colors">
-                2
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50">
-                &gt;
-              </button>
-            </div>
-          </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    &lt;
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-lg border font-semibold text-sm transition-colors ${
+                          currentPage === page
+                            ? "border-[#b51c00] bg-[#b51c00] text-white"
+                            : "border-gray-200 text-gray-600 hover:text-[#b51c00] hover:border-[#b51c00]"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  )}
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    &gt;
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default CategoryBlogManagement;
+export default BlogCategoryManagement;

@@ -155,7 +155,7 @@ const PromotionManagement = () => {
   };
 
   return (
-    <div className="bg-[#f7f9fb] min-h-screen pb-12 font-['Inter']">
+    <div className="bg-[#f7f9fb] min-h-screen pb-12">
       <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10">
         <SidebarTrigger />
         <Separator orientation="vertical" className="h-4" />

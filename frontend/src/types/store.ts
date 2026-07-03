@@ -38,119 +38,6 @@ export interface AuthState {
   ) => Promise<void>;
 }
 
-export interface AdminState {
-  accessToken: string | null;
-  user: User | null;
-  loading: boolean;
-
-  setAccessToken: (accessToken: string) => void;
-  clearState: () => void;
-  login: (phone: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  getDetail: () => Promise<void>;
-  refreshToken: () => Promise<void>;
-}
-
-export interface AdminDashboardState {
-  stats: {
-    overview: {
-      totalUsers: number;
-      totalProducts: number;
-      totalOrders: number;
-      totalCategories: number;
-    };
-    orderStatus: {
-      pending: number;
-      processing: number;
-      shipped: number;
-      delivered: number;
-      cancelled: number;
-    };
-    revenueByDateRange: {
-      totalRevenue: number;
-      totalOrders: number;
-    };
-  };
-  loading: boolean;
-
-  fetchStats: (startDate?: string, endDate?: string) => Promise<void>;
-}
-
-export interface AdminCategoryState {
-  categories: Category[];
-  totalPages: number;
-  loading: boolean;
-
-  fetchCategories: (
-    keyword?: string,
-    status?: string,
-    page?: number,
-    limit?: number,
-  ) => Promise<void>;
-  getCategoryDetail: (categoryId: string) => Promise<Category>;
-  createCategory: (data: { name: string; status?: string }) => Promise<void>;
-  updateCategory: (
-    categoryId: string,
-    data: { name?: string; status?: string },
-  ) => Promise<void>;
-  changeStatus: (
-    categoryId: string,
-    status: "active" | "inactive",
-  ) => Promise<void>;
-  changeMulti: (
-    ids: string[],
-    type: "active" | "inactive" | "delete-all",
-  ) => Promise<void>;
-  deleteItem: (categoryId: string) => Promise<void>;
-}
-
-export interface AdminProductState {
-  products: Product[];
-  totalPages: number;
-  loading: boolean;
-
-  fetchProducts: (
-    keyword?: string,
-    categorySlug?: string,
-    status?: string,
-    page?: number,
-    limit?: number,
-  ) => Promise<void>;
-  getProductDetail: (productId: string) => Promise<Product>;
-  createProduct: (data: {
-    name: string;
-    description: string;
-    ingredients: string;
-    category: string;
-    price: number;
-    images?: string[];
-    stock?: number;
-    status?: string;
-  }) => Promise<void>;
-  updateProduct: (
-    productId: string,
-    data: {
-      name?: string;
-      description?: string;
-      ingredients?: string;
-      category?: string;
-      price?: number;
-      images?: string[];
-      stock?: number;
-      status?: string;
-    },
-  ) => Promise<void>;
-  changeStatus: (
-    productId: string,
-    status: "active" | "inactive",
-  ) => Promise<void>;
-  changeMulti: (
-    ids: string[],
-    type: "active" | "inactive" | "delete-all",
-  ) => Promise<void>;
-  deleteItem: (productId: string) => Promise<void>;
-}
-
 export interface UserState {
   loading: boolean;
 
@@ -275,4 +162,198 @@ export interface ReviewState {
   ) => Promise<void>;
   loadMoreReviews: (productId: string, limit?: number) => Promise<void>;
   resetReviews: () => void;
+}
+
+export interface AdminState {
+  accessToken: string | null;
+  user: User | null;
+  loading: boolean;
+
+  setAccessToken: (accessToken: string) => void;
+  clearState: () => void;
+  login: (phone: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  getDetail: () => Promise<void>;
+  refreshToken: () => Promise<void>;
+}
+
+export interface AdminDashboardState {
+  stats: {
+    overview: {
+      totalUsers: number;
+      totalProducts: number;
+      totalOrders: number;
+      totalCategories: number;
+    };
+    orderStatus: {
+      pending: number;
+      processing: number;
+      shipped: number;
+      delivered: number;
+      cancelled: number;
+    };
+    revenueByDateRange: {
+      totalRevenue: number;
+      totalOrders: number;
+    };
+    monthlyRevenue: Array<{
+      month: string;
+      revenue: number;
+    }>;
+  };
+  loading: boolean;
+
+  fetchStats: (startDate?: string, endDate?: string) => Promise<void>;
+  fetchOrderStatusByMonth: (month?: string) => Promise<void>;
+}
+
+export interface AdminCategoryState {
+  categories: Category[];
+  totalPages: number;
+  loading: boolean;
+
+  fetchCategories: (
+    keyword?: string,
+    status?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  getCategoryDetail: (categoryId: string) => Promise<Category>;
+  createCategory: (data: { name: string; status?: string }) => Promise<void>;
+  updateCategory: (
+    categoryId: string,
+    data: { name?: string; status?: string },
+  ) => Promise<void>;
+  changeStatus: (
+    categoryId: string,
+    status: "active" | "inactive",
+  ) => Promise<void>;
+  changeMulti: (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => Promise<void>;
+  deleteItem: (categoryId: string) => Promise<void>;
+}
+
+export interface AdminProductState {
+  products: Product[];
+  totalPages: number;
+  loading: boolean;
+
+  fetchProducts: (
+    keyword?: string,
+    categorySlug?: string,
+    status?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  getProductDetail: (productId: string) => Promise<Product>;
+  createProduct: (data: {
+    name: string;
+    description: string;
+    ingredients: string;
+    category: string;
+    price: number;
+    images?: string[];
+    stock?: number;
+    status?: string;
+  }) => Promise<void>;
+  updateProduct: (
+    productId: string,
+    data: {
+      name?: string;
+      description?: string;
+      ingredients?: string;
+      category?: string;
+      price?: number;
+      images?: string[];
+      stock?: number;
+      status?: string;
+    },
+  ) => Promise<void>;
+  changeStatus: (
+    productId: string,
+    status: "active" | "inactive",
+  ) => Promise<void>;
+  changeMulti: (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => Promise<void>;
+  deleteItem: (productId: string) => Promise<void>;
+}
+
+export interface AdminBlogCategoryState {
+  blogCategories: BlogCategory[];
+  totalPages: number;
+  loading: boolean;
+
+  fetchBlogCategories: (
+    keyword?: string,
+    status?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  getBlogCategoryDetail: (blogCategoryId: string) => Promise<BlogCategory>;
+  createBlogCategory: (data: {
+    name: string;
+    status?: string;
+  }) => Promise<void>;
+  updateBlogCategory: (
+    blogCategoryId: string,
+    data: { name?: string; status?: string },
+  ) => Promise<void>;
+  changeStatus: (
+    blogCategoryId: string,
+    status: "active" | "inactive",
+  ) => Promise<void>;
+  changeMulti: (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => Promise<void>;
+  deleteItem: (blogCategoryId: string) => Promise<void>;
+}
+
+export interface AdminBlogState {
+  blogs: Blog[];
+  totalPages: number;
+  loading: boolean;
+
+  fetchBlogs: (
+    keyword?: string,
+    blogCategorySlug?: string,
+    status?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  getBlogDetail: (blogId: string) => Promise<Blog>;
+  createBlog: (data: {
+    title: string;
+    content: string;
+    imageUrl: string;
+    blogCategory?: string;
+    featured?: boolean;
+    relatedProducts?: string[];
+    status?: string;
+  }) => Promise<void>;
+  updateBlog: (
+    blogId: string,
+    data: {
+      title?: string;
+      content?: string;
+      imageUrl?: string;
+      blogCategory?: string;
+      featured?: boolean;
+      relatedProducts?: string[];
+      status?: string;
+    },
+  ) => Promise<void>;
+  changeStatus: (
+    blogId: string,
+    status: "active" | "inactive",
+  ) => Promise<void>;
+  changeMulti: (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => Promise<void>;
+  deleteItem: (blogId: string) => Promise<void>;
 }

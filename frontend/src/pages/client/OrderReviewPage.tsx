@@ -107,7 +107,7 @@ const OrderReviewPage = () => {
     validFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        newPreviews.push(reader.result as string);
+        newPreviews.push(reader.result);
         setReviews((prev) => ({
           ...prev,
           [productId]: {

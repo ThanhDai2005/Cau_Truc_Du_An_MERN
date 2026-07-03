@@ -1,18 +1,14 @@
 import express from "express";
 const router = express.Router();
-import * as controller from "../controllers/review.controller.js";
 import multer from "multer";
+import { uploadMulti } from "../middlewares/uploadCloud.middleware.js";
 
-import { requireAuth } from "../middlewares/auth.middleware.js";
-import { uploadReviewImages } from "../middlewares/uploadCloud.middleware.js";
-
-// Configure multer for memory storage with file validation
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB max per file
-  },
 });
+
+import { requireAuth } from "../middlewares/auth.middleware.js";
+import * as controller from "../controllers/review.controller.js";
 
 router.get("/:productId", controller.listByProduct);
 
@@ -20,7 +16,7 @@ router.post(
   "/",
   requireAuth,
   upload.array("images", 5),
-  uploadReviewImages,
+  uploadMulti,
   controller.create,
 );
 

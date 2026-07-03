@@ -9,6 +9,7 @@ import orderRoute from "./order.route.js";
 import roleRoute from "./role.route.js";
 import promotionRoute from "./promotion.route.js";
 import blogRoute from "./blog.route.js";
+import uploadRoute from "./upload.route.js";
 import blogCategoryRoute from "./blogCategory.route.js";
 
 export const adminV1Routes = (app) => {
@@ -33,6 +34,8 @@ export const adminV1Routes = (app) => {
   app.use(version + "/promotion", requireAuth, promotionRoute);
 
   app.use(version + "/blog", requireAuth, blogRoute);
+
+  app.use(version + "/upload", uploadRoute);
 
   app.use(version + "/blog-category", requireAuth, blogCategoryRoute);
 };

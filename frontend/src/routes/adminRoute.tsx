@@ -13,6 +13,8 @@ import BlogCategoryManagement from "@/pages/admin/BlogCategoryManagement";
 import BlogCategoryCreate from "@/pages/admin/BlogCategoryCreate";
 import BlogCategoryEdit from "@/pages/admin/BlogCategoryEdit";
 import BlogManagement from "@/pages/admin/BlogManagement";
+import BlogCreate from "@/pages/admin/BlogCreate";
+import BlogEdit from "@/pages/admin/BlogEdit";
 import PromotionManagement from "@/pages/admin/PromotionManagement";
 import UserManagement from "@/pages/admin/UserManagement";
 import OrderManagement from "@/pages/admin/OrderManagement";
@@ -74,11 +76,19 @@ const adminRoute = {
             },
             {
               path: "blog-category/edit/:blogCategoryId",
-              element: <BlogCategoryCreate />,
+              element: <BlogCategoryEdit />,
             },
             {
               path: "blogs",
               element: <BlogManagement />,
+            },
+            {
+              path: "blog/create",
+              element: <BlogCreate />,
+            },
+            {
+              path: "blog/edit/:blogId",
+              element: <BlogEdit />,
             },
             {
               path: "promotions",

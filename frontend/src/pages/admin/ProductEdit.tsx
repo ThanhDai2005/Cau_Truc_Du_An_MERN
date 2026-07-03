@@ -20,8 +20,7 @@ const ProductEdit = () => {
   const navigate = useNavigate();
   const { productId } = useParams<{ productId: string }>();
   const [fetching, setFetching] = useState(true);
-  const { loading, getProductDetail, updateProduct } =
-    useAdminProductStore();
+  const { loading, getProductDetail, updateProduct } = useAdminProductStore();
   const { categories, fetchCategories } = useAdminCategoryStore();
   const editorRef = useRef<any>(null);
   const [formData, setFormData] = useState({
@@ -145,7 +144,7 @@ const ProductEdit = () => {
   }
 
   return (
-    <div className="bg-[#f7f9fb] min-h-screen pb-12 font-['Inter']">
+    <div className="bg-[#f7f9fb] min-h-screen pb-12">
       {/* HEADER BREADCRUMB */}
       <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10">
         <SidebarTrigger />
