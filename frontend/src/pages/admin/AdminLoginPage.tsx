@@ -1,10 +1,10 @@
 import { LoginForm } from "@/components/auth/login-form";
-import { useAdminStore } from "@/stores/useAdminStore";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 
 const AdminLoginPage = () => {
-  const { user } = useAdminStore();
+  const { user } = useAdminAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {

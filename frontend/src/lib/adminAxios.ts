@@ -1,4 +1,4 @@
-import { useAdminStore } from "../stores/useAdminStore";
+import { useAdminAuthStore } from "../stores/useAdminAuthStore";
 import axios from "axios";
 
 const api = axios.create({
@@ -11,7 +11,7 @@ const api = axios.create({
 
 // Tự động gắn token vào header cho mọi request
 api.interceptors.request.use((config) => {
-  const { accessToken } = useAdminStore.getState();
+  const { accessToken } = useAdminAuthStore.getState();
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -49,13 +49,13 @@ api.interceptors.response.use(
           { withCredentials: true },
         );
         const newAccessToken = res.data.accessToken;
-        useAdminStore.getState().setAccessToken(newAccessToken);
+        useAdminAuthStore.getState().setAccessToken(newAccessToken);
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest); //Request cũ: api.get("/users/me"); Sau khi refresh xong: return api({url: "/users/me", method: "get", headers: { Authorization: "Bearer NEW_TOKEN" }});
       } catch (error) {
         console.log(error);
-        useAdminStore.getState().clearState();
+        useAdminAuthStore.getState().clearState();
         return Promise.reject(error);
       }
     }

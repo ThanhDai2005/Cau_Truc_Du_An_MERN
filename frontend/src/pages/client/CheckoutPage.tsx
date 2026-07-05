@@ -55,10 +55,7 @@ export default function CheckoutPage() {
   const calculateSubtotal = () => {
     if (!cart?.items) return 0;
     return cart.items.reduce((sum, item) => {
-      const product =
-        typeof item.productId === "object" ? item.productId : null;
-      if (!product) return sum;
-      return sum + product.price * item.quantity;
+      return sum + item.productId.price * item.quantity;
     }, 0);
   };
 
@@ -76,23 +73,17 @@ export default function CheckoutPage() {
     try {
       setSubmitting(true);
       const orderData = {
-        items: cart.items.map((item) => {
-          const product =
-            typeof item.productId === "object" ? item.productId : null;
-          return {
-            productId: product?._id || "",
-            quantity: item.quantity,
-          };
-        }),
+        items: cart.items.map((item) => ({
+          productId: item.productId._id,
+          quantity: item.quantity,
+        })),
         shippingAddress: {
           recipient: data.recipient,
           phone: data.phone,
           address: data.address,
         },
         paymentMethod: data.paymentMethod,
-        shippingFee: shippingFee,
         promotionId: appliedPromotion?.promotionId,
-        discountAmount: appliedPromotion?.discountAmount || 0,
       };
 
       const order = await createOrder(orderData);
@@ -283,36 +274,31 @@ export default function CheckoutPage() {
 
               {/* Order Items List */}
               <div className="space-y-4 mb-6 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                {cart.items.map((item) => {
-                  const product =
-                    typeof item.productId === "object" ? item.productId : null;
-                  if (!product) return null;
-                  return (
-                    <div key={product._id} className="flex gap-3">
-                      <img
-                        src={product.images[0] || "/placeholder.png"}
-                        alt={product.name}
-                        className="w-14 h-14 object-cover rounded-md bg-gray-50 border border-gray-100 shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-gray-900 line-clamp-2">
-                          {product.name}
+                {cart.items.map((item) => (
+                  <div key={item.productId._id} className="flex gap-3">
+                    <img
+                      src={item.productId.images[0] || "/placeholder.png"}
+                      alt={item.productId.name}
+                      className="w-14 h-14 object-cover rounded-md bg-gray-50 border border-gray-100 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-gray-900 line-clamp-2">
+                        {item.productId.name}
+                      </p>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="text-xs text-gray-500 font-medium">
+                          SL: x{item.quantity}
                         </p>
-                        <div className="flex justify-between items-center mt-1">
-                          <p className="text-xs text-gray-500 font-medium">
-                            SL: x{item.quantity}
-                          </p>
-                          <p className="text-sm font-bold text-[#b51c00]">
-                            {(product.price * item.quantity).toLocaleString(
-                              "vi-VN",
-                            )}
-                            đ
-                          </p>
-                        </div>
+                        <p className="text-sm font-bold text-[#b51c00]">
+                          {(item.productId.price * item.quantity).toLocaleString(
+                            "vi-VN",
+                          )}
+                          đ
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
 
               {/* Totals */}

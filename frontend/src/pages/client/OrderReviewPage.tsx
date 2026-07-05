@@ -39,16 +39,12 @@ const OrderReviewPage = () => {
         // Initialize review state for each product
         const initialReviews: Record<string, ReviewData> = {};
         foundOrder.items.forEach((item: any) => {
-          const product =
-            typeof item.productId === "object" ? item.productId : null;
-          if (product) {
-            initialReviews[product._id] = {
-              rating: 5,
-              comment: "",
-              images: [],
-              imagePreviews: [],
-            };
-          }
+          initialReviews[item.productId._id] = {
+            rating: 5,
+            comment: "",
+            images: [],
+            imagePreviews: [],
+          };
         });
         setReviews(initialReviews);
       }
@@ -201,140 +197,136 @@ const OrderReviewPage = () => {
       </div>
 
       <div className="space-y-6">
-        {order.items.map((item: any) => {
-          const product =
-            typeof item.productId === "object" ? item.productId : null;
-          if (!product) return null;
-
-          return (
-            <div
-              key={product._id}
-              className="bg-white rounded-2xl border border-gray-100 p-6"
-            >
-              <div className="flex gap-4 mb-6">
-                <img
-                  src={product.images[0] || "/placeholder.png"}
-                  alt={product.name}
-                  className="w-20 h-20 object-cover rounded-xl bg-gray-50"
-                />
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-900 mb-1">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Số lượng: x{item.quantity}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Đánh giá của bạn <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => handleRatingChange(product._id, star)}
-                        className="text-3xl transition hover:scale-110"
-                      >
-                        <span
-                          className={`material-symbols-outlined ${
-                            star <= (reviews[product._id]?.rating || 0)
-                              ? "text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                          style={{ fontVariationSettings: "'FILL' 1" }}
-                        >
-                          star
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nhận xét của bạn{" "}
-                    <span className="text-gray-400 text-xs">
-                      (Không bắt buộc)
-                    </span>
-                  </label>
-                  <textarea
-                    value={reviews[product._id]?.comment || ""}
-                    onChange={(e) =>
-                      handleCommentChange(product._id, e.target.value)
-                    }
-                    rows={4}
-                    placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none resize-none"
-                  />
-                </div>
-
-                {/* Image Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Thêm ảnh (Tối đa 5 ảnh, mỗi ảnh tối đa 5MB)
-                  </label>
-
-                  <input
-                    ref={(el) => (fileInputRefs.current[product._id] = el)}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={(e) => handleImageSelect(product._id, e)}
-                    className="hidden"
-                  />
-
-                  <div className="flex flex-wrap gap-3">
-                    {(reviews[product._id]?.imagePreviews || []).map(
-                      (preview, index) => (
-                        <div
-                          key={index}
-                          className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200 group"
-                        >
-                          <img
-                            src={preview}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(product._id, index)}
-                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                          >
-                            <span className="material-symbols-outlined text-white text-2xl">
-                              close
-                            </span>
-                          </button>
-                        </div>
-                      ),
-                    )}
-
-                    {(reviews[product._id]?.images?.length || 0) < 5 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          fileInputRefs.current[product._id]?.click()
-                        }
-                        className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-red-500 hover:bg-red-50 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-gray-400 text-3xl">
-                          add_photo_alternate
-                        </span>
-                      </button>
-                    )}
-                  </div>
-
-                  <p className="text-xs text-gray-500 mt-2">
-                    JPG, JPEG, PNG, WEBP • Tối đa 5MB/ảnh
-                  </p>
-                </div>
+        {order.items.map((item: any) => (
+          <div
+            key={item.productId._id}
+            className="bg-white rounded-2xl border border-gray-100 p-6"
+          >
+            <div className="flex gap-4 mb-6">
+              <img
+                src={item.productId.images[0] || "/placeholder.png"}
+                alt={item.productId.name}
+                className="w-20 h-20 object-cover rounded-xl bg-gray-50"
+              />
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 mb-1">
+                  {item.productId.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Số lượng: x{item.quantity}
+                </p>
               </div>
             </div>
-          );
-        })}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Đánh giá của bạn <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() =>
+                        handleRatingChange(item.productId._id, star)
+                      }
+                      className="text-3xl transition hover:scale-110"
+                    >
+                      <span
+                        className={`material-symbols-outlined ${
+                          star <= (reviews[item.productId._id]?.rating || 0)
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
+                        star
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nhận xét của bạn{" "}
+                  <span className="text-gray-400 text-xs">
+                    (Không bắt buộc)
+                  </span>
+                </label>
+                <textarea
+                  value={reviews[item.productId._id]?.comment || ""}
+                  onChange={(e) =>
+                    handleCommentChange(item.productId._id, e.target.value)
+                  }
+                  rows={4}
+                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#b51c00] focus:ring-1 focus:ring-[#b51c00] outline-none resize-none"
+                />
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Thêm ảnh (Tối đa 5 ảnh, mỗi ảnh tối đa 5MB)
+                </label>
+
+                <input
+                  ref={(el) => (fileInputRefs.current[item.productId._id] = el)}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => handleImageSelect(item.productId._id, e)}
+                  className="hidden"
+                />
+
+                <div className="flex flex-wrap gap-3">
+                  {(reviews[item.productId._id]?.imagePreviews || []).map(
+                    (preview, index) => (
+                      <div
+                        key={index}
+                        className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200 group"
+                      >
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(item.productId._id, index)}
+                          className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                        >
+                          <span className="material-symbols-outlined text-white text-2xl">
+                            close
+                          </span>
+                        </button>
+                      </div>
+                    ),
+                  )}
+
+                  {(reviews[item.productId._id]?.images?.length || 0) < 5 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        fileInputRefs.current[item.productId._id]?.click()
+                      }
+                      className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-gray-400 text-3xl">
+                        add_photo_alternate
+                      </span>
+                    </button>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-500 mt-2">
+                  JPG, JPEG, PNG, WEBP • Tối đa 5MB/ảnh
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="mt-8 flex gap-4">

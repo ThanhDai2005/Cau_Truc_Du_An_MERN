@@ -16,7 +16,7 @@ import {
   Loader2,
   Pencil,
   RotateCcw,
-  Image as ImageIcon,
+  Image,
 } from "lucide-react";
 import { useAdminBlogStore } from "@/stores/useAdminBlogStore";
 import { useAdminBlogCategoryStore } from "@/stores/useAdminBlogCategoryStore";
@@ -351,7 +351,7 @@ const BlogManagement = () => {
                               />
                             ) : (
                               <div className="w-16 h-12 bg-gray-50 border border-gray-100 border-dashed rounded-md flex items-center justify-center text-gray-300">
-                                <ImageIcon size={20} />
+                                <Image className="size-5" />
                               </div>
                             )}
                           </td>

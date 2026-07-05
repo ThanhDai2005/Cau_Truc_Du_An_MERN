@@ -123,23 +123,18 @@ const OrdersPage = () => {
       const failedItems: string[] = [];
 
       for (const item of order.items) {
-        const product =
-          typeof item.productId === "object" ? item.productId : null;
-
-        if (!product) continue;
-
         try {
-          if (product.stock && product.stock < item.quantity) {
+          if (item.productId.stock && item.productId.stock < item.quantity) {
             failedItems.push(
-              `${product.name} (chỉ còn ${product.stock} sản phẩm)`,
+              `${item.productId.name} (chỉ còn ${item.productId.stock} sản phẩm)`,
             );
             continue;
           }
 
-          await addToCart(product._id, item.quantity);
-          successItems.push(product.name);
+          await addToCart(item.productId._id, item.quantity);
+          successItems.push(item.productId.name);
         } catch (error: any) {
-          failedItems.push(product.name);
+          failedItems.push(item.productId.name);
         }
       }
 
@@ -257,8 +252,7 @@ const OrdersPage = () => {
       ) : (
         <div className="space-y-6">
           {orders.map((order) => {
-            const config =
-              statusConfig[order.orderStatus as keyof typeof statusConfig];
+            const config = statusConfig[order.orderStatus];
             const isDelivered = order.orderStatus === "Delivered";
             const isCancelled = order.orderStatus === "Cancelled";
             const isProcessing = ["Pending", "Processing", "Shipped"].includes(
@@ -266,7 +260,8 @@ const OrdersPage = () => {
             );
             const isPendingPayment =
               order.paymentStatus === "Pending" &&
-              (order.paymentMethod === "MOMO" || order.paymentMethod === "VNPAY") &&
+              (order.paymentMethod === "MOMO" ||
+                order.paymentMethod === "VNPAY") &&
               !isCancelled;
 
             return (
@@ -310,34 +305,27 @@ const OrdersPage = () => {
                 </div>
 
                 <div className="space-y-4 mb-6">
-                  {order.items.slice(0, 2).map((item, idx) => {
-                    const product =
-                      typeof item.productId === "object"
-                        ? item.productId
-                        : null;
-                    if (!product) return null;
-                    return (
-                      <div key={idx} className="flex gap-4">
-                        <img
-                          src={product.images[0] || "/placeholder.png"}
-                          alt={product.name}
-                          className="w-16 h-16 object-cover rounded-xl bg-gray-50 border border-gray-100"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-gray-900 text-sm md:text-base line-clamp-1">
-                            {product.name}
-                          </p>
-                          <p className="text-xs text-gray-500 font-medium mt-1">
-                            Số lượng: x{item.quantity}
-                          </p>
-                        </div>
-                        <p className="font-bold text-gray-900">
-                          {(item.price * item.quantity).toLocaleString("vi-VN")}
-                          đ
+                  {order.items.slice(0, 2).map((item, idx) => (
+                    <div key={idx} className="flex gap-4">
+                      <img
+                        src={item.productId.images[0] || "/placeholder.png"}
+                        alt={item.productId.name}
+                        className="w-16 h-16 object-cover rounded-xl bg-gray-50 border border-gray-100"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm md:text-base line-clamp-1">
+                          {item.productId.name}
+                        </p>
+                        <p className="text-xs text-gray-500 font-medium mt-1">
+                          Số lượng: x{item.quantity}
                         </p>
                       </div>
-                    );
-                  })}
+                      <p className="font-bold text-gray-900">
+                        {(item.price * item.quantity).toLocaleString("vi-VN")}
+                        đ
+                      </p>
+                    </div>
+                  ))}
                   {order.items.length > 2 && (
                     <p className="text-xs text-gray-400 font-bold bg-gray-50 inline-block px-3 py-1 rounded-full">
                       + {order.items.length - 2} sản phẩm khác

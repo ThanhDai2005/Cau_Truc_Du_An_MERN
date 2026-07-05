@@ -1,11 +1,11 @@
-import { useAdminStore } from "@/stores/useAdminStore";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router";
 
 const AdminRouter = () => {
   const { accessToken, user, loading, getDetail, refreshToken } =
-    useAdminStore();
+    useAdminAuthStore();
   const [starting, setStarting] = useState(true);
 
   const init = async () => {

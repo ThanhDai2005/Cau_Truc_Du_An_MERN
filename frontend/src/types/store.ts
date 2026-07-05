@@ -3,7 +3,7 @@ import type { Category } from "./category";
 import type { Product } from "./product";
 import type { Cart } from "./cart";
 import type { CreateOrderData, Order } from "./order";
-import type { ApplyPromotionResponse } from "./promotion";
+import type { ApplyPromotionResponse, Promotion } from "./promotion";
 import type { Review } from "./review";
 import type { BlogCategory } from "./blogCategory";
 import type { Blog } from "./blog";
@@ -164,7 +164,7 @@ export interface ReviewState {
   resetReviews: () => void;
 }
 
-export interface AdminState {
+export interface AdminAuthState {
   accessToken: string | null;
   user: User | null;
   loading: boolean;
@@ -356,4 +356,30 @@ export interface AdminBlogState {
     type: "active" | "inactive" | "delete-all",
   ) => Promise<void>;
   deleteItem: (blogId: string) => Promise<void>;
+}
+
+export interface AdminPromotionStore {
+  promotions: Promotion[];
+  currentPromotion: Promotion | null;
+  loading: boolean;
+  totalPages: number;
+
+  fetchPromotions: (
+    keyword: string,
+    status: string,
+    page: number,
+    limit: number,
+  ) => Promise<void>;
+  getDetail: (promotionId: string) => Promise<void>;
+  createPromotion: (data: any) => Promise<void>;
+  updatePromotion: (promotionId: string, data: any) => Promise<void>;
+  changeStatus: (
+    promotionId: string,
+    status: "active" | "inactive",
+  ) => Promise<void>;
+  changeMulti: (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => Promise<void>;
+  deleteItem: (promotionId: string) => Promise<void>;
 }

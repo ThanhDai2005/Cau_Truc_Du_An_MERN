@@ -88,7 +88,7 @@ const OrderDetailPage = () => {
   }
 
   const order = currentOrder;
-  const config = statusConfig[order.orderStatus as keyof typeof statusConfig];
+  const config = statusConfig[order.orderStatus];
   const currentStep = config.step;
   const subtotal = order.totalAmount - order.shippingFee;
   const orderCode = order._id.toUpperCase();
@@ -237,28 +237,23 @@ const OrderDetailPage = () => {
               </tr>
             </thead>
             <tbody>
-              {order.items.map((item, idx) => {
-                const product =
-                  typeof item.productId === "object" ? item.productId : null;
-                if (!product) return null;
-                return (
-                  <tr key={idx} className="border-b border-gray-200">
-                    <td className="py-3 pr-2 text-gray-600">{idx + 1}</td>
-                    <td className="py-3 pr-2 font-semibold text-gray-900">
-                      {product.name}
-                    </td>
-                    <td className="py-3 px-2 text-center text-gray-800">
-                      {item.quantity}
-                    </td>
-                    <td className="py-3 px-2 text-right text-gray-800">
-                      {item.price.toLocaleString("vi-VN")}đ
-                    </td>
-                    <td className="py-3 pl-2 text-right font-bold text-gray-900">
-                      {(item.price * item.quantity).toLocaleString("vi-VN")}đ
-                    </td>
-                  </tr>
-                );
-              })}
+              {order.items.map((item, idx) => (
+                <tr key={idx} className="border-b border-gray-200">
+                  <td className="py-3 pr-2 text-gray-600">{idx + 1}</td>
+                  <td className="py-3 pr-2 font-semibold text-gray-900">
+                    {item.productId.name}
+                  </td>
+                  <td className="py-3 px-2 text-center text-gray-800">
+                    {item.quantity}
+                  </td>
+                  <td className="py-3 px-2 text-right text-gray-800">
+                    {item.price.toLocaleString("vi-VN")}đ
+                  </td>
+                  <td className="py-3 pl-2 text-right font-bold text-gray-900">
+                    {(item.price * item.quantity).toLocaleString("vi-VN")}đ
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -273,21 +268,13 @@ const OrderDetailPage = () => {
               <div className="flex justify-between">
                 <span className="text-gray-600">Phương thức</span>
                 <span className="font-semibold text-gray-900 text-right">
-                  {
-                    paymentLabels[
-                      order.paymentMethod as keyof typeof paymentLabels
-                    ]
-                  }
+                  {paymentLabels[order.paymentMethod]}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Thanh toán</span>
                 <span className="font-semibold text-gray-900">
-                  {
-                    paymentStatusLabels[
-                      order.paymentStatus as keyof typeof paymentStatusLabels
-                    ].label
-                  }
+                  {paymentStatusLabels[order.paymentStatus].label}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -456,44 +443,39 @@ const OrderDetailPage = () => {
                 Món ăn đã đặt
               </h2>
               <div className="space-y-4">
-                {order.items.map((item, idx) => {
-                  const product =
-                    typeof item.productId === "object" ? item.productId : null;
-                  if (!product) return null;
-                  return (
-                    <div
-                      key={idx}
-                      className="flex gap-4 pb-4 border-b border-gray-50 last:border-b-0 last:pb-0"
-                    >
-                      <img
-                        src={product.images[0] || "/placeholder.png"}
-                        alt={product.name}
-                        className="w-20 h-20 object-cover rounded-xl bg-gray-50 border border-gray-100 shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 line-clamp-2 leading-tight">
-                          {product.name}
-                        </h3>
-                        <div className="flex justify-between items-center mt-2">
-                          <div className="flex flex-col">
-                            <p className="text-xs text-gray-500 font-medium">
-                              Đơn giá: {item.price.toLocaleString("vi-VN")}đ
-                            </p>
-                            <p className="text-xs font-bold text-[#b51c00] mt-1 bg-red-50 px-2 py-0.5 rounded inline-block w-max">
-                              SL: x{item.quantity}
-                            </p>
-                          </div>
-                          <p className="font-black text-gray-900 text-lg">
-                            {(item.price * item.quantity).toLocaleString(
-                              "vi-VN",
-                            )}
-                            đ
+                {order.items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex gap-4 pb-4 border-b border-gray-50 last:border-b-0 last:pb-0"
+                  >
+                    <img
+                      src={item.productId.images[0] || "/placeholder.png"}
+                      alt={item.productId.name}
+                      className="w-20 h-20 object-cover rounded-xl bg-gray-50 border border-gray-100 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 line-clamp-2 leading-tight">
+                        {item.productId.name}
+                      </h3>
+                      <div className="flex justify-between items-center mt-2">
+                        <div className="flex flex-col">
+                          <p className="text-xs text-gray-500 font-medium">
+                            Đơn giá: {item.price.toLocaleString("vi-VN")}đ
+                          </p>
+                          <p className="text-xs font-bold text-[#b51c00] mt-1 bg-red-50 px-2 py-0.5 rounded inline-block w-max">
+                            SL: x{item.quantity}
                           </p>
                         </div>
+                        <p className="font-black text-gray-900 text-lg">
+                          {(item.price * item.quantity).toLocaleString(
+                            "vi-VN",
+                          )}
+                          đ
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           </div>

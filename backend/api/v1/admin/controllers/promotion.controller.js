@@ -4,6 +4,7 @@ import Promotion from "../../../../models/promotion.model.js";
 export const list = async (req, res) => {
   try {
     const keyword = req.query.keyword;
+    const status = req.query.status;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -17,6 +18,10 @@ export const list = async (req, res) => {
         { title: { $regex: keyword, $options: "i" } },
         { code: { $regex: keyword, $options: "i" } },
       ];
+    }
+
+    if (status && ["active", "inactive"].includes(status)) {
+      filter.status = status;
     }
 
     const [data, totalItems] = await Promise.all([
@@ -229,8 +234,130 @@ export const update = async (req, res) => {
   }
 };
 
+// [GET] /api/v1/admin/promotion/:promotionId
+export const getDetail = async (req, res) => {
+  try {
+    const promotionId = req.params.promotionId;
+
+    const promotion = await Promotion.findOne({
+      _id: promotionId,
+      deleted: false,
+    });
+
+    if (!promotion) {
+      return res.status(404).json({
+        message: "Khuyến mãi không tồn tại",
+      });
+    }
+
+    res.status(200).json({
+      message: "Lấy chi tiết khuyến mãi thành công",
+      data: promotion,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi getDetail promotion", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/promotion/change-status/:promotionId
+export const changeStatus = async (req, res) => {
+  try {
+    const promotionId = req.params.promotionId;
+    const { status } = req.body;
+
+    if (!status || !["active", "inactive"].includes(status)) {
+      return res.status(400).json({
+        message: "Trạng thái không hợp lệ",
+      });
+    }
+
+    const existedPromotion = await Promotion.findOne({
+      _id: promotionId,
+      deleted: false,
+    });
+
+    if (!existedPromotion) {
+      return res.status(404).json({
+        message: "Khuyến mãi không tồn tại",
+      });
+    }
+
+    await Promotion.updateOne({ _id: promotionId }, { status: status });
+
+    res.status(200).json({
+      message: "Thay đổi trạng thái khuyến mãi thành công",
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi changeStatus promotion", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/promotion/change-multi
+export const changeMulti = async (req, res) => {
+  try {
+    const { ids, type } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        message: "Thiếu danh sách ids hoặc danh sách rỗng",
+      });
+    }
+
+    switch (type) {
+      case "active":
+        await Promotion.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          { status: "active" },
+        );
+
+        res.status(200).json({
+          message: `Cập nhật trạng thái thành công ${ids.length} mã giảm giá`,
+        });
+        break;
+
+      case "inactive":
+        await Promotion.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          { status: "inactive" },
+        );
+
+        res.status(200).json({
+          message: `Cập nhật trạng thái thành công ${ids.length} mã giảm giá`,
+        });
+        break;
+
+      case "delete-all":
+        await Promotion.deleteMany({
+          _id: { $in: ids },
+          deleted: true,
+        });
+        res.status(200).json({
+          message: `Đã xóa thành công ${ids.length} sản phẩm`,
+        });
+        break;
+
+      default:
+        res.status(400).json({
+          message: "Type không hợp lệ",
+        });
+        break;
+    }
+  } catch (error) {
+    console.log("Lỗi khi gọi changeMulti promotion", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
 // [PATCH] /api/v1/admin/promotion/delete/:promotionId
-export const softDelete = async (req, res) => {
+export const deleteItem = async (req, res) => {
   try {
     const promotionId = req.params.promotionId;
 

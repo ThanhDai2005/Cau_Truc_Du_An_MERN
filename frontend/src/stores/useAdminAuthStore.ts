@@ -1,10 +1,10 @@
-import { adminService } from "@/services/adminService";
-import type { AdminState } from "@/types/store";
+import { adminAuthService } from "@/services/adminAuthService";
+import type { AdminAuthState } from "@/types/store";
 import { toast } from "sonner";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export const useAdminStore = create<AdminState>()(
+export const useAdminAuthStore = create<AdminAuthState>()(
   persist(
     (set, get) => ({
       accessToken: null,
@@ -25,7 +25,7 @@ export const useAdminStore = create<AdminState>()(
         try {
           set({ loading: true });
 
-          const res = await adminService.login(phone, password);
+          const res = await adminAuthService.login(phone, password);
           get().setAccessToken(res.accessToken);
           await get().getDetail();
           toast.success("Đăng nhập thành công");
@@ -41,7 +41,7 @@ export const useAdminStore = create<AdminState>()(
       logout: async () => {
         try {
           get().clearState();
-          await adminService.logout();
+          await adminAuthService.logout();
           toast.success("Logout thành công!");
         } catch (error) {
           console.log(error);
@@ -51,7 +51,7 @@ export const useAdminStore = create<AdminState>()(
       getDetail: async () => {
         try {
           set({ loading: true });
-          const res = await adminService.getDetail();
+          const res = await adminAuthService.getDetail();
           set({ user: res.user });
         } catch (error) {
           console.log(error);
@@ -64,7 +64,7 @@ export const useAdminStore = create<AdminState>()(
         try {
           set({ loading: true });
 
-          const res = await adminService.refreshToken();
+          const res = await adminAuthService.refreshToken();
 
           get().setAccessToken(res.accessToken);
         } catch (error) {

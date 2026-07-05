@@ -1,13 +1,11 @@
 export interface OrderItem {
-  productId:
-    | {
-        _id: string;
-        name: string;
-        slug: string;
-        images: string[];
-        price: number;
-      }
-    | string;
+  productId: {
+    _id: string;
+    name: string;
+    slug: string;
+    images: string[];
+    price: number;
+  };
   quantity: number;
   price: number;
 }
@@ -43,7 +41,5 @@ export interface CreateOrderData {
     address: string;
   };
   paymentMethod: "COD" | "VNPAY" | "MOMO" | "STRIPE";
-  shippingFee: number;
   promotionId?: string;
-  discountAmount?: number;
 }

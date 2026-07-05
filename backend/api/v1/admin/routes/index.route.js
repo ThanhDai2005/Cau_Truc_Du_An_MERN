@@ -35,7 +35,7 @@ export const adminV1Routes = (app) => {
 
   app.use(version + "/blog", requireAuth, blogRoute);
 
-  app.use(version + "/upload", uploadRoute);
+  app.use(version + "/upload", requireAuth, uploadRoute);
 
   app.use(version + "/blog-category", requireAuth, blogCategoryRoute);
 };

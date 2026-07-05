@@ -13,14 +13,7 @@ import {
 // [POST] /api/v1/order
 export const create = async (req, res) => {
   try {
-    const {
-      items,
-      shippingAddress,
-      paymentMethod,
-      shippingFee,
-      promotionId,
-      discountAmount,
-    } = req.body;
+    const { items, shippingAddress, paymentMethod, promotionId } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
@@ -77,8 +70,74 @@ export const create = async (req, res) => {
       });
     }
 
-    const shippingFeeValue = Number(shippingFee || 0);
-    const discountAmountValue = Number(discountAmount || 0);
+    const shippingFeeValue = 30000;
+
+    let discountAmountValue = 0;
+    let validatedPromotion = null;
+
+    // Re-validate and update promotion if applied
+    if (promotionId) {
+      const now = new Date();
+      const promotion = await Promotion.findOne({
+        _id: promotionId,
+        deleted: false,
+        status: "active",
+        startDate: { $lte: now },
+        endDate: { $gte: now },
+      });
+
+      if (!promotion) {
+        return res.status(400).json({
+          message: "Mã khuyến mãi không còn hợp lệ",
+        });
+      }
+
+      // Check if user already used this promotion
+      if (
+        promotion.usersUsed.some(
+          (uid) => uid.toString() === req.user._id.toString(),
+        )
+      ) {
+        return res.status(400).json({
+          message: "Bạn đã sử dụng mã khuyến mãi này rồi",
+        });
+      }
+
+      // Check usage limit
+      if (
+        promotion.usageLimit != null &&
+        promotion.usedCount >= promotion.usageLimit
+      ) {
+        return res.status(400).json({
+          message: "Mã khuyến mãi đã hết lượt sử dụng",
+        });
+      }
+
+      // Check minimum order value
+      if (subtotal < promotion.minOrderValue) {
+        return res.status(400).json({
+          message: `Đơn hàng tối thiểu ${promotion.minOrderValue.toLocaleString()} VND để áp dụng mã này`,
+        });
+      }
+
+      // Calculate discount server-side based on promotion type
+      if (promotion.discountType === "percentage") {
+        discountAmountValue = (subtotal * promotion.discountValue) / 100;
+        if (
+          promotion.maxDiscountAmount &&
+          discountAmountValue > promotion.maxDiscountAmount
+        ) {
+          discountAmountValue = promotion.maxDiscountAmount;
+        }
+      } else if (promotion.discountType === "fixed") {
+        discountAmountValue = promotion.discountValue;
+      }
+
+      discountAmountValue = Math.round(discountAmountValue);
+
+      validatedPromotion = promotion;
+    }
+
     const totalAmount = subtotal + shippingFeeValue - discountAmountValue;
 
     // Atomic stock deduction - prevent race condition
@@ -129,66 +188,7 @@ export const create = async (req, res) => {
       totalAmount: totalAmount,
     });
 
-    // Re-validate and update promotion if applied
-    if (promotionId) {
-      const now = new Date();
-      const promotion = await Promotion.findOne({
-        _id: promotionId,
-        deleted: false,
-        status: "active",
-        startDate: { $lte: now },
-        endDate: { $gte: now },
-      });
-
-      if (!promotion) {
-        // Rollback stock changes
-        for (const item of stockUpdates) {
-          await Product.updateOne(
-            { _id: item.productId },
-            { $inc: { stock: item.quantity } },
-          );
-        }
-        return res.status(400).json({
-          message: "Mã khuyến mãi không còn hợp lệ",
-        });
-      }
-
-      // Check if user already used this promotion
-      if (
-        promotion.usersUsed.some(
-          (uid) => uid.toString() === req.user._id.toString(),
-        )
-      ) {
-        // Rollback stock changes
-        for (const item of stockUpdates) {
-          await Product.updateOne(
-            { _id: item.productId },
-            { $inc: { stock: item.quantity } },
-          );
-        }
-        return res.status(400).json({
-          message: "Bạn đã sử dụng mã khuyến mãi này rồi",
-        });
-      }
-
-      // Check usage limit
-      if (
-        promotion.usageLimit != null &&
-        promotion.usedCount >= promotion.usageLimit
-      ) {
-        // Rollback stock changes
-        for (const item of stockUpdates) {
-          await Product.updateOne(
-            { _id: item.productId },
-            { $inc: { stock: item.quantity } },
-          );
-        }
-        return res.status(400).json({
-          message: "Mã khuyến mãi đã hết lượt sử dụng",
-        });
-      }
-
-      // Atomic promotion update
+    if (validatedPromotion) {
       await Promotion.updateOne(
         { _id: promotionId },
         {

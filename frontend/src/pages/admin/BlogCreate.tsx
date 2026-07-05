@@ -16,11 +16,13 @@ import { useAdminBlogCategoryStore } from "@/stores/useAdminBlogCategoryStore";
 import { toast } from "sonner";
 import { Editor } from "@tinymce/tinymce-react";
 import axios from "axios";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 
 const BlogCreate = () => {
   const navigate = useNavigate();
   const { loading, createBlog } = useAdminBlogStore();
   const { blogCategories, fetchBlogCategories } = useAdminBlogCategoryStore();
+  const { accessToken } = useAdminAuthStore();
   const editorRef = useRef<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -286,6 +288,7 @@ const BlogCreate = () => {
                             {
                               headers: {
                                 "Content-Type": "multipart/form-data",
+                                Authorization: `Bearer ${accessToken}`,
                               },
                             },
                           );

@@ -432,6 +432,11 @@
   .blog-excerpt div {
     margin-bottom: 0.6em;
   }
+
+  .bg-not-found {
+    background-image: url("/NotFound.gif");
+    @apply h-[400px] bg-center;
+  }
 }
 
 /* Collapsible menu animations */

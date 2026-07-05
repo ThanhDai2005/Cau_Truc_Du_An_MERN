@@ -1,6 +1,6 @@
 import { Bell, ChevronsUpDown, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAdminStore } from "@/stores/useAdminStore";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -22,7 +22,7 @@ import {
 export const NavUser = () => {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
-  const { logout, user } = useAdminStore();
+  const { logout, user } = useAdminAuthStore();
 
   const handleLogout = async () => {
     await logout();

@@ -28,10 +28,7 @@ const CartPage = () => {
   const calculateSubtotal = () => {
     if (!cart?.items) return 0;
     return cart.items.reduce((sum, item) => {
-      const product =
-        typeof item.productId === "object" ? item.productId : null;
-      if (!product) return sum;
-      return sum + product.price * item.quantity;
+      return sum + item.productId.price * item.quantity;
     }, 0);
   };
 
@@ -150,76 +147,70 @@ const CartPage = () => {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Danh sách sản phẩm */}
         <div className="lg:col-span-2 space-y-4">
-          {cart.items.map((item) => {
-            const product =
-              typeof item.productId === "object" ? item.productId : null;
-            if (!product) return null;
+          {cart.items.map((item) => (
+            <div
+              key={item.productId._id}
+              className="bg-white border border-gray-100 rounded-xl p-4 flex gap-4 shadow-sm"
+            >
+              <img
+                src={item.productId.images[0] || "/placeholder.png"}
+                alt={item.productId.name}
+                className="w-24 h-24 object-cover rounded-lg bg-gray-50 shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start gap-2">
+                  <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-2">
+                    {item.productId.name}
+                  </h3>
+                  <button
+                    onClick={() => handleRemove(item.productId._id)}
+                    className="text-gray-400 hover:text-red-600 transition"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      delete
+                    </span>
+                  </button>
+                </div>
 
-            return (
-              <div
-                key={product._id}
-                className="bg-white border border-gray-100 rounded-xl p-4 flex gap-4 shadow-sm"
-              >
-                <img
-                  src={product.images[0] || "/placeholder.png"}
-                  alt={product.name}
-                  className="w-24 h-24 object-cover rounded-lg bg-gray-50 shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-bold text-gray-900 text-sm md:text-base line-clamp-2">
-                      {product.name}
-                    </h3>
+                <p className="text-[#b51c00] font-bold mt-1">
+                  {item.productId.price.toLocaleString("vi-VN")}đ
+                </p>
+
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
                     <button
-                      onClick={() => handleRemove(product._id)}
-                      className="text-gray-400 hover:text-red-600 transition"
+                      onClick={() =>
+                        handleUpdateQuantity(item.productId._id, item.quantity - 1)
+                      }
+                      disabled={item.quantity <= 1}
+                      className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
                     >
-                      <span className="material-symbols-outlined text-[20px]">
-                        delete
+                      <span className="material-symbols-outlined text-[18px]">
+                        remove
+                      </span>
+                    </button>
+                    <span className="w-10 text-center font-bold text-sm">
+                      {item.quantity}
+                    </span>
+                    <button
+                      onClick={() =>
+                        handleUpdateQuantity(item.productId._id, item.quantity + 1)
+                      }
+                      disabled={item.quantity >= item.productId.stock}
+                      className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        add
                       </span>
                     </button>
                   </div>
-
-                  <p className="text-[#b51c00] font-bold mt-1">
-                    {product.price.toLocaleString("vi-VN")}đ
-                  </p>
-
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200">
-                      <button
-                        onClick={() =>
-                          handleUpdateQuantity(product._id, item.quantity - 1)
-                        }
-                        disabled={item.quantity <= 1}
-                        className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">
-                          remove
-                        </span>
-                      </button>
-                      <span className="w-10 text-center font-bold text-sm">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          handleUpdateQuantity(product._id, item.quantity + 1)
-                        }
-                        disabled={item.quantity >= product.stock}
-                        className="p-1.5 hover:text-[#b51c00] disabled:opacity-30"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">
-                          add
-                        </span>
-                      </button>
-                    </div>
-                    <span className="font-bold text-gray-900">
-                      {(product.price * item.quantity).toLocaleString("vi-VN")}đ
-                    </span>
-                  </div>
+                  <span className="font-bold text-gray-900">
+                    {(item.productId.price * item.quantity).toLocaleString("vi-VN")}đ
+                  </span>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
 
           <Link
             to="/products"

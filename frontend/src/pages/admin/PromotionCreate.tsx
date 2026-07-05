@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,15 +10,13 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Save, ArrowLeft, Loader2 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAdminPromotionStore } from "@/stores/useAdminPromotionStore";
 import { toast } from "sonner";
 
-const PromotionEdit = () => {
+const PromotionCreate = () => {
   const navigate = useNavigate();
-  const { promotionId } = useParams<{ promotionId: string }>();
-  const { currentPromotion, getDetail, updatePromotion, loading } =
-    useAdminPromotionStore();
+  const { createPromotion, loading } = useAdminPromotionStore();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -33,38 +31,6 @@ const PromotionEdit = () => {
     endDate: "",
     status: "active",
   });
-
-  useEffect(() => {
-    if (promotionId) {
-      getDetail(promotionId);
-    }
-  }, [promotionId, getDetail]);
-
-  useEffect(() => {
-    if (currentPromotion) {
-      setFormData({
-        title: currentPromotion.title,
-        code: currentPromotion.code,
-        description: currentPromotion.description,
-        discountType: currentPromotion.discountType,
-        discountValue: currentPromotion.discountValue.toString(),
-        minOrderValue: currentPromotion.minOrderValue.toString(),
-        maxDiscountAmount: currentPromotion.maxDiscountAmount
-          ? currentPromotion.maxDiscountAmount.toString()
-          : "",
-        usageLimit: currentPromotion.usageLimit
-          ? currentPromotion.usageLimit.toString()
-          : "",
-        startDate: currentPromotion.startDate
-          ? new Date(currentPromotion.startDate).toISOString().slice(0, 16)
-          : "",
-        endDate: currentPromotion.endDate
-          ? new Date(currentPromotion.endDate).toISOString().slice(0, 16)
-          : "",
-        status: currentPromotion.status,
-      });
-    }
-  }, [currentPromotion]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -127,20 +93,12 @@ const PromotionEdit = () => {
         status: formData.status,
       };
 
-      await updatePromotion(promotionId!, payload);
+      await createPromotion(payload);
       navigate("/admin/promotions");
     } catch (error) {
       // Error handled in store
     }
   };
-
-  if (loading && !currentPromotion) {
-    return (
-      <div className="bg-[#f7f9fb] min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#b51c00]" />
-      </div>
-    );
-  }
 
   return (
     <div className="bg-[#f7f9fb] min-h-screen pb-12">
@@ -161,7 +119,7 @@ const PromotionEdit = () => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink
-                href="/admin/promotion"
+                href="/admin/promotions"
                 className="font-medium text-gray-500"
               >
                 Quản lý khuyến mãi
@@ -170,7 +128,7 @@ const PromotionEdit = () => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage className="font-bold text-[#b51c00]">
-                Chỉnh sửa khuyến mãi
+                Thêm khuyến mãi
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -181,10 +139,10 @@ const PromotionEdit = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-[24px] font-bold text-gray-900 tracking-tight">
-              Chỉnh sửa khuyến mãi
+              Thêm khuyến mãi mới
             </h1>
             <p className="text-sm font-medium text-gray-500 mt-1">
-              Cập nhật thông tin mã giảm giá
+              Tạo mã giảm giá cho khách hàng
             </p>
           </div>
 
@@ -414,39 +372,6 @@ const PromotionEdit = () => {
                 />
               </div>
             </div>
-
-            {/* Usage Stats */}
-            {currentPromotion && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-bold text-blue-900 mb-2">
-                  Thống kê sử dụng
-                </h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-blue-700 font-medium">
-                      Đã sử dụng:
-                    </span>{" "}
-                    <span className="font-bold text-blue-900">
-                      {currentPromotion.usedCount}
-                    </span>
-                    {currentPromotion.usageLimit && (
-                      <span className="text-blue-600">
-                        {" "}
-                        / {currentPromotion.usageLimit}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="text-blue-700 font-medium">
-                      Người dùng đã dùng:
-                    </span>{" "}
-                    <span className="font-bold text-blue-900">
-                      {currentPromotion.usersUsed?.length || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Footer Actions */}
@@ -467,12 +392,12 @@ const PromotionEdit = () => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Đang cập nhật...
+                  Đang lưu...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Cập nhật khuyến mãi
+                  Lưu khuyến mãi
                 </>
               )}
             </button>
@@ -483,4 +408,4 @@ const PromotionEdit = () => {
   );
 };
 
-export default PromotionEdit;
+export default PromotionCreate;

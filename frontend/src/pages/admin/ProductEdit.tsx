@@ -77,7 +77,7 @@ const ProductEdit = () => {
     newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setNewImagePreviews((prev) => [...prev, reader.result as string]);
+        setNewImagePreviews((prev) => [...prev, reader.result]);
       };
       reader.readAsDataURL(file);
     });

@@ -16,6 +16,8 @@ import BlogManagement from "@/pages/admin/BlogManagement";
 import BlogCreate from "@/pages/admin/BlogCreate";
 import BlogEdit from "@/pages/admin/BlogEdit";
 import PromotionManagement from "@/pages/admin/PromotionManagement";
+import PromotionCreate from "@/pages/admin/PromotionCreate";
+import PromotionEdit from "@/pages/admin/PromotionEdit";
 import UserManagement from "@/pages/admin/UserManagement";
 import OrderManagement from "@/pages/admin/OrderManagement";
 import PermissionManagement from "@/pages/admin/PermissionManagement";
@@ -93,6 +95,14 @@ const adminRoute = {
             {
               path: "promotions",
               element: <PromotionManagement />,
+            },
+            {
+              path: "promotion/create",
+              element: <PromotionCreate />,
+            },
+            {
+              path: "promotion/edit/:promotionId",
+              element: <PromotionEdit />,
             },
             {
               path: "users",

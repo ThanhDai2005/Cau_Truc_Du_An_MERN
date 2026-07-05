@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAdminStore } from "@/stores/useAdminStore";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 import { useNavigate } from "react-router";
 
 const loginSchema = z.object({
@@ -28,7 +28,7 @@ export function LoginForm({
     resolver: zodResolver(loginSchema),
   });
 
-  const { login } = useAdminStore();
+  const { login } = useAdminAuthStore();
   const navigate = useNavigate();
 
   const onSubmit = async (data: loginForm) => {
