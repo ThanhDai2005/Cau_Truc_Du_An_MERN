@@ -10,7 +10,6 @@ router.post("/:orderId/retry-payment", controller.retryPayment);
 
 router.get("/my", controller.myOrders);
 router.get("/detail/:orderId", controller.detail);
-router.get("/:orderId/review-status", controller.getReviewStatus);
 router.get("/:orderId/reviews", controller.getOrderReviews);
 
 export default router;

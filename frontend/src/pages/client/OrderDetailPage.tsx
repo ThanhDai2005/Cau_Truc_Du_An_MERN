@@ -467,9 +467,7 @@ const OrderDetailPage = () => {
                           </p>
                         </div>
                         <p className="font-black text-gray-900 text-lg">
-                          {(item.price * item.quantity).toLocaleString(
-                            "vi-VN",
-                          )}
+                          {(item.price * item.quantity).toLocaleString("vi-VN")}
                           đ
                         </p>
                       </div>
@@ -559,11 +557,7 @@ const OrderDetailPage = () => {
                     <span className="material-symbols-outlined text-[16px] text-gray-400">
                       payments
                     </span>
-                    {
-                      paymentLabels[
-                        order.paymentMethod as keyof typeof paymentLabels
-                      ]
-                    }
+                    {paymentLabels[order.paymentMethod]}
                   </p>
                 </div>
                 <div className="flex flex-col gap-1 mt-3">
@@ -573,16 +567,10 @@ const OrderDetailPage = () => {
                   <div className="flex items-center">
                     <span
                       className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
-                        paymentStatusLabels[
-                          order.paymentStatus as keyof typeof paymentStatusLabels
-                        ].color
+                        paymentStatusLabels[order.paymentStatus]?.color
                       }`}
                     >
-                      {
-                        paymentStatusLabels[
-                          order.paymentStatus as keyof typeof paymentStatusLabels
-                        ].label
-                      }
+                      {paymentStatusLabels[order.paymentStatus]?.label}
                     </span>
                   </div>
                 </div>

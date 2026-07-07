@@ -212,7 +212,7 @@ const OrderReviewsViewPage = () => {
       {/* Back Button */}
       <div className="mt-8">
         <button
-          onClick={() => navigate("/orders")}
+          onClick={() => navigate(-1)}
           className="w-full h-12 border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition"
         >
           Quay lại danh sách đơn hàng

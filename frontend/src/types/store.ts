@@ -1,4 +1,4 @@
-import type { User } from "./user";
+import type { Role, User } from "./user";
 import type { Category } from "./category";
 import type { Product } from "./product";
 import type { Cart } from "./cart";
@@ -151,6 +151,7 @@ export interface ReviewState {
   currentPage: number;
   createReview: (
     productId: string,
+    orderId: string,
     rating: number,
     comment: string,
     images?: File[],
@@ -382,4 +383,57 @@ export interface AdminPromotionStore {
     type: "active" | "inactive" | "delete-all",
   ) => Promise<void>;
   deleteItem: (promotionId: string) => Promise<void>;
+}
+
+export interface AdminUserStore {
+  users: User[];
+  currentUser: User | null;
+  loading: boolean;
+  totalPages: number;
+
+  fetchUsers: (
+    keyword?: string,
+    roleId?: string,
+    status?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  getUserDetail: (userId: string) => Promise<User>;
+  createUser: (data: {
+    displayName: string;
+    email: string;
+    phone: string;
+    password: string;
+    roleId?: string | null;
+    status?: "active" | "inactive";
+    address?: string;
+  }) => Promise<void>;
+  updateUser: (
+    userId: string,
+    data: {
+      displayName?: string;
+      email?: string;
+      phone?: string;
+      password?: string;
+      roleId?: string | null;
+      status?: "active" | "inactive";
+      address?: string;
+    },
+  ) => Promise<void>;
+  changeStatus: (
+    userId: string,
+    status: "active" | "inactive",
+  ) => Promise<void>;
+  changeMulti: (
+    ids: string[],
+    type: "active" | "inactive" | "delete-all",
+  ) => Promise<void>;
+  deleteItem: (userId: string) => Promise<void>;
+}
+
+export interface RoleStore {
+  roles: Role[];
+  loading: boolean;
+
+  fetchRoles: () => Promise<void>;
 }

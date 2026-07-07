@@ -148,6 +148,7 @@ const OrderReviewPage = () => {
       const promises = Object.entries(reviews).map(([productId, review]) =>
         createReview(
           productId,
+          orderId!,
           review.rating,
           review.comment || "",
           review.images,
@@ -179,7 +180,7 @@ const OrderReviewPage = () => {
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-8">
       <div className="flex items-center gap-3 mb-8">
         <button
-          onClick={() => navigate("/orders")}
+          onClick={() => navigate(-1)}
           className="text-gray-600 hover:text-gray-900"
         >
           <span className="material-symbols-outlined">arrow_back</span>
@@ -331,7 +332,7 @@ const OrderReviewPage = () => {
 
       <div className="mt-8 flex gap-4">
         <button
-          onClick={() => navigate("/orders")}
+          onClick={() => navigate(-1)}
           className="flex-1 h-12 border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition"
         >
           Hủy

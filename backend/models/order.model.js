@@ -32,7 +32,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["COD", "VNPAY", "MOMO", "STRIPE"],
+      enum: ["COD", "VNPAY", "MOMO"],
       default: "COD",
     },
     paymentStatus: {
@@ -53,6 +53,7 @@ const orderSchema = new mongoose.Schema(
     },
     discountAmount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
+    hasReviewed: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

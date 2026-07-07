@@ -6,6 +6,7 @@ export interface Review {
     displayName: string;
     avatarUrl?: string;
   };
+  orderId: string;
   rating: number;
   comment: string;
   images?: string[];

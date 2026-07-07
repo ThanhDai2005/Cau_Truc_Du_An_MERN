@@ -22,6 +22,8 @@ import UserManagement from "@/pages/admin/UserManagement";
 import OrderManagement from "@/pages/admin/OrderManagement";
 import PermissionManagement from "@/pages/admin/PermissionManagement";
 import RoleManagement from "@/pages/admin/RoleManagement";
+import UserCreate from "@/pages/admin/UserCreate";
+import UserEdit from "@/pages/admin/UserEdit";
 
 const adminRoute = {
   path: "/admin",
@@ -107,6 +109,14 @@ const adminRoute = {
             {
               path: "users",
               element: <UserManagement />,
+            },
+            {
+              path: "user/create",
+              element: <UserCreate />,
+            },
+            {
+              path: "user/edit/:userId",
+              element: <UserEdit />,
             },
             {
               path: "orders",

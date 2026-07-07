@@ -10,6 +10,7 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
 
   createReview: async (
     productId: string,
+    orderId: string,
     rating: number,
     comment: string,
     images?: File[],
@@ -18,6 +19,7 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
     try {
       const formData = new FormData();
       formData.append("productId", productId);
+      formData.append("orderId", orderId);
       formData.append("rating", rating.toString());
       formData.append("comment", comment);
 

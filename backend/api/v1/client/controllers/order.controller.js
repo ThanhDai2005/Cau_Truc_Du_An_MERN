@@ -505,68 +505,6 @@ export const detail = async (req, res) => {
   }
 };
 
-// [GET] /api/v1/order/:orderId/review-status
-export const getReviewStatus = async (req, res) => {
-  try {
-    const orderId = req.params.orderId;
-    const userId = req.user._id;
-
-    // Kiểm tra đơn hàng tồn tại và thuộc về user
-    const order = await Order.findOne({
-      _id: orderId,
-      userId: userId,
-    });
-
-    if (!order) {
-      return res.status(404).json({
-        message: "Đơn hàng không tồn tại",
-      });
-    }
-
-    // Chỉ kiểm tra review cho đơn hàng đã giao
-    if (order.orderStatus !== "Delivered") {
-      return res.status(200).json({
-        message: "Đơn hàng chưa được giao",
-        data: {
-          hasReviewed: false,
-          canReview: false,
-        },
-      });
-    }
-
-    // Lấy danh sách productId trong đơn hàng
-    const productIds = order.items.map((item) => item.productId);
-
-    // Kiểm tra xem user đã review tất cả sản phẩm chưa
-    const reviewedProducts = await Review.find({
-      userId: userId,
-      productId: { $in: productIds },
-    }).select("productId");
-
-    const reviewedProductIds = reviewedProducts.map((r) =>
-      r.productId.toString(),
-    );
-    const hasReviewedAll =
-      reviewedProductIds.length === productIds.length &&
-      productIds.every((pid) => reviewedProductIds.includes(pid.toString()));
-
-    res.status(200).json({
-      message: "Lấy trạng thái đánh giá thành công",
-      data: {
-        hasReviewed: hasReviewedAll,
-        canReview: true,
-        totalProducts: productIds.length,
-        reviewedCount: reviewedProductIds.length,
-      },
-    });
-  } catch (error) {
-    console.log("Lỗi khi gọi getReviewStatus", error);
-    res.status(500).json({
-      message: "Lỗi hệ thống",
-    });
-  }
-};
-
 // [GET] /api/v1/order/:orderId/reviews
 export const getOrderReviews = async (req, res) => {
   try {

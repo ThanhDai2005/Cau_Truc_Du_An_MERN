@@ -6,10 +6,12 @@ import Order from "../../../../models/order.model.js";
 export const create = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { productId, rating, comment, images } = req.body;
+    const { productId, orderId, rating, comment, images } = req.body;
 
-    if (!productId || !rating) {
-      return res.status(400).json({ message: "Thiếu productId hoặc rating" });
+    if (!productId || !orderId || !rating) {
+      return res
+        .status(400)
+        .json({ message: "Thiếu productId, orderId hoặc rating" });
     }
 
     if (rating < 1 || rating > 5) {
@@ -31,33 +33,35 @@ export const create = async (req, res) => {
       return res.status(404).json({ message: "Sản phẩm không tồn tại" });
     }
 
-    // Kiểm tra user đã mua sản phẩm này và đơn hàng đã giao thành công
-    const hasPurchased = await Order.findOne({
+    // Kiểm tra đơn hàng tồn tại, thuộc về user, đã giao và chứa sản phẩm này
+    const order = await Order.findOne({
+      _id: orderId,
       userId: userId,
       orderStatus: "Delivered",
       "items.productId": productId,
     });
-    if (!hasPurchased) {
+    if (!order) {
       return res.status(403).json({
-        message:
-          "Bạn chỉ có thể đánh giá sản phẩm đã mua và được giao thành công",
+        message: "Đơn hàng không tồn tại hoặc chưa được giao thành công",
       });
     }
 
-    // Kiểm tra user đã review sản phẩm này chưa
+    // Kiểm tra user đã review sản phẩm này trong đơn hàng này chưa
     const existingReview = await Review.findOne({
       userId: userId,
       productId: productId,
+      orderId: orderId,
     });
     if (existingReview) {
-      return res
-        .status(409)
-        .json({ message: "Bạn đã đánh giá sản phẩm này rồi" });
+      return res.status(409).json({
+        message: "Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi",
+      });
     }
 
     const review = await Review.create({
       productId,
       userId,
+      orderId,
       rating: Number(rating),
       comment: comment ? comment.trim() : "",
       images: images || [],
@@ -76,6 +80,22 @@ export const create = async (req, res) => {
         numReviews: numReviews,
       },
     );
+
+    // Kiểm tra xem user đã review hết tất cả sản phẩm trong đơn hàng chưa
+    // Nếu có thì cập nhật hasReviewed = true cho đơn hàng đó
+    const productIdsInOrder = order.items.map((item) =>
+      item.productId.toString(),
+    );
+    const reviewedProductsInOrder = await Review.find({
+      userId: userId,
+      orderId: orderId,
+      productId: { $in: productIdsInOrder },
+    });
+
+    // Nếu số lượng review bằng số lượng sản phẩm trong đơn thì đánh dấu đã review
+    if (reviewedProductsInOrder.length === productIdsInOrder.length) {
+      await Order.updateOne({ _id: orderId }, { hasReviewed: true });
+    }
 
     const populatedReview = await Review.findOne({ _id: review._id }).populate(
       "userId",

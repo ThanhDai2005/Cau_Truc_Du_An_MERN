@@ -26,6 +26,7 @@ export interface Order {
   orderStatus: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
   shippingFee: number;
   totalAmount: number;
+  hasReviewed: boolean;
   createdAt: string;
   updatedAt: string;
 }

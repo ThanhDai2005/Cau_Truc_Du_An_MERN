@@ -4,14 +4,6 @@ import { useOrderStore } from "@/stores/useOrderStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useCartStore } from "@/stores/useCartStore";
 import { toast } from "sonner";
-import api from "@/lib/axios";
-
-interface ReviewStatus {
-  [orderId: string]: {
-    hasReviewed: boolean;
-    canReview: boolean;
-  };
-}
 
 const statusConfig = {
   Pending: {
@@ -54,7 +46,6 @@ const OrdersPage = () => {
   const filterStatus = searchParams.get("status") || "";
 
   const [reordering, setReordering] = useState(false);
-  const [reviewStatuses, setReviewStatuses] = useState<ReviewStatus>({});
   const [retryingPayment, setRetryingPayment] = useState<string | null>(null);
 
   const updateURL = (newParams: Record<string, string>) => {
@@ -81,40 +72,9 @@ const OrdersPage = () => {
     }
   };
 
-  // Fetch review statuses for delivered orders
-  const fetchReviewStatuses = async () => {
-    const deliveredOrders = orders.filter(
-      (order) => order.orderStatus === "Delivered",
-    );
-
-    const statuses: ReviewStatus = {};
-
-    await Promise.all(
-      deliveredOrders.map(async (order) => {
-        try {
-          const response = await api.get(`/order/${order._id}/review-status`);
-          statuses[order._id] = response.data.data;
-        } catch (error) {
-          statuses[order._id] = {
-            hasReviewed: false,
-            canReview: true,
-          };
-        }
-      }),
-    );
-
-    setReviewStatuses(statuses);
-  };
-
   useEffect(() => {
     fetchOrders();
   }, [user, currentPage, filterStatus]);
-
-  useEffect(() => {
-    if (orders.length > 0) {
-      fetchReviewStatuses();
-    }
-  }, [orders]);
 
   const handleReorder = async (order: any) => {
     try {
@@ -321,8 +281,7 @@ const OrdersPage = () => {
                         </p>
                       </div>
                       <p className="font-bold text-gray-900">
-                        {(item.price * item.quantity).toLocaleString("vi-VN")}
-                        đ
+                        {(item.price * item.quantity).toLocaleString("vi-VN")}đ
                       </p>
                     </div>
                   ))}
@@ -389,7 +348,7 @@ const OrdersPage = () => {
                         >
                           Xem chi tiết
                         </button>
-                        {reviewStatuses[order._id]?.hasReviewed ? (
+                        {order.hasReviewed ? (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

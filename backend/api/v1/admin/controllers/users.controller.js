@@ -6,6 +6,8 @@ import bcrypt from "bcrypt";
 export const list = async (req, res) => {
   try {
     const keyword = req.query.keyword;
+    const roleId = req.query.roleId;
+    const status = req.query.status;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -18,7 +20,16 @@ export const list = async (req, res) => {
       filter.$or = [
         { displayName: { $regex: keyword, $options: "i" } },
         { email: { $regex: keyword, $options: "i" } },
+        { phone: { $regex: keyword, $options: "i" } },
       ];
+    }
+
+    if (roleId) {
+      filter.roleId = roleId;
+    }
+
+    if (status) {
+      filter.status = status;
     }
 
     const [data, totalItems] = await Promise.all([
@@ -39,6 +50,36 @@ export const list = async (req, res) => {
     });
   } catch (error) {
     console.log("Lỗi khi gọi list user", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [GET] /api/v1/admin/users/:userId
+export const getDetail = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const user = await User.findOne({
+      _id: userId,
+      deleted: false,
+    })
+      .populate("roleId", "title")
+      .select("-hashedPassword");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Tài khoản không tồn tại",
+      });
+    }
+
+    res.status(200).json({
+      message: "Lấy chi tiết tài khoản thành công",
+      data: user,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi getDetail user", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
@@ -213,6 +254,91 @@ export const update = async (req, res) => {
   }
 };
 
+// [PATCH] /api/v1/admin/users/change-status/:userId
+export const changeStatus = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { status } = req.body;
+
+    if (!status || !["active", "inactive"].includes(status)) {
+      return res.status(400).json({
+        message: "Trạng thái không hợp lệ",
+      });
+    }
+
+    const existedUser = await User.findOne({
+      _id: userId,
+      deleted: false,
+    });
+
+    if (!existedUser) {
+      return res.status(404).json({
+        message: "Tài khoản không tồn tại",
+      });
+    }
+
+    await User.updateOne({ _id: userId }, { status: status });
+
+    res.status(200).json({
+      message: "Thay đổi trạng thái tài khoản thành công",
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi changeStatus user", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/users/change-multi
+export const changeMulti = async (req, res) => {
+  try {
+    const { ids, type } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        message: "Danh sách ID không hợp lệ",
+      });
+    }
+
+    if (!type || !["active", "inactive", "delete-all"].includes(type)) {
+      return res.status(400).json({
+        message: "Loại thao tác không hợp lệ",
+      });
+    }
+
+    switch (type) {
+      case "active":
+        await User.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          { status: "active" },
+        );
+        break;
+      case "inactive":
+        await User.updateMany(
+          { _id: { $in: ids }, deleted: false },
+          { status: "inactive" },
+        );
+        break;
+      case "delete-all":
+        await User.deleteMany({
+          _id: { $in: ids },
+          deleted: true,
+        });
+        break;
+    }
+
+    res.status(200).json({
+      message: "Thao tác thành công",
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi changeMulti user", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
 // [PATCH] /api/v1/admin/users/delete/:userId
 export const softDelete = async (req, res) => {
   try {
@@ -234,6 +360,7 @@ export const softDelete = async (req, res) => {
       {
         deleted: true,
         deletedAt: new Date(),
+        status: "inactive",
       },
     );
 
@@ -242,6 +369,35 @@ export const softDelete = async (req, res) => {
     });
   } catch (error) {
     console.log("Lỗi khi gọi delete user", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [DELETE] /api/v1/admin/users/delete-item/:userId
+export const deleteItem = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const existedUser = await User.findOne({
+      _id: userId,
+      deleted: true,
+    });
+
+    if (!existedUser) {
+      return res.status(404).json({
+        message: "Tài khoản không tồn tại hoặc chưa bị xóa mềm",
+      });
+    }
+
+    await User.deleteOne({ _id: userId });
+
+    res.status(200).json({
+      message: "Xóa vĩnh viễn tài khoản thành công",
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi deleteItem user", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
