@@ -18,8 +18,25 @@ export const list = async (req, res) => {
       filter.status = status;
     }
 
+    const slugify = (str = "") => {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+    };
+
     if (keyword) {
-      filter.name = { $regex: keyword, $options: "i" };
+      const search = slugify(keyword);
+
+      filter.$or = [
+        { name: { $regex: keyword, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } },
+      ];
     }
 
     const [data, totalItems] = await Promise.all([

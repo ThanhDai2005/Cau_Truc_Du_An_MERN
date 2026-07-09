@@ -20,6 +20,7 @@ import PromotionCreate from "@/pages/admin/PromotionCreate";
 import PromotionEdit from "@/pages/admin/PromotionEdit";
 import UserManagement from "@/pages/admin/UserManagement";
 import OrderManagement from "@/pages/admin/OrderManagement";
+import OrderDetail from "@/pages/admin/OrderDetail";
 import PermissionManagement from "@/pages/admin/PermissionManagement";
 import RoleManagement from "@/pages/admin/RoleManagement";
 import UserCreate from "@/pages/admin/UserCreate";
@@ -121,6 +122,10 @@ const adminRoute = {
             {
               path: "orders",
               element: <OrderManagement />,
+            },
+            {
+              path: "order/:orderId",
+              element: <OrderDetail />,
             },
             {
               path: "permissions",

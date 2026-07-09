@@ -29,13 +29,13 @@ export const list = async (req, res) => {
       }
     }
 
-    // Filter theo tên khách hàng hoặc số điện thoại - sanitize input to prevent NoSQL injection
     if (req.query.search) {
-      const sanitizedSearch = String(req.query.search).replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&",
-      );
+      const sanitizedSearch = String(req.query.search)
+        .normalize("NFC")
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
       const searchRegex = new RegExp(sanitizedSearch, "i");
+
       filter.$or = [
         { "shippingAddress.recipient": searchRegex },
         { "shippingAddress.phone": searchRegex },
@@ -118,7 +118,7 @@ export const updateStatus = async (req, res) => {
 
     // Validate logic chuyển trạng thái
     const validTransitions = {
-      Pending: ["Processing"],
+      Pending: ["Processing", "Cancelled"],
       Processing: ["Shipped", "Cancelled"],
       Shipped: ["Delivered"],
     };

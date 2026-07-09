@@ -13,6 +13,11 @@ import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw } from "lucide-react";
 import { useAdminCategoryStore } from "@/stores/useAdminCategoryStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import {
+  confirmDelete,
+  confirmRestore,
+  confirmPermanentDelete,
+} from "@/lib/sweetalert";
 
 const ProductCategoryManagement = () => {
   const navigate = useNavigate();
@@ -46,8 +51,18 @@ const ProductCategoryManagement = () => {
     categoryId: string,
     status: "active" | "inactive",
   ) => {
-    const action = status === "active" ? "khôi phục" : "ngưng hoạt động";
-    if (!confirm(`Bạn có chắc chắn muốn ${action} danh mục này?`)) return;
+    const result =
+      status === "active"
+        ? await confirmRestore(
+            "Khôi phục danh mục?",
+            "Danh mục sẽ được chuyển về trạng thái hoạt động",
+          )
+        : await confirmDelete(
+            "Xóa danh mục?",
+            "Danh mục sẽ chuyển sang trạng thái ngưng hoạt động",
+          );
+
+    if (!result.isConfirmed) return;
 
     try {
       await changeStatus(categoryId, status);
@@ -59,12 +74,12 @@ const ProductCategoryManagement = () => {
   };
 
   const handleDeleteItem = async (categoryId: string) => {
-    if (
-      !confirm(
-        "Bạn có chắc chắn muốn XÓA VĨNH VIỄN danh mục này? Hành động này không thể hoàn tác!",
-      )
-    )
-      return;
+    const result = await confirmPermanentDelete(
+      "Xóa vĩnh viễn?",
+      "Hành động này không thể hoàn tác! Danh mục sẽ bị xóa vĩnh viễn khỏi hệ thống.",
+    );
+
+    if (!result.isConfirmed) return;
 
     try {
       await deleteItem(categoryId);
@@ -83,13 +98,25 @@ const ProductCategoryManagement = () => {
       return;
     }
 
-    const messages = {
-      active: `khôi phục ${selectedItems.length} danh mục`,
-      inactive: `chuyển sang ngưng hoạt động ${selectedItems.length} danh mục`,
-      "delete-all": `XÓA VĨNH VIỄN ${selectedItems.length} danh mục`,
-    };
+    let result;
+    if (type === "active") {
+      result = await confirmRestore(
+        "Khôi phục nhiều danh mục?",
+        `Bạn đang khôi phục ${selectedItems.length} danh mục`,
+      );
+    } else if (type === "inactive") {
+      result = await confirmDelete(
+        "Xóa nhiều danh mục?",
+        `Bạn đang chuyển ${selectedItems.length} danh mục sang ngưng hoạt động`,
+      );
+    } else {
+      result = await confirmPermanentDelete(
+        "Xóa vĩnh viễn nhiều danh mục?",
+        `Bạn đang xóa vĩnh viễn ${selectedItems.length} danh mục. Hành động này không thể hoàn tác!`,
+      );
+    }
 
-    if (!confirm(`Bạn có chắc chắn muốn ${messages[type]}?`)) return;
+    if (!result.isConfirmed) return;
 
     try {
       await changeMulti(selectedItems, type);

@@ -1,8 +1,511 @@
+import { useState, useEffect } from "react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbLink,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Search, Eye, Loader2, Calendar } from "lucide-react";
+import { useAdminOrderStore } from "@/stores/useAdminOrderStore";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
 const OrderManagement = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [orderStatusFilter, setOrderStatusFilter] = useState("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+
+  const {
+    orders,
+    totalPages,
+    totalItems,
+    loading,
+    fetchOrders,
+    updateOrderStatus,
+  } = useAdminOrderStore();
+
+  useEffect(() => {
+    const filters: any = {};
+    if (orderStatusFilter !== "all") filters.orderStatus = orderStatusFilter;
+    if (paymentStatusFilter !== "all")
+      filters.paymentStatus = paymentStatusFilter;
+    if (searchTerm) filters.search = searchTerm;
+    if (startDate) filters.startDate = startDate;
+    if (endDate) filters.endDate = endDate;
+
+    fetchOrders(currentPage, limit, filters);
+  }, [
+    currentPage,
+    limit,
+    searchTerm,
+    orderStatusFilter,
+    paymentStatusFilter,
+    startDate,
+    endDate,
+  ]);
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setOrderStatusFilter("all");
+    setPaymentStatusFilter("all");
+    setStartDate("");
+    setEndDate("");
+    setCurrentPage(1);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // ================= CẤU HÌNH TRẠNG THÁI =================
+  const orderStatusConfig = {
+    Pending: {
+      bg: "bg-[#fef3c7]",
+      text: "text-[#92400e]",
+      border: "border-[#fcd34d]",
+      label: "Chờ xử lý",
+      next: ["Processing", "Cancelled"],
+    },
+    Processing: {
+      bg: "bg-[#dbeafe]",
+      text: "text-[#1e40af]",
+      border: "border-[#bfdbfe]",
+      label: "Đang xử lý",
+      next: ["Shipped", "Cancelled"],
+    },
+    Shipped: {
+      bg: "bg-[#f3e8ff]",
+      text: "text-[#4338ca]",
+      border: "border-[#e9d5ff]",
+      label: "Đang giao",
+      next: ["Delivered"],
+    },
+    Delivered: {
+      bg: "bg-[#d1fae5]",
+      text: "text-[#15803d]",
+      border: "border-[#86efac]",
+      label: "Đã giao",
+      next: [],
+    },
+    Cancelled: {
+      bg: "bg-[#fee2e2]",
+      text: "text-[#b91c1c]",
+      border: "border-[#fca5a5]",
+      label: "Đã hủy",
+      next: [],
+    },
+  };
+
+  // ================= PAYMENT BADGE =================
+  const getPaymentBadge = (status: string, method: string) => {
+    const isPaid = status === "Paid";
+    const bg = isPaid ? "bg-[#d1fae5]" : "bg-[#fef3c7]";
+    const text = isPaid ? "text-[#15803d]" : "text-[#92400e]";
+    const label = isPaid ? "Đã thanh toán" : "Chưa thanh toán";
+
+    return (
+      <span
+        className={`inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold ${bg} ${text}`}
+      >
+        {label} <span className="ml-1 opacity-70">({method})</span>
+      </span>
+    );
+  };
+
+  // ================= STATUS UPDATE HANDLER =================
+  const handleQuickStatusUpdate = async (
+    orderId: string,
+    newStatus: string,
+    currentStatus: string,
+  ) => {
+    // Nếu chọn lại trạng thái hiện tại, không làm gì
+    if (newStatus === currentStatus) {
+      return;
+    }
+
+    try {
+      setUpdatingOrderId(orderId);
+      await updateOrderStatus(orderId, { orderStatus: newStatus });
+
+      const filters: any = {};
+      if (orderStatusFilter !== "all") filters.orderStatus = orderStatusFilter;
+      if (paymentStatusFilter !== "all")
+        filters.paymentStatus = paymentStatusFilter;
+      if (searchTerm) filters.search = searchTerm;
+      if (startDate) filters.startDate = startDate;
+      if (endDate) filters.endDate = endDate;
+
+      await fetchOrders(currentPage, limit, filters);
+      toast.success("Cập nhật trạng thái thành công");
+    } catch (error) {
+      // Error handled in store
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
   return (
-    <>
-      <div>OrderManagement</div>
-    </>
+    <div className="bg-[#f7f9fb] min-h-screen pb-12 font-['Inter']">
+      <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-20">
+        <SidebarTrigger />
+        <Separator orientation="vertical" className="h-4" />
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/admin/dashboard">Admin</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage className="font-bold text-[#b51c00]">
+                Quản lý đơn hàng
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </header>
+
+      <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
+            Quản lý đơn hàng
+          </h1>
+          <p className="text-sm text-gray-500 mb-6">
+            Tổng số:{" "}
+            <span className="font-bold text-gray-900">{totalItems}</span> đơn
+          </p>
+
+          {/* ================= BỘ LỌC ================= */}
+          <div className="bg-white rounded-[12px] shadow-sm border border-gray-200 p-6 space-y-4">
+            <div className="flex flex-col xl:flex-row gap-4">
+              <div className="relative w-full xl:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Mã đơn, SĐT hoặc Tên khách..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#b51c00]/20 focus:border-[#b51c00] outline-none"
+                />
+              </div>
+
+              <select
+                value={orderStatusFilter}
+                onChange={(e) => setOrderStatusFilter(e.target.value)}
+                className="w-full xl:w-48 px-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#b51c00] cursor-pointer"
+              >
+                <option value="all">Mọi trạng thái đơn</option>
+                <option value="Pending">Chờ xử lý</option>
+                <option value="Processing">Đang xử lý</option>
+                <option value="Shipped">Đang giao</option>
+                <option value="Delivered">Đã giao</option>
+                <option value="Cancelled">Đã hủy</option>
+              </select>
+
+              <select
+                value={paymentStatusFilter}
+                onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                className="w-full xl:w-48 px-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#b51c00] cursor-pointer"
+              >
+                <option value="all">Mọi TT thanh toán</option>
+                <option value="Pending">Chưa thanh toán</option>
+                <option value="Paid">Đã thanh toán</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center pt-2">
+              <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span>Từ ngày:</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-200 rounded-md text-sm outline-none focus:border-[#b51c00]"
+                />
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
+                <span>Đến ngày:</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-200 rounded-md text-sm outline-none focus:border-[#b51c00]"
+                />
+              </div>
+              <button
+                onClick={handleClearFilters}
+                className="px-4 py-1.5 text-sm font-bold text-[#b51c00] bg-red-50 hover:bg-red-100 rounded-md transition-colors ml-auto"
+              >
+                Xóa bộ lọc
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ================= BẢNG DỮ LIỆU ================= */}
+        <div className="bg-white rounded-[12px] shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="text-[18px] font-bold text-gray-900">
+              Danh sách đơn hàng
+            </h2>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-32">
+              <Loader2 className="w-8 h-8 animate-spin text-[#b51c00]" />
+            </div>
+          ) : (
+            <div className="w-full">
+              <table className="w-full text-sm text-left whitespace-nowrap">
+                <thead className="text-xs text-gray-500 bg-gray-50 uppercase font-bold border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-4">Mã đơn</th>
+                    <th className="px-6 py-4">Khách hàng</th>
+                    <th className="px-6 py-4">Thanh toán (Phương thức)</th>
+                    <th className="px-6 py-4">Tổng tiền</th>
+                    <th className="px-6 py-4">Ngày đặt</th>
+                    <th className="px-6 py-4 text-center w-[200px]">
+                      Trạng thái đơn
+                    </th>
+                    <th className="px-6 py-4 text-center">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {orders.length > 0 ? (
+                    orders.map((order) => {
+                      const statusConfig =
+                        orderStatusConfig[
+                          order.orderStatus as keyof typeof orderStatusConfig
+                        ];
+
+                      if (!statusConfig) {
+                        return null;
+                      }
+
+                      const isUpdating = updatingOrderId === order._id;
+                      const isEndState = statusConfig.next.length === 0;
+
+                      return (
+                        <tr
+                          key={order._id}
+                          className="bg-white hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-6 py-4 font-mono text-[#b51c00] font-semibold">
+                            #{order._id.slice(-8).toUpperCase()}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="font-semibold text-gray-900">
+                              {order.shippingAddress.recipient}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {getPaymentBadge(
+                              order.paymentStatus,
+                              order.paymentMethod,
+                            )}
+                          </td>
+                          <td className="px-6 py-4 font-bold text-gray-900">
+                            {order.totalAmount.toLocaleString("vi-VN")}₫
+                          </td>
+                          <td className="px-6 py-4 text-gray-500 font-medium">
+                            {formatDate(order.createdAt)}
+                          </td>
+
+                          <td className="px-6 py-4 text-center">
+                            {isUpdating ? (
+                              <div className="flex items-center justify-center gap-2 text-gray-400 font-bold text-xs py-1.5">
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                Đang lưu...
+                              </div>
+                            ) : (
+                              <select
+                                value={order.orderStatus}
+                                onChange={(e) =>
+                                  handleQuickStatusUpdate(
+                                    order._id,
+                                    e.target.value,
+                                    order.orderStatus,
+                                  )
+                                }
+                                disabled={isEndState}
+                                className={`w-full px-3 py-1.5 rounded-md border text-xs font-bold transition-all outline-none
+                                  ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}
+                                  ${
+                                    isEndState
+                                      ? "opacity-75 cursor-not-allowed"
+                                      : "cursor-pointer hover:brightness-95 focus:ring-2 focus:ring-[#b51c00]/30"
+                                  }`}
+                              >
+                                {/* Current status as first option */}
+                                <option value={order.orderStatus}>
+                                  {statusConfig.label}
+                                </option>
+                                {/* Next valid statuses */}
+                                {statusConfig.next.map((nextStatus) => (
+                                  <option key={nextStatus} value={nextStatus}>
+                                    {
+                                      orderStatusConfig[
+                                        nextStatus as keyof typeof orderStatusConfig
+                                      ].label
+                                    }
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </td>
+
+                          <td className="px-6 py-4 text-center">
+                            <button
+                              onClick={() =>
+                                navigate(`/admin/order/${order._id}`)
+                              }
+                              className="w-8 h-8 mx-auto flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+                              title="Xem chi tiết"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-6 py-16 text-center text-gray-500 font-medium"
+                      >
+                        Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* ================= PAGINATION ================= */}
+          {!loading && orders.length > 0 && totalPages > 1 && (
+            <div className="flex flex-col md:flex-row items-center justify-between px-6 py-4 border-t border-gray-100 bg-white gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500 font-medium">
+                  Hiển thị
+                </span>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:border-[#b51c00] cursor-pointer"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <span className="text-sm text-gray-500 font-medium">mục</span>
+              </div>
+
+              <div className="flex items-center gap-1">
+                {/* Previous Button */}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-600 disabled:hover:border-gray-200"
+                >
+                  &lt;
+                </button>
+
+                {/* Page Numbers with Ellipsis Logic */}
+                {(() => {
+                  const pages = [];
+
+                  if (totalPages <= 6) {
+                    for (let i = 1; i <= totalPages; i++) {
+                      pages.push(i);
+                    }
+                  } else {
+                    if (currentPage <= 3) {
+                      pages.push(1, 2, 3, 4, "...", totalPages);
+                    } else if (currentPage >= totalPages - 2) {
+                      pages.push(
+                        1,
+                        "...",
+                        totalPages - 3,
+                        totalPages - 2,
+                        totalPages - 1,
+                        totalPages,
+                      );
+                    } else {
+                      pages.push(
+                        1,
+                        "...",
+                        currentPage - 1,
+                        currentPage,
+                        currentPage + 1,
+                        "...",
+                        totalPages,
+                      );
+                    }
+                  }
+
+                  return pages.map((page, index) =>
+                    page === "..." ? (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="w-8 h-8 flex items-center justify-center text-gray-400 font-medium tracking-widest"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page as number)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-lg border font-bold text-sm transition-colors ${
+                          currentPage === page
+                            ? "border-[#b51c00] bg-[#b51c00] text-white shadow-sm"
+                            : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#b51c00] hover:border-[#b51c00]"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  );
+                })()}
+
+                {/* Next Button */}
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-600 disabled:hover:border-gray-200"
+                >
+                  &gt;
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

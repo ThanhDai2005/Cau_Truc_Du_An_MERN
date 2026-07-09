@@ -22,6 +22,11 @@ import { useAdminBlogStore } from "@/stores/useAdminBlogStore";
 import { useAdminBlogCategoryStore } from "@/stores/useAdminBlogCategoryStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import {
+  confirmDelete,
+  confirmRestore,
+  confirmPermanentDelete,
+} from "@/lib/sweetalert";
 
 const BlogManagement = () => {
   const navigate = useNavigate();
@@ -77,8 +82,18 @@ const BlogManagement = () => {
     blogId: string,
     status: "active" | "inactive",
   ) => {
-    const action = status === "active" ? "khôi phục" : "ngưng hoạt động";
-    if (!confirm(`Bạn có chắc chắn muốn ${action} bài viết này?`)) return;
+    const result =
+      status === "active"
+        ? await confirmRestore(
+            "Khôi phục bài viết?",
+            "Bài viết sẽ được chuyển về trạng thái hoạt động",
+          )
+        : await confirmDelete(
+            "Xóa bài viết?",
+            "Bài viết sẽ chuyển sang trạng thái ngưng hoạt động",
+          );
+
+    if (!result.isConfirmed) return;
 
     try {
       await changeStatus(blogId, status);
@@ -90,12 +105,12 @@ const BlogManagement = () => {
   };
 
   const handleDeleteItem = async (blogId: string) => {
-    if (
-      !confirm(
-        "Bạn có chắc chắn muốn XÓA VĨNH VIỄN bài viết này? Hành động này không thể hoàn tác!",
-      )
-    )
-      return;
+    const result = await confirmPermanentDelete(
+      "Xóa vĩnh viễn?",
+      "Hành động này không thể hoàn tác! Bài viết sẽ bị xóa vĩnh viễn khỏi hệ thống.",
+    );
+
+    if (!result.isConfirmed) return;
 
     try {
       await deleteItem(blogId);
@@ -114,13 +129,25 @@ const BlogManagement = () => {
       return;
     }
 
-    const messages = {
-      active: `khôi phục ${selectedItems.length} bài viết`,
-      inactive: `chuyển sang ngưng hoạt động ${selectedItems.length} bài viết`,
-      "delete-all": `XÓA VĨNH VIỄN ${selectedItems.length} bài viết`,
-    };
+    let result;
+    if (type === "active") {
+      result = await confirmRestore(
+        "Khôi phục nhiều bài viết?",
+        `Bạn đang khôi phục ${selectedItems.length} bài viết`,
+      );
+    } else if (type === "inactive") {
+      result = await confirmDelete(
+        "Xóa nhiều bài viết?",
+        `Bạn đang chuyển ${selectedItems.length} bài viết sang ngưng hoạt động`,
+      );
+    } else {
+      result = await confirmPermanentDelete(
+        "Xóa vĩnh viễn nhiều bài viết?",
+        `Bạn đang xóa vĩnh viễn ${selectedItems.length} bài viết. Hành động này không thể hoàn tác!`,
+      );
+    }
 
-    if (!confirm(`Bạn có chắc chắn muốn ${messages[type]}?`)) return;
+    if (!result.isConfirmed) return;
 
     try {
       await changeMulti(selectedItems, type);

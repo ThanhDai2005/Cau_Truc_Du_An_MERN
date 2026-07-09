@@ -36,10 +36,24 @@ export const list = async (req, res) => {
       filter.blogCategoryId = blogCategory._id;
     }
 
+    const slugify = (str = "") => {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+    };
+
     if (keyword) {
+      const search = slugify(keyword);
+
       filter.$or = [
         { title: { $regex: keyword, $options: "i" } },
-        { content: { $regex: keyword, $options: "i" } },
+        { slug: { $regex: search, $options: "i" } },
       ];
     }
 

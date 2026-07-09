@@ -9,11 +9,16 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw } from "lucide-react";
+import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw, Lock } from "lucide-react";
 import { useAdminUserStore } from "@/stores/useAdminUserStore";
 import { useRoleStore } from "@/stores/useRoleStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import {
+  confirmDelete,
+  confirmRestore,
+  confirmPermanentDelete,
+} from "@/lib/sweetalert";
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -56,8 +61,18 @@ const UserManagement = () => {
     userId: string,
     status: "active" | "inactive",
   ) => {
-    const action = status === "active" ? "khôi phục" : "khóa";
-    if (!confirm(`Bạn có chắc chắn muốn ${action} tài khoản này?`)) return;
+    const result =
+      status === "active"
+        ? await confirmRestore(
+            "Khôi phục tài khoản?",
+            "Tài khoản sẽ được kích hoạt và có thể đăng nhập lại",
+          )
+        : await confirmDelete(
+            "Khóa tài khoản?",
+            "Tài khoản sẽ bị khóa và không thể đăng nhập",
+          );
+
+    if (!result.isConfirmed) return;
 
     try {
       await changeStatus(userId, status);
@@ -69,12 +84,12 @@ const UserManagement = () => {
   };
 
   const handleDeleteItem = async (userId: string) => {
-    if (
-      !confirm(
-        "Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản này? Hành động này không thể hoàn tác!",
-      )
-    )
-      return;
+    const result = await confirmPermanentDelete(
+      "Xóa vĩnh viễn?",
+      "Hành động này không thể hoàn tác! Tài khoản sẽ bị xóa vĩnh viễn khỏi hệ thống.",
+    );
+
+    if (!result.isConfirmed) return;
 
     try {
       await deleteItem(userId);
@@ -93,13 +108,25 @@ const UserManagement = () => {
       return;
     }
 
-    const messages = {
-      active: `khôi phục ${selectedItems.length} tài khoản`,
-      inactive: `khóa ${selectedItems.length} tài khoản`,
-      "delete-all": `XÓA VĨNH VIỄN ${selectedItems.length} tài khoản`,
-    };
+    let result;
+    if (type === "active") {
+      result = await confirmRestore(
+        "Khôi phục nhiều tài khoản?",
+        `Bạn đang khôi phục ${selectedItems.length} tài khoản`,
+      );
+    } else if (type === "inactive") {
+      result = await confirmDelete(
+        "Khóa nhiều tài khoản?",
+        `Bạn đang khóa ${selectedItems.length} tài khoản`,
+      );
+    } else {
+      result = await confirmPermanentDelete(
+        "Xóa vĩnh viễn nhiều tài khoản?",
+        `Bạn đang xóa vĩnh viễn ${selectedItems.length} tài khoản. Hành động này không thể hoàn tác!`,
+      );
+    }
 
-    if (!confirm(`Bạn có chắc chắn muốn ${messages[type]}?`)) return;
+    if (!result.isConfirmed) return;
 
     try {
       await changeMulti(selectedItems, type);
@@ -118,7 +145,16 @@ const UserManagement = () => {
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedItems(users.map((item) => item._id));
+      // Exclude Super Admin users from bulk selection
+      const selectableUsers = users.filter(
+        (item) =>
+          !(
+            item.roleId &&
+            typeof item.roleId === "object" &&
+            item.roleId.title === "Super Admin"
+          ),
+      );
+      setSelectedItems(selectableUsers.map((item) => item._id));
     } else {
       setSelectedItems([]);
     }
@@ -130,6 +166,15 @@ const UserManagement = () => {
     } else {
       setSelectedItems([...selectedItems, id]);
     }
+  };
+
+  // Helper function to check if user is Super Admin
+  const isSuperAdmin = (user: any) => {
+    return (
+      user.roleId &&
+      typeof user.roleId === "object" &&
+      user.roleId.title === "Super Admin"
+    );
   };
 
   return (
@@ -306,115 +351,128 @@ const UserManagement = () => {
                   </thead>
                   <tbody>
                     {users.length > 0 ? (
-                      users.map((item, index) => (
-                        <tr
-                          key={item._id}
-                          className="bg-white border-b border-gray-50 hover:bg-[#f8fafc] transition-colors group"
-                        >
-                          <td className="p-4">
-                            <div className="flex items-center">
-                              <input
-                                type="checkbox"
-                                className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
-                                checked={selectedItems.includes(item._id)}
-                                onChange={() => handleSelectItem(item._id)}
-                              />
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 font-medium text-gray-900">
-                            {(currentPage - 1) * limit + index + 1}
-                          </td>
-                          <td className="px-6 py-4 flex justify-center">
-                            {item.avatarUrl ? (
-                              <img
-                                src={item.avatarUrl}
-                                alt={item.displayName}
-                                className="w-12 h-12 rounded-full object-cover border border-gray-100 bg-gray-50 shadow-sm"
-                              />
-                            ) : (
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b51c00] to-[#8e1400] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                                {item.displayName.charAt(0).toUpperCase()}
+                      users.map((item, index) => {
+                        const isSuperAdminUser = isSuperAdmin(item);
+                        return (
+                          <tr
+                            key={item._id}
+                            className="bg-white border-b border-gray-50 hover:bg-[#f8fafc] transition-colors group"
+                          >
+                            <td className="p-4">
+                              <div className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  checked={selectedItems.includes(item._id)}
+                                  onChange={() => handleSelectItem(item._id)}
+                                  disabled={isSuperAdminUser}
+                                />
                               </div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 font-semibold text-gray-900">
-                            {item.displayName}
-                          </td>
-                          <td className="px-6 py-4 text-gray-600 font-medium">
-                            {item.email}
-                          </td>
-                          <td className="px-6 py-4 text-center font-medium text-gray-700">
-                            {item.phone}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            {item.roleId ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#dbeafe] text-[#2563eb]">
-                                {item.roleId.title}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400 text-xs">
-                                Khách hàng
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-center">
-                            {item.status === "active" ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#d1fae5] text-[#15803d]">
-                                Hoạt động
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#fee2e2] text-[#b91c1c]">
-                                Khóa
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center justify-center gap-2">
-                              {item.status === "active" ? (
-                                <>
-                                  <button
-                                    onClick={() =>
-                                      navigate(`/admin/user/edit/${item._id}`)
-                                    }
-                                    className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
-                                  >
-                                    <Pencil className="w-3 h-3" />
-                                    Sửa
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      handleChangeStatus(item._id, "inactive")
-                                    }
-                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                    Khóa
-                                  </button>
-                                </>
+                            </td>
+                            <td className="px-6 py-4 font-medium text-gray-900">
+                              {(currentPage - 1) * limit + index + 1}
+                            </td>
+                            <td className="px-6 py-4 flex justify-center">
+                              {item.avatarUrl ? (
+                                <img
+                                  src={item.avatarUrl}
+                                  alt={item.displayName}
+                                  className="w-12 h-12 rounded-full object-cover border border-gray-100 bg-gray-50 shadow-sm"
+                                />
                               ) : (
-                                <>
-                                  <button
-                                    onClick={() =>
-                                      handleChangeStatus(item._id, "active")
-                                    }
-                                    className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
-                                  >
-                                    <RotateCcw className="w-3 h-3" />
-                                    Khôi phục
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteItem(item._id)}
-                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                    Xóa vĩnh viễn
-                                  </button>
-                                </>
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b51c00] to-[#8e1400] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                                  {item.displayName.charAt(0).toUpperCase()}
+                                </div>
                               )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                            <td className="px-6 py-4 font-semibold text-gray-900">
+                              {item.displayName}
+                            </td>
+                            <td className="px-6 py-4 text-gray-600 font-medium">
+                              {item.email}
+                            </td>
+                            <td className="px-6 py-4 text-center font-medium text-gray-700">
+                              {item.phone}
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              {item.roleId ? (
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#dbeafe] text-[#2563eb]">
+                                  {typeof item.roleId === "object"
+                                    ? item.roleId.title
+                                    : "N/A"}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-xs">
+                                  Khách hàng
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              {item.status === "active" ? (
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#d1fae5] text-[#15803d]">
+                                  Hoạt động
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#fee2e2] text-[#b91c1c]">
+                                  Khóa
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center justify-center gap-2">
+                                {isSuperAdminUser ? (
+                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-[6px]">
+                                    <Lock className="w-3.5 h-3.5 text-amber-600" />
+                                    <span className="text-xs font-bold text-amber-700">
+                                      Protected
+                                    </span>
+                                  </div>
+                                ) : item.status === "active" ? (
+                                  <>
+                                    <button
+                                      onClick={() =>
+                                        navigate(`/admin/user/edit/${item._id}`)
+                                      }
+                                      className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
+                                    >
+                                      <Pencil className="w-3 h-3" />
+                                      Sửa
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        handleChangeStatus(item._id, "inactive")
+                                      }
+                                      className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                      Khóa
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() =>
+                                        handleChangeStatus(item._id, "active")
+                                      }
+                                      className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
+                                    >
+                                      <RotateCcw className="w-3 h-3" />
+                                      Khôi phục
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteItem(item._id)}
+                                      className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                      Xóa vĩnh viễn
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td

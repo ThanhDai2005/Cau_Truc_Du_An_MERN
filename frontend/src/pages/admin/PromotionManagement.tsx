@@ -13,6 +13,11 @@ import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAdminPromotionStore } from "@/stores/useAdminPromotionStore";
 import { toast } from "sonner";
+import {
+  confirmDelete,
+  confirmRestore,
+  confirmPermanentDelete,
+} from "@/lib/sweetalert";
 
 const PromotionManagement = () => {
   const navigate = useNavigate();
@@ -46,8 +51,18 @@ const PromotionManagement = () => {
     promotionId: string,
     status: "active" | "inactive",
   ) => {
-    const action = status === "active" ? "khôi phục" : "ngưng hoạt động";
-    if (!confirm(`Bạn có chắc chắn muốn ${action} khuyến mãi này?`)) return;
+    const result =
+      status === "active"
+        ? await confirmRestore(
+            "Khôi phục khuyến mãi?",
+            "Khuyến mãi sẽ được chuyển về trạng thái hoạt động",
+          )
+        : await confirmDelete(
+            "Xóa khuyến mãi?",
+            "Khuyến mãi sẽ chuyển sang trạng thái ngưng hoạt động",
+          );
+
+    if (!result.isConfirmed) return;
 
     try {
       await changeStatus(promotionId, status);
@@ -59,12 +74,12 @@ const PromotionManagement = () => {
   };
 
   const handleDeleteItem = async (promotionId: string) => {
-    if (
-      !confirm(
-        "Bạn có chắc chắn muốn XÓA VĨNH VIỄN khuyến mãi này? Hành động này không thể hoàn tác!",
-      )
-    )
-      return;
+    const result = await confirmPermanentDelete(
+      "Xóa vĩnh viễn?",
+      "Hành động này không thể hoàn tác! Khuyến mãi sẽ bị xóa vĩnh viễn khỏi hệ thống.",
+    );
+
+    if (!result.isConfirmed) return;
 
     try {
       await deleteItem(promotionId);
@@ -83,13 +98,25 @@ const PromotionManagement = () => {
       return;
     }
 
-    const messages = {
-      active: `khôi phục ${selectedItems.length} khuyến mãi`,
-      inactive: `chuyển sang ngưng hoạt động ${selectedItems.length} khuyến mãi`,
-      "delete-all": `XÓA VĨNH VIỄN ${selectedItems.length} khuyến mãi`,
-    };
+    let result;
+    if (type === "active") {
+      result = await confirmRestore(
+        "Khôi phục nhiều khuyến mãi?",
+        `Bạn đang khôi phục ${selectedItems.length} khuyến mãi`,
+      );
+    } else if (type === "inactive") {
+      result = await confirmDelete(
+        "Xóa nhiều khuyến mãi?",
+        `Bạn đang chuyển ${selectedItems.length} khuyến mãi sang ngưng hoạt động`,
+      );
+    } else {
+      result = await confirmPermanentDelete(
+        "Xóa vĩnh viễn nhiều khuyến mãi?",
+        `Bạn đang xóa vĩnh viễn ${selectedItems.length} khuyến mãi. Hành động này không thể hoàn tác!`,
+      );
+    }
 
-    if (!confirm(`Bạn có chắc chắn muốn ${messages[type]}?`)) return;
+    if (!result.isConfirmed) return;
 
     try {
       await changeMulti(selectedItems, type);

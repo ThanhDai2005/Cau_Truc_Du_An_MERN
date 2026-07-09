@@ -269,11 +269,25 @@ export const changeStatus = async (req, res) => {
     const existedUser = await User.findOne({
       _id: userId,
       deleted: false,
-    });
+    }).populate("roleId");
 
     if (!existedUser) {
       return res.status(404).json({
         message: "Tài khoản không tồn tại",
+      });
+    }
+
+    // Prevent operations on Super Admin accounts
+    if (existedUser.roleId && existedUser.roleId.title === "Super Admin") {
+      return res.status(403).json({
+        message: "Không thể thay đổi trạng thái tài khoản Super Admin",
+      });
+    }
+
+    // Prevent self-locking: check if user is trying to lock themselves
+    if (req.user._id.toString() === userId && status === "inactive") {
+      return res.status(403).json({
+        message: "Không thể tự khóa tài khoản của chính mình",
       });
     }
 
@@ -304,6 +318,28 @@ export const changeMulti = async (req, res) => {
     if (!type || !["active", "inactive", "delete-all"].includes(type)) {
       return res.status(400).json({
         message: "Loại thao tác không hợp lệ",
+      });
+    }
+
+    // Check if any of the users are Super Admin
+    const usersToUpdate = await User.find({
+      _id: { $in: ids },
+    }).populate("roleId");
+
+    const superAdminIds = usersToUpdate
+      .filter((user) => user.roleId && user.roleId.title === "Super Admin")
+      .map((user) => user._id.toString());
+
+    if (superAdminIds.length > 0) {
+      return res.status(403).json({
+        message: "Không thể thực hiện thao tác trên tài khoản Super Admin",
+      });
+    }
+
+    // Prevent self-locking for inactive type
+    if (type === "inactive" && ids.includes(req.user._id.toString())) {
+      return res.status(403).json({
+        message: "Không thể tự khóa tài khoản của chính mình",
       });
     }
 
@@ -383,11 +419,18 @@ export const deleteItem = async (req, res) => {
     const existedUser = await User.findOne({
       _id: userId,
       deleted: true,
-    });
+    }).populate("roleId");
 
     if (!existedUser) {
       return res.status(404).json({
         message: "Tài khoản không tồn tại hoặc chưa bị xóa mềm",
+      });
+    }
+
+    // Prevent permanent deletion of Super Admin accounts
+    if (existedUser.roleId && existedUser.roleId.title === "Super Admin") {
+      return res.status(403).json({
+        message: "Không thể xóa vĩnh viễn tài khoản Super Admin",
       });
     }
 

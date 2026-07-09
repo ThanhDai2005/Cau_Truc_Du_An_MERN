@@ -109,7 +109,7 @@ export const addToCart = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/cart/update
+// [PATCH] /api/v1/cart/update/:productId
 export const updateQuantity = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -144,6 +144,22 @@ export const updateQuantity = async (req, res) => {
       return res.status(404).json({
         message: "Sản phẩm không có trong giỏ hàng",
       });
+    }
+
+    const product = await Product.findOne({
+      _id: productId,
+      deleted: false,
+      status: "active",
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+    }
+
+    if (quantity > product.stock) {
+      return res
+        .status(400)
+        .json({ message: `Sản phẩm chỉ còn ${product.stock} sản phẩm` });
     }
 
     item.quantity = quantity;
