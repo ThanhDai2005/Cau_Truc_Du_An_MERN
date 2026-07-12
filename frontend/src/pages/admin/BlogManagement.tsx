@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -30,12 +31,13 @@ import {
 
 const BlogManagement = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("keyword") || "";
+  const categoryFilter = searchParams.get("category") || "all";
+  const statusFilter = searchParams.get("status") || "all";
+  const currentPage = parseInt(searchParams.get("page") || "1");
+  const limit = parseInt(searchParams.get("limit") || "10");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
 
   const {
     blogs,
@@ -48,6 +50,25 @@ const BlogManagement = () => {
   } = useAdminBlogStore();
 
   const { blogCategories, fetchBlogCategories } = useAdminBlogCategoryStore();
+
+  const updateURL = (newParams: Record<string, string>) => {
+    const params = Object.fromEntries(searchParams.entries());
+    const mergedParams = { ...params, ...newParams };
+
+    Object.keys(mergedParams).forEach((key) => {
+      if (
+        !mergedParams[key] ||
+        (key === "page" && mergedParams[key] === "1") ||
+        (key === "status" && mergedParams[key] === "all") ||
+        (key === "category" && mergedParams[key] === "all") ||
+        (key === "limit" && mergedParams[key] === "10") ||
+        (key === "keyword" && mergedParams[key] === "")
+      ) {
+        delete mergedParams[key];
+      }
+    });
+    setSearchParams(mergedParams);
+  };
 
   useEffect(() => {
     fetchBlogCategories("", "active", 1, 100);
@@ -224,14 +245,18 @@ const BlogManagement = () => {
                   type="text"
                   placeholder="Tiêu đề bài viết..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) =>
+                    updateURL({ keyword: e.target.value, page: "1" })
+                  }
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white transition-shadow"
                 />
               </div>
 
               <select
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
+                onChange={(e) =>
+                  updateURL({ category: e.target.value, page: "1" })
+                }
                 className="w-full sm:w-48 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
               >
                 <option value="all">Tất cả danh mục</option>
@@ -244,7 +269,9 @@ const BlogManagement = () => {
 
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  updateURL({ status: e.target.value, page: "1" })
+                }
                 className="w-full sm:w-48 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
               >
                 <option value="all">Tất cả trạng thái</option>
@@ -470,8 +497,7 @@ const BlogManagement = () => {
                   <select
                     value={limit}
                     onChange={(e) => {
-                      setLimit(Number(e.target.value));
-                      setCurrentPage(1);
+                      updateURL({ limit: e.target.value, page: "1" });
                     }}
                     className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#b51c00] focus:border-[#b51c00] px-3 py-1.5 outline-none cursor-pointer"
                   >
@@ -483,7 +509,9 @@ const BlogManagement = () => {
 
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    onClick={() =>
+                      updateURL({ page: (currentPage - 1).toString() })
+                    }
                     disabled={currentPage === 1}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -493,7 +521,7 @@ const BlogManagement = () => {
                     (page) => (
                       <button
                         key={page}
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => updateURL({ page: page.toString() })}
                         className={`w-8 h-8 flex items-center justify-center rounded-lg border font-semibold text-sm transition-colors ${
                           currentPage === page
                             ? "border-[#b51c00] bg-[#b51c00] text-white"
@@ -506,7 +534,7 @@ const BlogManagement = () => {
                   )}
                   <button
                     onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      updateURL({ page: (currentPage + 1).toString() })
                     }
                     disabled={currentPage === totalPages}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

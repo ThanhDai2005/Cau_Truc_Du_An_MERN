@@ -3,14 +3,14 @@ import crypto from "crypto";
 
 export const createMoMoPayment = async (order, totalAmount) => {
   const partnerCode = "MOMO";
-  const accessKey = "F8BBA842ECF85";
-  const secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
+  const accessKey = process.env.MOMO_ACCESS_KEY;
+  const secretkey = process.env.MOMO_SECRET_KEY;
   const requestId = partnerCode + new Date().getTime();
   const orderId = `${order._id.toString()}_${Date.now()}`;
   const orderInfo = `Thanh toan don hang ${order._id.toString()}`;
 
   const redirectUrl = `${process.env.CLIENT_URL}/order-success/${order._id.toString()}`;
-  const ipnUrl = "http://localhost:3000/api/v1/order/momo-callback";
+  const ipnUrl = `${process.env.SERVER_URL}/api/v1/order/momo-callback`;
   const amount = totalAmount;
   const requestType = "payWithMethod";
   const extraData = "";

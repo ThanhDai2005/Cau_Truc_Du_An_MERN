@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,7 +10,15 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw, Lock } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Trash2,
+  Loader2,
+  Pencil,
+  RotateCcw,
+  Lock,
+} from "lucide-react";
 import { useAdminUserStore } from "@/stores/useAdminUserStore";
 import { useRoleStore } from "@/stores/useRoleStore";
 import { useNavigate } from "react-router-dom";
@@ -22,12 +31,13 @@ import {
 
 const UserManagement = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("keyword") || "";
+  const roleFilter = searchParams.get("role") || "all";
+  const statusFilter = searchParams.get("status") || "all";
+  const currentPage = parseInt(searchParams.get("page") || "1");
+  const limit = parseInt(searchParams.get("limit") || "10");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
 
   const {
     users,
@@ -40,6 +50,25 @@ const UserManagement = () => {
   } = useAdminUserStore();
 
   const { roles, fetchRoles } = useRoleStore();
+
+  const updateURL = (newParams: Record<string, string>) => {
+    const params = Object.fromEntries(searchParams.entries());
+    const mergedParams = { ...params, ...newParams };
+
+    Object.keys(mergedParams).forEach((key) => {
+      if (
+        !mergedParams[key] ||
+        (key === "page" && mergedParams[key] === "1") ||
+        (key === "status" && mergedParams[key] === "all") ||
+        (key === "role" && mergedParams[key] === "all") ||
+        (key === "limit" && mergedParams[key] === "10") ||
+        (key === "keyword" && mergedParams[key] === "")
+      ) {
+        delete mergedParams[key];
+      }
+    });
+    setSearchParams(mergedParams);
+  };
 
   useEffect(() => {
     fetchRoles();
@@ -221,14 +250,16 @@ const UserManagement = () => {
                   type="text"
                   placeholder="Tên, email, SĐT..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) =>
+                    updateURL({ keyword: e.target.value, page: "1" })
+                  }
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white transition-shadow"
                 />
               </div>
 
               <select
                 value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
+                onChange={(e) => updateURL({ role: e.target.value, page: "1" })}
                 className="w-full sm:w-48 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
               >
                 <option value="all">Tất cả vai trò</option>
@@ -241,7 +272,9 @@ const UserManagement = () => {
 
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  updateURL({ status: e.target.value, page: "1" })
+                }
                 className="w-full sm:w-48 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
               >
                 <option value="all">Tất cả trạng thái</option>
@@ -494,8 +527,7 @@ const UserManagement = () => {
                   <select
                     value={limit}
                     onChange={(e) => {
-                      setLimit(Number(e.target.value));
-                      setCurrentPage(1);
+                      updateURL({ limit: e.target.value, page: "1" });
                     }}
                     className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#b51c00] focus:border-[#b51c00] px-3 py-1.5 outline-none cursor-pointer"
                   >
@@ -507,7 +539,9 @@ const UserManagement = () => {
 
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    onClick={() =>
+                      updateURL({ page: (currentPage - 1).toString() })
+                    }
                     disabled={currentPage === 1}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -517,7 +551,7 @@ const UserManagement = () => {
                     (page) => (
                       <button
                         key={page}
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => updateURL({ page: page.toString() })}
                         className={`w-8 h-8 flex items-center justify-center rounded-lg border font-semibold text-sm transition-colors ${
                           currentPage === page
                             ? "border-[#b51c00] bg-[#b51c00] text-white"
@@ -530,7 +564,7 @@ const UserManagement = () => {
                   )}
                   <button
                     onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      updateURL({ page: (currentPage + 1).toString() })
                     }
                     disabled={currentPage === totalPages}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

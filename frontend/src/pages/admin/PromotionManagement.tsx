@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,11 +22,12 @@ import {
 
 const PromotionManagement = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("keyword") || "";
+  const statusFilter = searchParams.get("status") || "all";
+  const currentPage = parseInt(searchParams.get("page") || "1");
+  const limit = parseInt(searchParams.get("limit") || "10");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
 
   const {
     promotions,
@@ -36,6 +38,24 @@ const PromotionManagement = () => {
     changeMulti,
     deleteItem,
   } = useAdminPromotionStore();
+
+  const updateURL = (newParams: Record<string, string>) => {
+    const params = Object.fromEntries(searchParams.entries());
+    const mergedParams = { ...params, ...newParams };
+
+    Object.keys(mergedParams).forEach((key) => {
+      if (
+        !mergedParams[key] ||
+        (key === "page" && mergedParams[key] === "1") ||
+        (key === "status" && mergedParams[key] === "all") ||
+        (key === "limit" && mergedParams[key] === "10") ||
+        (key === "keyword" && mergedParams[key] === "")
+      ) {
+        delete mergedParams[key];
+      }
+    });
+    setSearchParams(mergedParams);
+  };
 
   useEffect(() => {
     const status = statusFilter !== "all" ? statusFilter : "";
@@ -130,7 +150,9 @@ const PromotionManagement = () => {
   const selectedPromotions = promotions.filter((p) =>
     selectedItems.includes(p._id),
   );
-  const hasActiveSelected = selectedPromotions.some((p) => p.status === "active");
+  const hasActiveSelected = selectedPromotions.some(
+    (p) => p.status === "active",
+  );
   const hasInactiveSelected = selectedPromotions.some(
     (p) => p.status === "inactive",
   );
@@ -229,14 +251,18 @@ const PromotionManagement = () => {
                   type="text"
                   placeholder="Tìm mã, tiêu đề..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) =>
+                    updateURL({ keyword: e.target.value, page: "1" })
+                  }
                   className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white transition-shadow"
                 />
               </div>
 
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  updateURL({ status: e.target.value, page: "1" })
+                }
                 className="w-full sm:w-48 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer"
               >
                 <option value="all">Tất cả trạng thái</option>
@@ -324,17 +350,26 @@ const PromotionManagement = () => {
                       <th scope="col" className="px-4 py-4 text-center">
                         Mã
                       </th>
-                      <th scope="col" className="px-4 py-4 text-center leading-tight">
+                      <th
+                        scope="col"
+                        className="px-4 py-4 text-center leading-tight"
+                      >
                         Giảm
                         <br />
                         giá
                       </th>
-                      <th scope="col" className="px-4 py-4 text-center leading-tight">
+                      <th
+                        scope="col"
+                        className="px-4 py-4 text-center leading-tight"
+                      >
                         Loại
                         <br />
                         giảm
                       </th>
-                      <th scope="col" className="px-4 py-4 text-center leading-tight">
+                      <th
+                        scope="col"
+                        className="px-4 py-4 text-center leading-tight"
+                      >
                         Số lần
                         <br />
                         dùng
@@ -342,12 +377,18 @@ const PromotionManagement = () => {
                       <th scope="col" className="px-4 py-4 text-center">
                         Trạng thái
                       </th>
-                      <th scope="col" className="px-4 py-4 text-center leading-tight">
+                      <th
+                        scope="col"
+                        className="px-4 py-4 text-center leading-tight"
+                      >
                         Ngày bắt
                         <br />
                         đầu
                       </th>
-                      <th scope="col" className="px-4 py-4 text-center leading-tight">
+                      <th
+                        scope="col"
+                        className="px-4 py-4 text-center leading-tight"
+                      >
                         Ngày kết
                         <br />
                         thúc
@@ -399,12 +440,14 @@ const PromotionManagement = () => {
                               </span>
                               {isPercentage && item.maxDiscountAmount && (
                                 <div className="text-[11px] text-gray-400 mt-1">
-                                  Tối đa {formatCurrency(item.maxDiscountAmount)}
+                                  Tối đa{" "}
+                                  {formatCurrency(item.maxDiscountAmount)}
                                 </div>
                               )}
                               {item.minOrderValue > 0 && (
                                 <div className="text-[11px] text-gray-400 mt-1">
-                                  ĐH tối thiểu {formatCurrency(item.minOrderValue)}
+                                  ĐH tối thiểu{" "}
+                                  {formatCurrency(item.minOrderValue)}
                                 </div>
                               )}
                             </td>
@@ -518,8 +561,7 @@ const PromotionManagement = () => {
                   <select
                     value={limit}
                     onChange={(e) => {
-                      setLimit(Number(e.target.value));
-                      setCurrentPage(1);
+                      updateURL({ limit: e.target.value, page: "1" });
                     }}
                     className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#b51c00] focus:border-[#b51c00] px-3 py-1.5 outline-none cursor-pointer"
                   >
@@ -531,7 +573,9 @@ const PromotionManagement = () => {
 
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    onClick={() =>
+                      updateURL({ page: (currentPage - 1).toString() })
+                    }
                     disabled={currentPage === 1}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -541,7 +585,7 @@ const PromotionManagement = () => {
                     (page) => (
                       <button
                         key={page}
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => updateURL({ page: page.toString() })}
                         className={`w-8 h-8 flex items-center justify-center rounded-lg border font-semibold text-sm transition-colors ${
                           currentPage === page
                             ? "border-[#b51c00] bg-[#b51c00] text-white"
@@ -554,7 +598,7 @@ const PromotionManagement = () => {
                   )}
                   <button
                     onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      updateURL({ page: (currentPage + 1).toString() })
                     }
                     disabled={currentPage === totalPages}
                     className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

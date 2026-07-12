@@ -8,15 +8,15 @@ export const adminBlogService = {
     page = 1,
     limit = 10,
   ) => {
-    const res = await adminApi.get(
+    const response = await adminApi.get(
       `/admin/blog?keyword=${keyword}&blogCategorySlug=${blogCategorySlug}&status=${status}&page=${page}&limit=${limit}`,
     );
-    return res.data;
+    return response.data;
   },
 
   getDetail: async (blogId: string) => {
-    const res = await adminApi.get(`/admin/blog/${blogId}`);
-    return res.data;
+    const response = await adminApi.get(`/admin/blog/${blogId}`);
+    return response.data;
   },
 
   create: async (
@@ -32,10 +32,10 @@ export const adminBlogService = {
           status?: string;
         },
   ) => {
-    const res = await adminApi.post("/admin/blog", data, {
+    const response = await adminApi.post("/admin/blog", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res.data;
+    return response.data;
   },
 
   update: async (
@@ -52,32 +52,32 @@ export const adminBlogService = {
           status?: string;
         },
   ) => {
-    const res = await adminApi.patch(`/admin/blog/update/${blogId}`, data, {
+    const response = await adminApi.patch(`/admin/blog/update/${blogId}`, data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res.data;
+    return response.data;
   },
 
   changeStatus: async (blogId: string, status: "active" | "inactive") => {
-    const res = await adminApi.patch(
+    const response = await adminApi.patch(
       `/admin/blog/change-status/${status}/${blogId}`,
     );
-    return res.data;
+    return response.data;
   },
 
   changeMulti: async (
     ids: string[],
     type: "active" | "inactive" | "delete-all",
   ) => {
-    const res = await adminApi.patch(`/admin/blog/change-multi`, {
+    const response = await adminApi.patch(`/admin/blog/change-multi`, {
       ids,
       type,
     });
-    return res.data;
+    return response.data;
   },
 
   deleteItem: async (blogId: string) => {
-    const res = await adminApi.delete(`/admin/blog/delete/${blogId}`);
-    return res.data;
+    const response = await adminApi.delete(`/admin/blog/delete/${blogId}`);
+    return response.data;
   },
 };

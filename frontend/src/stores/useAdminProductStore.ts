@@ -35,7 +35,7 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
     }
   },
 
-  getProductDetail: async (productId: string) => {
+  getProductDetail: async (productId) => {
     try {
       set({ loading: true });
       const response = await adminProductService.getDetail(productId);
@@ -49,16 +49,7 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
     }
   },
 
-  createProduct: async (data: FormData | {
-    name: string;
-    description: string;
-    ingredients: string;
-    category: string;
-    price: number;
-    images?: string[];
-    stock?: number;
-    status?: string;
-  }) => {
+  createProduct: async (data) => {
     try {
       set({ loading: true });
       await adminProductService.create(data);
@@ -72,19 +63,7 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
     }
   },
 
-  updateProduct: async (
-    productId: string,
-    data: FormData | {
-      name?: string;
-      description?: string;
-      ingredients?: string;
-      category?: string;
-      price?: number;
-      images?: string[];
-      stock?: number;
-      status?: string;
-    },
-  ) => {
+  updateProduct: async (productId, data) => {
     try {
       set({ loading: true });
       await adminProductService.update(productId, data);
@@ -98,7 +77,7 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
     }
   },
 
-  changeStatus: async (productId: string, status: "active" | "inactive") => {
+  changeStatus: async (productId, status) => {
     try {
       set({ loading: true });
       await adminProductService.changeStatus(productId, status);
@@ -112,7 +91,7 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
     }
   },
 
-  changeMulti: async (ids: string[], type: "active" | "inactive" | "delete-all") => {
+  changeMulti: async (ids, type) => {
     try {
       set({ loading: true });
       await adminProductService.changeMulti(ids, type);
@@ -131,7 +110,7 @@ export const useAdminProductStore = create<AdminProductState>((set) => ({
     }
   },
 
-  deleteItem: async (productId: string) => {
+  deleteItem: async (productId) => {
     try {
       set({ loading: true });
       await adminProductService.deleteItem(productId);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,13 +17,14 @@ import { toast } from "sonner";
 
 const OrderManagement = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [orderStatusFilter, setOrderStatusFilter] = useState("all");
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("keyword") || "";
+  const orderStatusFilter = searchParams.get("orderStatus") || "all";
+  const paymentStatusFilter = searchParams.get("paymentStatus") || "all";
+  const startDate = searchParams.get("startDate") || "";
+  const endDate = searchParams.get("endDate") || "";
+  const currentPage = parseInt(searchParams.get("page") || "1");
+  const limit = parseInt(searchParams.get("limit") || "10");
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   const {
@@ -33,6 +35,27 @@ const OrderManagement = () => {
     fetchOrders,
     updateOrderStatus,
   } = useAdminOrderStore();
+
+  const updateURL = (newParams: Record<string, string>) => {
+    const params = Object.fromEntries(searchParams.entries());
+    const mergedParams = { ...params, ...newParams };
+
+    Object.keys(mergedParams).forEach((key) => {
+      if (
+        !mergedParams[key] ||
+        (key === "page" && mergedParams[key] === "1") ||
+        (key === "orderStatus" && mergedParams[key] === "all") ||
+        (key === "paymentStatus" && mergedParams[key] === "all") ||
+        (key === "limit" && mergedParams[key] === "10") ||
+        (key === "keyword" && mergedParams[key] === "") ||
+        (key === "startDate" && mergedParams[key] === "") ||
+        (key === "endDate" && mergedParams[key] === "")
+      ) {
+        delete mergedParams[key];
+      }
+    });
+    setSearchParams(mergedParams);
+  };
 
   useEffect(() => {
     const filters: any = {};
@@ -55,12 +78,14 @@ const OrderManagement = () => {
   ]);
 
   const handleClearFilters = () => {
-    setSearchTerm("");
-    setOrderStatusFilter("all");
-    setPaymentStatusFilter("all");
-    setStartDate("");
-    setEndDate("");
-    setCurrentPage(1);
+    updateURL({
+      keyword: "",
+      orderStatus: "all",
+      paymentStatus: "all",
+      startDate: "",
+      endDate: "",
+      page: "1",
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -200,14 +225,18 @@ const OrderManagement = () => {
                   type="text"
                   placeholder="Mã đơn, SĐT hoặc Tên khách..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) =>
+                    updateURL({ keyword: e.target.value, page: "1" })
+                  }
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#b51c00]/20 focus:border-[#b51c00] outline-none"
                 />
               </div>
 
               <select
                 value={orderStatusFilter}
-                onChange={(e) => setOrderStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  updateURL({ orderStatus: e.target.value, page: "1" })
+                }
                 className="w-full xl:w-48 px-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#b51c00] cursor-pointer"
               >
                 <option value="all">Mọi trạng thái đơn</option>
@@ -220,7 +249,9 @@ const OrderManagement = () => {
 
               <select
                 value={paymentStatusFilter}
-                onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  updateURL({ paymentStatus: e.target.value, page: "1" })
+                }
                 className="w-full xl:w-48 px-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#b51c00] cursor-pointer"
               >
                 <option value="all">Mọi TT thanh toán</option>
@@ -236,7 +267,9 @@ const OrderManagement = () => {
                 <input
                   type="date"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={(e) =>
+                    updateURL({ startDate: e.target.value, page: "1" })
+                  }
                   className="px-3 py-1.5 border border-gray-200 rounded-md text-sm outline-none focus:border-[#b51c00]"
                 />
               </div>
@@ -245,7 +278,9 @@ const OrderManagement = () => {
                 <input
                   type="date"
                   value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  onChange={(e) =>
+                    updateURL({ endDate: e.target.value, page: "1" })
+                  }
                   className="px-3 py-1.5 border border-gray-200 rounded-md text-sm outline-none focus:border-[#b51c00]"
                 />
               </div>
@@ -290,10 +325,7 @@ const OrderManagement = () => {
                 <tbody className="divide-y divide-gray-50">
                   {orders.length > 0 ? (
                     orders.map((order) => {
-                      const statusConfig =
-                        orderStatusConfig[
-                          order.orderStatus as keyof typeof orderStatusConfig
-                        ];
+                      const statusConfig = orderStatusConfig[order.orderStatus];
 
                       if (!statusConfig) {
                         return null;
@@ -360,11 +392,7 @@ const OrderManagement = () => {
                                 {/* Next valid statuses */}
                                 {statusConfig.next.map((nextStatus) => (
                                   <option key={nextStatus} value={nextStatus}>
-                                    {
-                                      orderStatusConfig[
-                                        nextStatus as keyof typeof orderStatusConfig
-                                      ].label
-                                    }
+                                    {orderStatusConfig[nextStatus].label}
                                   </option>
                                 ))}
                               </select>
@@ -410,8 +438,7 @@ const OrderManagement = () => {
                 <select
                   value={limit}
                   onChange={(e) => {
-                    setLimit(Number(e.target.value));
-                    setCurrentPage(1);
+                    updateURL({ limit: e.target.value, page: "1" });
                   }}
                   className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm font-semibold outline-none focus:border-[#b51c00] cursor-pointer"
                 >
@@ -426,7 +453,9 @@ const OrderManagement = () => {
               <div className="flex items-center gap-1">
                 {/* Previous Button */}
                 <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  onClick={() =>
+                    updateURL({ page: (currentPage - 1).toString() })
+                  }
                   disabled={currentPage === 1}
                   className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-600 disabled:hover:border-gray-200"
                 >
@@ -477,7 +506,7 @@ const OrderManagement = () => {
                     ) : (
                       <button
                         key={page}
-                        onClick={() => setCurrentPage(page as number)}
+                        onClick={() => updateURL({ page: page.toString() })}
                         className={`w-8 h-8 flex items-center justify-center rounded-lg border font-bold text-sm transition-colors ${
                           currentPage === page
                             ? "border-[#b51c00] bg-[#b51c00] text-white shadow-sm"
@@ -493,7 +522,7 @@ const OrderManagement = () => {
                 {/* Next Button */}
                 <button
                   onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    updateURL({ page: (currentPage + 1).toString() })
                   }
                   disabled={currentPage === totalPages}
                   className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-gray-600 disabled:hover:border-gray-200"

@@ -9,11 +9,11 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
   totalPages: 1,
 
   createReview: async (
-    productId: string,
-    orderId: string,
-    rating: number,
-    comment: string,
-    images?: File[],
+    productId,
+    orderId,
+    rating,
+    comment,
+    images,
   ) => {
     set({ loading: true });
     try {
@@ -33,12 +33,13 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
       set({ loading: false });
       return response;
     } catch (error) {
+      console.error("Error creating review:", error);
       set({ loading: false });
       throw error;
     }
   },
 
-  getReviewsByProduct: async (productId: string, page = 1, limit = 5) => {
+  getReviewsByProduct: async (productId, page = 1, limit = 5) => {
     set({ loading: true });
     try {
       const response = await reviewService.getList(productId, page, limit);
@@ -50,12 +51,13 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
       });
       return response;
     } catch (error) {
+      console.error("Error fetching reviews:", error);
       set({ loading: false });
       throw error;
     }
   },
 
-  loadMoreReviews: async (productId: string, limit = 5) => {
+  loadMoreReviews: async (productId, limit = 5) => {
     const { currentPage, totalPages } = get();
 
     // Kiểm tra đã tải hết trang cuối
@@ -77,6 +79,7 @@ export const useReviewStore = create<ReviewState>((set, get) => ({
       });
       return response;
     } catch (error) {
+      console.error("Error loading more reviews:", error);
       set({ loading: false });
       throw error;
     }

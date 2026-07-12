@@ -36,7 +36,7 @@ export const createVNPAYPayment = (order, totalAmount) => {
     vnp_OrderInfo: `Thanh toan don hang ${order._id.toString()}`,
     vnp_OrderType: "other",
     vnp_Amount: Math.round(Number(totalAmount)) * 100,
-    vnp_ReturnUrl: `${process.env.CLIENT_URL || "http://localhost:5173"}/order-success/${order._id.toString()}`,
+    vnp_ReturnUrl: `${process.env.CLIENT_URL}/order-success/${order._id.toString()}`,
     vnp_IpAddr: "127.0.0.1",
     vnp_CreateDate: createDate,
   };

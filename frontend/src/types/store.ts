@@ -372,8 +372,35 @@ export interface AdminPromotionStore {
     limit: number,
   ) => Promise<void>;
   getDetail: (promotionId: string) => Promise<void>;
-  createPromotion: (data: any) => Promise<void>;
-  updatePromotion: (promotionId: string, data: any) => Promise<void>;
+  createPromotion: (data: {
+    title: string;
+    code: string;
+    description?: string;
+    discountType: "percentage" | "fixed";
+    discountValue: number;
+    minOrderValue?: number;
+    maxDiscountAmount?: number | null;
+    usageLimit?: number | null;
+    startDate: string;
+    endDate: string;
+    status?: "active" | "inactive";
+  }) => Promise<void>;
+  updatePromotion: (
+    promotionId: string,
+    data: {
+      title: string;
+      code: string;
+      description?: string;
+      discountType: "percentage" | "fixed";
+      discountValue: number;
+      minOrderValue?: number;
+      maxDiscountAmount?: number | null;
+      usageLimit?: number | null;
+      startDate: string;
+      endDate: string;
+      status?: "active" | "inactive";
+    },
+  ) => Promise<void>;
   changeStatus: (
     promotionId: string,
     status: "active" | "inactive",
@@ -400,23 +427,24 @@ export interface AdminUserStore {
   ) => Promise<void>;
   getUserDetail: (userId: string) => Promise<User>;
   createUser: (data: {
-    displayName: string;
-    email: string;
+    firstName: string;
+    lastName: string;
     phone: string;
     password: string;
-    roleId?: string | null;
-    status?: "active" | "inactive";
+    email: string;
+    roleId?: string;
+    status?: string;
     address?: string;
   }) => Promise<void>;
   updateUser: (
     userId: string,
     data: {
-      displayName?: string;
-      email?: string;
+      firstName?: string;
+      lastName?: string;
       phone?: string;
-      password?: string;
-      roleId?: string | null;
-      status?: "active" | "inactive";
+      email?: string;
+      roleId?: string;
+      status?: string;
       address?: string;
     },
   ) => Promise<void>;
@@ -436,4 +464,33 @@ export interface RoleStore {
   loading: boolean;
 
   fetchRoles: () => Promise<void>;
+}
+
+export interface AdminOrderStore {
+  orders: Order[];
+  currentOrder: Order | null;
+  loading: boolean;
+  totalPages: number;
+  totalItems: number;
+
+  fetchOrders: (
+    page?: number,
+    limit?: number,
+    filters?: {
+      orderStatus?: string;
+      paymentStatus?: string;
+      search?: string;
+      startDate?: string;
+      endDate?: string;
+    },
+  ) => Promise<void>;
+  fetchOrderDetail: (orderId: string) => Promise<void>;
+  updateOrderStatus: (
+    orderId: string,
+    data: {
+      orderStatus?: string;
+      paymentStatus?: string;
+    },
+  ) => Promise<Order>;
+  clearCurrentOrder: () => void;
 }

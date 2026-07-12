@@ -8,15 +8,15 @@ export const adminProductService = {
     page = 1,
     limit = 10,
   ) => {
-    const res = await adminApi.get(
+    const response = await adminApi.get(
       `/admin/product?keyword=${keyword}&categorySlug=${categorySlug}&status=${status}&page=${page}&limit=${limit}`,
     );
-    return res.data;
+    return response.data;
   },
 
   getDetail: async (productId: string) => {
-    const res = await adminApi.get(`/admin/product/${productId}`);
-    return res.data;
+    const response = await adminApi.get(`/admin/product/${productId}`);
+    return response.data;
   },
 
   create: async (
@@ -33,10 +33,10 @@ export const adminProductService = {
           status?: string;
         },
   ) => {
-    const res = await adminApi.post("/admin/product", data, {
+    const response = await adminApi.post("/admin/product", data, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return res.data;
+    return response.data;
   },
 
   update: async (
@@ -54,36 +54,36 @@ export const adminProductService = {
           status?: string;
         },
   ) => {
-    const res = await adminApi.patch(
+    const response = await adminApi.patch(
       `/admin/product/update/${productId}`,
       data,
       {
         headers: { "Content-Type": "multipart/form-data" },
       },
     );
-    return res.data;
+    return response.data;
   },
 
   changeStatus: async (productId: string, status: "active" | "inactive") => {
-    const res = await adminApi.patch(
+    const response = await adminApi.patch(
       `/admin/product/change-status/${status}/${productId}`,
     );
-    return res.data;
+    return response.data;
   },
 
   changeMulti: async (
     ids: string[],
     type: "active" | "inactive" | "delete-all",
   ) => {
-    const res = await adminApi.patch(`/admin/product/change-multi`, {
+    const response = await adminApi.patch(`/admin/product/change-multi`, {
       ids,
       type,
     });
-    return res.data;
+    return response.data;
   },
 
   deleteItem: async (productId: string) => {
-    const res = await adminApi.delete(`/admin/product/delete/${productId}`);
-    return res.data;
+    const response = await adminApi.delete(`/admin/product/delete/${productId}`);
+    return response.data;
   },
 };

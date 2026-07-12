@@ -37,6 +37,7 @@ const OrderDetail = () => {
   useEffect(() => {
     if (orderId) {
       fetchOrderDetail(orderId);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [orderId, fetchOrderDetail]);
 
@@ -217,7 +218,7 @@ const OrderDetail = () => {
           <XCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600">Không tìm thấy đơn hàng</p>
           <button
-            onClick={() => navigate("/admin/order")}
+            onClick={() => navigate("/admin/orders")}
             className="mt-4 px-4 py-2 bg-[#b51c00] text-white rounded-lg hover:bg-[#8e1400] transition-colors"
           >
             Quay lại danh sách
@@ -267,7 +268,7 @@ const OrderDetail = () => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink
-                href="/admin/order"
+                href="/admin/orders"
                 className="font-medium text-gray-500"
               >
                 Quản lý đơn hàng
@@ -288,7 +289,7 @@ const OrderDetail = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate("/admin/order")}
+              onClick={() => navigate(-1)}
               className="p-2 hover:bg-white rounded-lg border border-gray-200 transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />

@@ -9,14 +9,14 @@ export const productService = {
     sortKey = "",
     sortValue = "",
   ) => {
-    const res = await api.get(
+    const response = await api.get(
       `/product?keyword=${keyword}&categorySlug=${categorySlug}&page=${page}&limit=${limit}&sortKey=${sortKey}&sortValue=${sortValue}`,
     );
-    return res.data;
+    return response.data;
   },
 
   getDetail: async (slug: string) => {
-    const { data } = await api.get(`/product/${slug}`);
-    return data;
+    const response = await api.get(`/product/${slug}`);
+    return response.data;
   },
 };

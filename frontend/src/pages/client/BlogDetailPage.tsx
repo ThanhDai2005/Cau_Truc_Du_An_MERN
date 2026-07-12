@@ -261,7 +261,7 @@ const BlogDetailPage = () => {
           {/* Back to Blog */}
           <div className="text-center pb-8">
             <Link
-              to="/blog"
+              to="/blogs"
               className="inline-flex items-center gap-2 px-8 py-3.5 bg-white border border-gray-200 hover:border-[#b51c00] hover:text-[#b51c00] rounded-xl transition-all text-gray-700 font-bold active:scale-95 shadow-sm"
             >
               <span className="material-symbols-outlined text-[20px]">

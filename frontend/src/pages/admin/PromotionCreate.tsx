@@ -293,7 +293,7 @@ const PromotionCreate = () => {
                   value={formData.maxDiscountAmount}
                   onChange={handleChange}
                   placeholder="Ví dụ: 200000"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#b51c00] focus:border-transparent transition-shadow"
+                  className={`w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#b51c00] focus:border-transparent transition-shadow ${formData.discountType == "fixed" ? "bg-gray-100" : ""}`}
                   min="0"
                   step="1000"
                   disabled={formData.discountType === "fixed"}

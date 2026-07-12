@@ -7,14 +7,14 @@ export const blogService = {
     page = 1,
     limit = 12,
   ) => {
-    const res = await api.get(
+    const response = await api.get(
       `/blog?keyword=${keyword}&blogCategorySlug=${blogCategorySlug}&page=${page}&limit=${limit}`,
     );
-    return res.data;
+    return response.data;
   },
 
   getDetail: async (slug: string) => {
-    const res = await api.get(`/blog/${slug}`);
-    return res.data;
+    const response = await api.get(`/blog/${slug}`);
+    return response.data;
   },
 };

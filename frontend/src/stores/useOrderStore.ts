@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { orderService } from "@/services/orderService";
-import type { CreateOrderData } from "@/types/order";
 import type { OrderState } from "@/types/store";
 
 export const useOrderStore = create<OrderState>((set, get) => ({
@@ -10,7 +9,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   loading: false,
   totalPages: 1,
 
-  createOrder: async (data: CreateOrderData) => {
+  createOrder: async (data) => {
     try {
       set({ loading: true });
       const response = await orderService.create(data);
@@ -27,7 +26,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
-  getMyOrders: async (page = 1, limit = 10, orderStatus?: string) => {
+  getMyOrders: async (page = 1, limit = 10, orderStatus) => {
     try {
       set({ loading: true });
       const response = await orderService.getMyOrders(page, limit, orderStatus);
@@ -42,7 +41,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
-  getOrderDetail: async (orderId: string) => {
+  getOrderDetail: async (orderId) => {
     try {
       set({ loading: true });
       const response = await orderService.getDetail(orderId);
@@ -53,7 +52,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
-  getOrderReviews: async (orderId: string) => {
+  getOrderReviews: async (orderId) => {
     try {
       set({ loading: true });
       const response = await orderService.getOrderReviews(orderId);
@@ -71,7 +70,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
-  retryPayment: async (orderId: string) => {
+  retryPayment: async (orderId) => {
     try {
       const response = await orderService.retryPayment(orderId);
       return response;

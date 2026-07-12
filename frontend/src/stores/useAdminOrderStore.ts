@@ -1,8 +1,9 @@
 import { create } from "zustand";
+import type { AdminOrderStore } from "@/types/store";
 import { adminOrderService } from "@/services/adminOrderService";
 import { toast } from "sonner";
 
-export const useAdminOrderStore = create((set) => ({
+export const useAdminOrderStore = create<AdminOrderStore>((set, get) => ({
   orders: [],
   currentOrder: null,
   loading: false,

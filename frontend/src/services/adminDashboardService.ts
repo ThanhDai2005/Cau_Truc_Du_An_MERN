@@ -8,8 +8,8 @@ export const adminDashboardService = {
       params.append("endDate", endDate);
     }
     const url = `/admin/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
-    const res = await adminApi.get(url);
-    return res.data;
+    const response = await adminApi.get(url);
+    return response.data;
   },
 
   getOrderStatusByMonth: async (month?: string) => {
@@ -18,7 +18,7 @@ export const adminDashboardService = {
       params.append("month", month);
     }
     const url = `/admin/dashboard${params.toString() ? `?${params.toString()}` : ""}`;
-    const res = await adminApi.get(url);
-    return res.data;
+    const response = await adminApi.get(url);
+    return response.data;
   },
 };

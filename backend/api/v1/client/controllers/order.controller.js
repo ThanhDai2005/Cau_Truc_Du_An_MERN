@@ -258,8 +258,8 @@ export const momoCallback = async (req, res) => {
       signature,
     } = req.body;
 
-    const secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
-    const accessKey = "F8BBA842ECF85";
+    const accessKey = process.env.MOMO_ACCESS_KEY;
+    const secretkey = process.env.MOMO_SECRET_KEY;
 
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
 

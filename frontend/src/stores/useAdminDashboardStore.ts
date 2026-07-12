@@ -25,7 +25,7 @@ export const useAdminDashboardStore = create<AdminDashboardState>((set) => ({
   },
   loading: false,
 
-  fetchStats: async (startDate?: string, endDate?: string) => {
+  fetchStats: async (startDate, endDate) => {
     try {
       set({ loading: true });
       const response = await adminDashboardService.getStats(startDate, endDate);
@@ -37,7 +37,7 @@ export const useAdminDashboardStore = create<AdminDashboardState>((set) => ({
     }
   },
 
-  fetchOrderStatusByMonth: async (month?: string) => {
+  fetchOrderStatusByMonth: async (month) => {
     try {
       const response = await adminDashboardService.getOrderStatusByMonth(month);
       set((state) => ({

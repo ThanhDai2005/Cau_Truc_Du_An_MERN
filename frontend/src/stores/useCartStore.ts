@@ -5,7 +5,7 @@ import type { CartState } from "@/types/store";
 
 export const useCartStore = create<CartState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       cart: null,
       loading: false,
 
@@ -16,22 +16,24 @@ export const useCartStore = create<CartState>()(
           set({ cart: response.cart, loading: false });
         } catch (error) {
           console.error("Error fetching cart:", error);
+          set({ loading: false });
           throw error;
         }
       },
 
-      addToCart: async (productId: string, quantity: number) => {
+      addToCart: async (productId, quantity) => {
         try {
           set({ loading: true });
           const response = await cartService.addToCart(productId, quantity);
           set({ cart: response.cart, loading: false });
         } catch (error) {
           console.error("Error adding to cart:", error);
+          set({ loading: false });
           throw error;
         }
       },
 
-      updateQuantity: async (productId: string, quantity: number) => {
+      updateQuantity: async (productId, quantity) => {
         try {
           set({ loading: true });
           const response = await cartService.updateQuantity(
@@ -41,17 +43,19 @@ export const useCartStore = create<CartState>()(
           set({ cart: response.cart, loading: false });
         } catch (error) {
           console.error("Error updating quantity:", error);
+          set({ loading: false });
           throw error;
         }
       },
 
-      removeFromCart: async (productId: string) => {
+      removeFromCart: async (productId) => {
         try {
           set({ loading: true });
           const response = await cartService.removeFromCart(productId);
           set({ cart: response.cart, loading: false });
         } catch (error) {
           console.error("Error removing from cart:", error);
+          set({ loading: false });
           throw error;
         }
       },

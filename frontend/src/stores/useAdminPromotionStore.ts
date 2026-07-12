@@ -1,19 +1,19 @@
 import { create } from "zustand";
-import { promotionService } from "@/services/promotionService";
+import { adminPromotionService } from "@/services/adminPromotionService";
 import { toast } from "sonner";
 import type { AdminPromotionStore } from "@/types/store";
 
 export const useAdminPromotionStore = create<AdminPromotionStore>(
-  (set, get) => ({
+  (set) => ({
     promotions: [],
     currentPromotion: null,
     loading: false,
     totalPages: 1,
 
-    fetchPromotions: async (keyword, status, page, limit) => {
+    fetchPromotions: async (keyword = "", status = "", page = 1, limit = 10) => {
       try {
         set({ loading: true });
-        const response = await promotionService.list(
+        const response = await adminPromotionService.list(
           keyword,
           status,
           page,
@@ -34,7 +34,7 @@ export const useAdminPromotionStore = create<AdminPromotionStore>(
     getDetail: async (promotionId) => {
       try {
         set({ loading: true });
-        const response = await promotionService.getDetail(promotionId);
+        const response = await adminPromotionService.getDetail(promotionId);
         set({ currentPromotion: response.data, loading: false });
       } catch (error) {
         console.error("Lỗi khi tải chi tiết khuyến mãi:", error);
@@ -47,7 +47,7 @@ export const useAdminPromotionStore = create<AdminPromotionStore>(
     createPromotion: async (data) => {
       try {
         set({ loading: true });
-        await promotionService.create(data);
+        await adminPromotionService.create(data);
         set({ loading: false });
         toast.success("Tạo khuyến mãi thành công");
       } catch (error) {
@@ -61,7 +61,7 @@ export const useAdminPromotionStore = create<AdminPromotionStore>(
     updatePromotion: async (promotionId, data) => {
       try {
         set({ loading: true });
-        await promotionService.update(promotionId, data);
+        await adminPromotionService.update(promotionId, data);
         set({ loading: false });
         toast.success("Cập nhật khuyến mãi thành công");
       } catch (error) {
@@ -74,7 +74,7 @@ export const useAdminPromotionStore = create<AdminPromotionStore>(
 
     changeStatus: async (promotionId, status) => {
       try {
-        await promotionService.changeStatus(promotionId, status);
+        await adminPromotionService.changeStatus(promotionId, status);
         const message =
           status === "active"
             ? "Khôi phục khuyến mãi thành công"
@@ -89,7 +89,7 @@ export const useAdminPromotionStore = create<AdminPromotionStore>(
 
     changeMulti: async (ids, type) => {
       try {
-        await promotionService.changeMulti(ids, type);
+        await adminPromotionService.changeMulti(ids, type);
         const messages = {
           active: "Khôi phục các khuyến mãi thành công",
           inactive: "Ngưng hoạt động các khuyến mãi thành công",
@@ -105,7 +105,7 @@ export const useAdminPromotionStore = create<AdminPromotionStore>(
 
     deleteItem: async (promotionId) => {
       try {
-        await promotionService.deleteItem(promotionId);
+        await adminPromotionService.deleteItem(promotionId);
         toast.success("Xóa vĩnh viễn khuyến mãi thành công");
       } catch (error) {
         console.error("Lỗi khi xóa vĩnh viễn khuyến mãi:", error);

@@ -30,7 +30,7 @@ export const useBlogStore = create<BlogState>((set) => ({
     }
   },
 
-  getDetail: async (slug: string) => {
+  getDetail: async (slug) => {
     set({ loading: true, currentBlog: null });
     try {
       const response = await blogService.getDetail(slug);

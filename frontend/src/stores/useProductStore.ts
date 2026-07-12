@@ -17,7 +17,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
   ) => {
     try {
       set({ loading: true });
-      const res = await productService.getList(
+      const response = await productService.getList(
         keyword,
         categorySlug,
         page,
@@ -25,8 +25,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
         sortKey,
         sortValue,
       );
-      set({ product: res.data, loading: false });
-      return res;
+      set({ product: response.data, loading: false });
+      return response;
     } catch (error) {
       console.error("Error fetching products:", error);
       set({ loading: false });
@@ -34,12 +34,12 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  getDetail: async (slug: string) => {
+  getDetail: async (slug) => {
     try {
       set({ loading: true });
-      const res = await productService.getDetail(slug);
-      set({ currentProduct: res.data, loading: false });
-      return res;
+      const response = await productService.getDetail(slug);
+      set({ currentProduct: response.data, loading: false });
+      return response;
     } catch (error) {
       console.error("Error fetching product detail:", error);
       set({ loading: false, currentProduct: null });

@@ -1,9 +1,8 @@
-import { ChevronLeftIcon } from "lucide-react";
+import { ChevronLeftIcon, ShieldCheckIcon } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,82 +77,92 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4 bg-gradient-purple">
-      <Card className="w-full border-none shadow-md sm:max-w-md">
-        <CardHeader className="gap-6 text-center">
-          <div className="flex items-center justify-center">
-            <img
-              className="object-contain w-12 h-12"
-              src="/logo.png"
-              alt="logo"
-            />
-          </div>
+    <div className="min-h-screen bg-[#f9f9f9] flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="bg-white shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100">
+          <CardContent className="p-6 md:p-8 flex flex-col gap-6">
+            {/* Header with Icon */}
+            <header className="text-center flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center">
+                <ShieldCheckIcon className="w-8 h-8 text-[#b51c00]" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-gray-900">
+                  Xác thực email
+                </CardTitle>
+                <CardDescription className="text-base text-gray-600 mt-2">
+                  Mã xác nhận đã được gửi tới
+                  <br />
+                  <span className="font-semibold text-gray-900">{email}</span>
+                </CardDescription>
+              </div>
+            </header>
 
-          <div>
-            <CardTitle className="text-2xl">Xác thực email</CardTitle>
-            <CardDescription className="mt-2 text-base text-gray-600">
-              Mã xác nhận đã được gửi tới <br />
-              <span className="font-semibold text-foreground">{email}</span>
-            </CardDescription>
-          </div>
-        </CardHeader>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+              <div className="flex flex-col items-center gap-4">
+                <InputOTP
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e)}
+                  pattern={REGEXP_ONLY_DIGITS}
+                >
+                  <InputOTPGroup className="gap-2">
+                    {[0, 1, 2, 3, 4, 5].map((i) => (
+                      <InputOTPSlot
+                        key={i}
+                        index={i}
+                        className="w-12 h-12 text-lg border-gray-300 rounded-xl"
+                      />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
 
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="flex flex-col items-center gap-4">
-              <InputOTP
-                maxLength={6}
-                value={otp}
-                onChange={(e) => setOtp(e)}
-                pattern={REGEXP_ONLY_DIGITS}
+                {error && <p className="text-sm text-red-500">{error}</p>}
+              </div>
+
+              <Button
+                disabled={otp.length !== 6 || loading}
+                className="w-full h-12 bg-[#b51c00] hover:bg-[#8e1400] text-white rounded-xl text-base font-semibold"
+                type="submit"
               >
-                <InputOTPGroup className="gap-2">
-                  {[0, 1, 2, 3, 4, 5].map((i) => (
-                    <InputOTPSlot
-                      key={i}
-                      index={i}
-                      className="w-12 h-12 text-lg border-gray-300 rounded-md"
-                    />
-                  ))}
-                </InputOTPGroup>
-              </InputOTP>
+                {loading ? "Đang xác thực..." : "Tiếp tục"}
+              </Button>
+            </form>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
-            </div>
+            {/* Resend OTP */}
+            <p className="text-sm text-center text-gray-600">
+              Chưa nhận được mã?{" "}
+              <button
+                disabled={forgotPasswordLoading || cooldown > 0}
+                onClick={() => handleForgotPassword(email)}
+                className="font-semibold text-[#b51c00] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {cooldown > 0
+                  ? `Gửi lại (${cooldown}s)`
+                  : forgotPasswordLoading
+                    ? "Đang gửi..."
+                    : "Gửi lại"}
+              </button>
+            </p>
 
-            <Button
-              disabled={otp.length !== 6 || loading}
-              className="w-full"
-              type="submit"
+            {/* Back Link */}
+            <Link
+              to="/forgot-password"
+              className="flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-[#b51c00] transition-colors group"
             >
-              {loading ? "Đang xác thực..." : "Tiếp tục"}
-            </Button>
-          </form>
+              <ChevronLeftIcon className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              <span className="font-medium">Quay lại</span>
+            </Link>
+          </CardContent>
+        </Card>
 
-          <p className="text-sm text-center text-gray-500">
-            Chưa nhận được mã?{" "}
-            <button
-              disabled={forgotPasswordLoading || cooldown > 0}
-              onClick={() => handleForgotPassword(email)}
-              className="inline-flex items-center gap-1 font-semibold text-[#2B7FFF] hover:underline disabled:opacity-50"
-            >
-              {cooldown > 0
-                ? `Gửi lại (${cooldown}s)`
-                : forgotPasswordLoading
-                  ? "Đang gửi..."
-                  : "Gửi lại"}
-            </button>
-          </p>
-
-          <Link
-            to="/forgot-password"
-            className="flex items-center justify-center gap-2 text-sm text-muted-foreground group"
-          >
-            <ChevronLeftIcon className="transition size-4 group-hover:-translate-x-1" />
-            <span>Quay lại</span>
-          </Link>
-        </CardContent>
-      </Card>
+        {/* Info Text */}
+        <p className="text-center text-xs text-gray-500 mt-6 px-4">
+          Mã OTP có hiệu lực trong 3 phút. Kiểm tra cả hộp thư spam nếu không
+          thấy email.
+        </p>
+      </div>
     </div>
   );
 };

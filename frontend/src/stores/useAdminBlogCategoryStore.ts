@@ -34,7 +34,7 @@ export const useAdminBlogCategoryStore = create<AdminBlogCategoryState>(
       }
     },
 
-    getBlogCategoryDetail: async (blogCategoryId: string) => {
+    getBlogCategoryDetail: async (blogCategoryId) => {
       try {
         set({ loading: true });
         const response =
@@ -49,7 +49,7 @@ export const useAdminBlogCategoryStore = create<AdminBlogCategoryState>(
       }
     },
 
-    createBlogCategory: async (data: { name: string; status?: string }) => {
+    createBlogCategory: async (data) => {
       try {
         set({ loading: true });
         await adminBlogCategoryService.create(data);
@@ -63,10 +63,7 @@ export const useAdminBlogCategoryStore = create<AdminBlogCategoryState>(
       }
     },
 
-    updateBlogCategory: async (
-      blogCategoryId: string,
-      data: { name?: string; status?: string },
-    ) => {
+    updateBlogCategory: async (blogCategoryId, data) => {
       try {
         set({ loading: true });
         await adminBlogCategoryService.update(blogCategoryId, data);
@@ -80,10 +77,7 @@ export const useAdminBlogCategoryStore = create<AdminBlogCategoryState>(
       }
     },
 
-    changeStatus: async (
-      blogCategoryId: string,
-      status: "active" | "inactive",
-    ) => {
+    changeStatus: async (blogCategoryId, status) => {
       try {
         set({ loading: true });
         await adminBlogCategoryService.changeStatus(blogCategoryId, status);
@@ -97,10 +91,7 @@ export const useAdminBlogCategoryStore = create<AdminBlogCategoryState>(
       }
     },
 
-    changeMulti: async (
-      ids: string[],
-      type: "active" | "inactive" | "delete-all",
-    ) => {
+    changeMulti: async (ids, type) => {
       try {
         set({ loading: true });
         await adminBlogCategoryService.changeMulti(ids, type);
@@ -119,7 +110,7 @@ export const useAdminBlogCategoryStore = create<AdminBlogCategoryState>(
       }
     },
 
-    deleteItem: async (blogCategoryId: string) => {
+    deleteItem: async (blogCategoryId) => {
       try {
         set({ loading: true });
         await adminBlogCategoryService.deleteItem(blogCategoryId);

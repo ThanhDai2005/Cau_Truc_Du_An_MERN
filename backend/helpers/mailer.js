@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmail = async (to, subject, htmlContent) => {
   const mailOptions = {
-    from: `"PingMe" <${process.env.EMAIL_USER}>`,
+    from: `"Đặc Sản Ba Miền" <${process.env.EMAIL_USER}>`,
     to: to,
     subject: subject,
     html: htmlContent,

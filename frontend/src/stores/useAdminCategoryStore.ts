@@ -23,7 +23,7 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
     }
   },
 
-  getCategoryDetail: async (categoryId: string) => {
+  getCategoryDetail: async (categoryId) => {
     try {
       set({ loading: true });
       const response = await adminCategoryService.getDetail(categoryId);
@@ -37,7 +37,7 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
     }
   },
 
-  createCategory: async (data: { name: string; status?: string }) => {
+  createCategory: async (data) => {
     try {
       set({ loading: true });
       await adminCategoryService.create(data);
@@ -51,10 +51,7 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
     }
   },
 
-  updateCategory: async (
-    categoryId: string,
-    data: { name?: string; status?: string },
-  ) => {
+  updateCategory: async (categoryId, data) => {
     try {
       set({ loading: true });
       await adminCategoryService.update(categoryId, data);
@@ -68,7 +65,7 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
     }
   },
 
-  changeStatus: async (categoryId: string, status: "active" | "inactive") => {
+  changeStatus: async (categoryId, status) => {
     try {
       set({ loading: true });
       await adminCategoryService.changeStatus(categoryId, status);
@@ -83,7 +80,7 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
     }
   },
 
-  changeMulti: async (ids: string[], type: "active" | "inactive" | "delete-all") => {
+  changeMulti: async (ids, type) => {
     try {
       set({ loading: true });
       await adminCategoryService.changeMulti(ids, type);
@@ -102,7 +99,7 @@ export const useAdminCategoryStore = create<AdminCategoryState>((set) => ({
     }
   },
 
-  deleteItem: async (categoryId: string) => {
+  deleteItem: async (categoryId) => {
     try {
       set({ loading: true });
       await adminCategoryService.deleteItem(categoryId);

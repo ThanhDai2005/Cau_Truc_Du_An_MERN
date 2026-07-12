@@ -1,7 +1,17 @@
 import adminAxios from "@/lib/adminAxios";
 
 export const adminOrderService = {
-  list: async (page = 1, limit = 10, filters = {}) => {
+  list: async (
+    page = 1,
+    limit = 10,
+    filters: {
+      orderStatus?: string;
+      paymentStatus?: string;
+      search?: string;
+      startDate?: string;
+      endDate?: string;
+    },
+  ) => {
     const params = new URLSearchParams({
       page: String(page),
       limit: String(limit),
@@ -15,13 +25,22 @@ export const adminOrderService = {
     return response.data;
   },
 
-  getDetail: async (orderId) => {
+  getDetail: async (orderId: string) => {
     const response = await adminAxios.get(`/admin/order/detail/${orderId}`);
     return response.data;
   },
 
-  updateStatus: async (orderId, data) => {
-    const response = await adminAxios.patch(`/admin/order/update/${orderId}`, data);
+  updateStatus: async (
+    orderId: string,
+    data: {
+      orderStatus?: string;
+      paymentStatus?: string;
+    },
+  ) => {
+    const response = await adminAxios.patch(
+      `/admin/order/update/${orderId}`,
+      data,
+    );
     return response.data;
   },
 };

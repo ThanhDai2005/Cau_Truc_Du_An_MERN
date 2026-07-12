@@ -156,7 +156,7 @@ const UserEdit = () => {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink
-                href="/admin/user"
+                href="/admin/users"
                 className="font-medium text-gray-500"
               >
                 Quản lý tài khoản

@@ -35,7 +35,7 @@ export const useAdminBlogStore = create<AdminBlogState>((set) => ({
     }
   },
 
-  getBlogDetail: async (blogId: string) => {
+  getBlogDetail: async (blogId) => {
     try {
       set({ loading: true });
       const response = await adminBlogService.getDetail(blogId);
@@ -49,19 +49,7 @@ export const useAdminBlogStore = create<AdminBlogState>((set) => ({
     }
   },
 
-  createBlog: async (
-    data:
-      | FormData
-      | {
-          title: string;
-          content: string;
-          imageUrl: string;
-          blogCategory?: string;
-          featured?: boolean;
-          relatedProducts?: string[];
-          status?: string;
-        },
-  ) => {
+  createBlog: async (data) => {
     try {
       set({ loading: true });
       await adminBlogService.create(data);
@@ -75,20 +63,7 @@ export const useAdminBlogStore = create<AdminBlogState>((set) => ({
     }
   },
 
-  updateBlog: async (
-    blogId: string,
-    data:
-      | FormData
-      | {
-          title?: string;
-          content?: string;
-          imageUrl?: string;
-          blogCategory?: string;
-          featured?: boolean;
-          relatedProducts?: string[];
-          status?: string;
-        },
-  ) => {
+  updateBlog: async (blogId, data) => {
     try {
       set({ loading: true });
       await adminBlogService.update(blogId, data);
@@ -102,7 +77,7 @@ export const useAdminBlogStore = create<AdminBlogState>((set) => ({
     }
   },
 
-  changeStatus: async (blogId: string, status: "active" | "inactive") => {
+  changeStatus: async (blogId, status) => {
     try {
       set({ loading: true });
       await adminBlogService.changeStatus(blogId, status);
@@ -116,10 +91,7 @@ export const useAdminBlogStore = create<AdminBlogState>((set) => ({
     }
   },
 
-  changeMulti: async (
-    ids: string[],
-    type: "active" | "inactive" | "delete-all",
-  ) => {
+  changeMulti: async (ids, type) => {
     try {
       set({ loading: true });
       await adminBlogService.changeMulti(ids, type);
@@ -138,7 +110,7 @@ export const useAdminBlogStore = create<AdminBlogState>((set) => ({
     }
   },
 
-  deleteItem: async (blogId: string) => {
+  deleteItem: async (blogId) => {
     try {
       set({ loading: true });
       await adminBlogService.deleteItem(blogId);
