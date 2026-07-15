@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAdminUserStore } from "@/stores/useAdminUserStore";
-import { useRoleStore } from "@/stores/useRoleStore";
+import { useAdminRoleStore } from "@/stores/useAdminRoleStore";
 import { toast } from "sonner";
 
 const userSchema = z
@@ -39,7 +39,7 @@ type UserFormData = z.infer<typeof userSchema>;
 const UserCreate = () => {
   const navigate = useNavigate();
   const { createUser, loading } = useAdminUserStore();
-  const { roles, fetchRoles } = useRoleStore();
+  const { roles, fetchRoles } = useAdminRoleStore();
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -67,15 +67,28 @@ const UserCreate = () => {
   const onSubmit = async (data: UserFormData) => {
     try {
       setSubmitting(true);
-      await createUser({
+      const createData: {
+        displayName: string;
+        email: string;
+        phone: string;
+        password: string;
+        roleId?: string;
+        status: "active" | "inactive";
+        address: string;
+      } = {
         displayName: data.displayName,
         email: data.email,
         phone: data.phone,
         password: data.password,
-        roleId: data.roleId || null,
         status: data.status,
         address: data.address || "",
-      });
+      };
+
+      if (data.roleId) {
+        createData.roleId = data.roleId;
+      }
+
+      await createUser(createData);
       toast.success("Tạo tài khoản thành công");
       navigate("/admin/users");
     } catch (error) {
@@ -282,7 +295,7 @@ const UserCreate = () => {
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
-                onClick={() => navigate("/admin/users")}
+                onClick={() => navigate(-1)}
                 className="px-6 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-colors"
               >
                 Hủy

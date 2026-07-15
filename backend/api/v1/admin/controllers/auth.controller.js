@@ -69,13 +69,6 @@ export const login = async (req, res) => {
       });
     }
 
-    if (!role.permissions.includes("dashboard_view")) {
-      return res.status(403).json({
-        message:
-          "Tài khoản không có quyền truy cập vào hệ thống quản trị. Vui lòng liên hệ quản trị viên.",
-      });
-    }
-
     const accessToken = jwt.sign(
       { userId: user._id },
       process.env.ACCESS_TOKEN_SECRET,

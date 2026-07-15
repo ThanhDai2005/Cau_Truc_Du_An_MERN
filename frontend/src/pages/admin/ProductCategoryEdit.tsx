@@ -110,7 +110,7 @@ const ProductCategoryEdit = () => {
         {/* TITLE */}
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate("/admin/product-categories")}
+            onClick={() => navigate(-1)}
             className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -196,7 +196,7 @@ const ProductCategoryEdit = () => {
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => navigate("/admin/product-categories")}
+                onClick={() => navigate(-1)}
                 className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors"
               >
                 Hủy

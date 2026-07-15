@@ -375,42 +375,6 @@ export const changeMulti = async (req, res) => {
   }
 };
 
-// [PATCH] /api/v1/admin/users/delete/:userId
-export const softDelete = async (req, res) => {
-  try {
-    const userId = req.params.userId;
-
-    const existedUser = await User.findOne({
-      _id: userId,
-      deleted: false,
-    });
-
-    if (!existedUser) {
-      return res.status(404).json({
-        message: "Tài khoản không tồn tại",
-      });
-    }
-
-    await User.updateOne(
-      { _id: userId },
-      {
-        deleted: true,
-        deletedAt: new Date(),
-        status: "inactive",
-      },
-    );
-
-    res.status(200).json({
-      message: "Xóa tài khoản thành công",
-    });
-  } catch (error) {
-    console.log("Lỗi khi gọi delete user", error);
-    res.status(500).json({
-      message: "Lỗi hệ thống",
-    });
-  }
-};
-
 // [DELETE] /api/v1/admin/users/delete-item/:userId
 export const deleteItem = async (req, res) => {
   try {

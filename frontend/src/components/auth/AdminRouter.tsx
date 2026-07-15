@@ -43,7 +43,7 @@ const AdminRouter = () => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (!user?.roleId?.permissions.includes("dashboard_view")) {
+  if (!user) {
     return <Navigate to="/admin/login" />;
   }
 

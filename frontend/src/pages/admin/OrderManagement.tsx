@@ -36,6 +36,9 @@ const OrderManagement = () => {
     updateOrderStatus,
   } = useAdminOrderStore();
 
+  const showSkeleton = loading && orders.length === 0;
+  const showOverlay = loading && orders.length > 0;
+
   const updateURL = (newParams: Record<string, string>) => {
     const params = Object.fromEntries(searchParams.entries());
     const mergedParams = { ...params, ...newParams };
@@ -302,134 +305,167 @@ const OrderManagement = () => {
             </h2>
           </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-32">
-              <Loader2 className="w-8 h-8 animate-spin text-[#b51c00]" />
-            </div>
-          ) : (
-            <div className="w-full">
-              <table className="w-full text-sm text-left whitespace-nowrap">
-                <thead className="text-xs text-gray-500 bg-gray-50 uppercase font-bold border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4">Mã đơn</th>
-                    <th className="px-6 py-4">Khách hàng</th>
-                    <th className="px-6 py-4">Thanh toán (Phương thức)</th>
-                    <th className="px-6 py-4">Tổng tiền</th>
-                    <th className="px-6 py-4">Ngày đặt</th>
-                    <th className="px-6 py-4 text-center w-[200px]">
-                      Trạng thái đơn
-                    </th>
-                    <th className="px-6 py-4 text-center">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {orders.length > 0 ? (
-                    orders.map((order) => {
-                      const statusConfig = orderStatusConfig[order.orderStatus];
+          <div className="w-full relative">
+            <table className="w-full text-sm text-left whitespace-nowrap">
+              <thead className="text-xs text-gray-500 bg-gray-50 uppercase font-bold border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4">Mã đơn</th>
+                  <th className="px-6 py-4">Khách hàng</th>
+                  <th className="px-6 py-4">Thanh toán (Phương thức)</th>
+                  <th className="px-6 py-4">Tổng tiền</th>
+                  <th className="px-6 py-4">Ngày đặt</th>
+                  <th className="px-6 py-4 text-center w-[200px]">
+                    Trạng thái đơn
+                  </th>
+                  <th className="px-6 py-4 text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {showSkeleton ? (
+                  // Skeleton rows on first load
+                  Array.from({ length: limit }).map((_, index) => (
+                    <tr key={index} className="animate-pulse bg-white">
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-gray-200 rounded w-20"></div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-gray-200 rounded w-32"></div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-6 bg-gray-200 rounded-md w-36"></div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-gray-200 rounded w-28"></div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="h-7 bg-gray-200 rounded-md w-full"></div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="h-8 bg-gray-200 rounded-lg w-8 mx-auto"></div>
+                      </td>
+                    </tr>
+                  ))
+                ) : orders.length > 0 ? (
+                  orders.map((order) => {
+                    const statusConfig = orderStatusConfig[order.orderStatus];
 
-                      if (!statusConfig) {
-                        return null;
-                      }
+                    if (!statusConfig) {
+                      return null;
+                    }
 
-                      const isUpdating = updatingOrderId === order._id;
-                      const isEndState = statusConfig.next.length === 0;
+                    const isUpdating = updatingOrderId === order._id;
+                    const isEndState = statusConfig.next.length === 0;
 
-                      return (
-                        <tr
-                          key={order._id}
-                          className="bg-white hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-6 py-4 font-mono text-[#b51c00] font-semibold">
-                            #{order._id.slice(-8).toUpperCase()}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="font-semibold text-gray-900">
-                              {order.shippingAddress.recipient}
+                    return (
+                      <tr
+                        key={order._id}
+                        className="bg-white hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 font-mono text-[#b51c00] font-semibold">
+                          #{order._id.slice(-8).toUpperCase()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-gray-900">
+                            {order.shippingAddress.recipient}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {getPaymentBadge(
+                            order.paymentStatus,
+                            order.paymentMethod,
+                          )}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-gray-900">
+                          {order.totalAmount.toLocaleString("vi-VN")}₫
+                        </td>
+                        <td className="px-6 py-4 text-gray-500 font-medium">
+                          {formatDate(order.createdAt)}
+                        </td>
+
+                        <td className="px-6 py-4 text-center">
+                          {isUpdating ? (
+                            <div className="flex items-center justify-center gap-2 text-gray-400 font-bold text-xs py-1.5">
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              Đang lưu...
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            {getPaymentBadge(
-                              order.paymentStatus,
-                              order.paymentMethod,
-                            )}
-                          </td>
-                          <td className="px-6 py-4 font-bold text-gray-900">
-                            {order.totalAmount.toLocaleString("vi-VN")}₫
-                          </td>
-                          <td className="px-6 py-4 text-gray-500 font-medium">
-                            {formatDate(order.createdAt)}
-                          </td>
-
-                          <td className="px-6 py-4 text-center">
-                            {isUpdating ? (
-                              <div className="flex items-center justify-center gap-2 text-gray-400 font-bold text-xs py-1.5">
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                Đang lưu...
-                              </div>
-                            ) : (
-                              <select
-                                value={order.orderStatus}
-                                onChange={(e) =>
-                                  handleQuickStatusUpdate(
-                                    order._id,
-                                    e.target.value,
-                                    order.orderStatus,
-                                  )
-                                }
-                                disabled={isEndState}
-                                className={`w-full px-3 py-1.5 rounded-md border text-xs font-bold transition-all outline-none
+                          ) : (
+                            <select
+                              value={order.orderStatus}
+                              onChange={(e) =>
+                                handleQuickStatusUpdate(
+                                  order._id,
+                                  e.target.value,
+                                  order.orderStatus,
+                                )
+                              }
+                              disabled={isEndState}
+                              className={`w-full px-3 py-1.5 rounded-md border text-xs font-bold transition-all outline-none
                                   ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}
                                   ${
                                     isEndState
                                       ? "opacity-75 cursor-not-allowed"
                                       : "cursor-pointer hover:brightness-95 focus:ring-2 focus:ring-[#b51c00]/30"
                                   }`}
-                              >
-                                {/* Current status as first option */}
-                                <option value={order.orderStatus}>
-                                  {statusConfig.label}
-                                </option>
-                                {/* Next valid statuses */}
-                                {statusConfig.next.map((nextStatus) => (
-                                  <option key={nextStatus} value={nextStatus}>
-                                    {orderStatusConfig[nextStatus].label}
-                                  </option>
-                                ))}
-                              </select>
-                            )}
-                          </td>
-
-                          <td className="px-6 py-4 text-center">
-                            <button
-                              onClick={() =>
-                                navigate(`/admin/order/${order._id}`)
-                              }
-                              className="w-8 h-8 mx-auto flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
-                              title="Xem chi tiết"
                             >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="px-6 py-16 text-center text-gray-500 font-medium"
-                      >
-                        Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+                              {/* Current status as first option */}
+                              <option value={order.orderStatus}>
+                                {statusConfig.label}
+                              </option>
+                              {/* Next valid statuses */}
+                              {statusConfig.next.map((nextStatus) => (
+                                <option key={nextStatus} value={nextStatus}>
+                                  {orderStatusConfig[nextStatus].label}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </td>
+
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() =>
+                              navigate(`/admin/order/${order._id}`)
+                            }
+                            className="w-8 h-8 mx-auto flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+                            title="Xem chi tiết"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-6 py-16 text-center text-gray-500 font-medium"
+                    >
+                      Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            {/* Overlay spinner for subsequent loads */}
+            {showOverlay && (
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10 rounded-lg">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-7 h-7 animate-spin text-[#b51c00]" />
+                  <span className="text-sm font-semibold text-gray-600">
+                    Đang tải...
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* ================= PAGINATION ================= */}
-          {!loading && orders.length > 0 && totalPages > 1 && (
+          {orders.length > 0 && (
             <div className="flex flex-col md:flex-row items-center justify-between px-6 py-4 border-t border-gray-100 bg-white gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500 font-medium">

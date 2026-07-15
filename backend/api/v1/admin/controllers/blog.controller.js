@@ -457,37 +457,3 @@ export const deleteItem = async (req, res) => {
     });
   }
 };
-
-// [PATCH] /api/v1/admin/blog/soft-delete/:blogId
-export const softDelete = async (req, res) => {
-  try {
-    const blogId = req.params.blogId;
-    const existedBlog = await Blog.findOne({
-      _id: blogId,
-      deleted: false,
-    });
-
-    if (!existedBlog) {
-      return res.status(404).json({
-        message: "Blog không tồn tại",
-      });
-    }
-
-    await Blog.updateOne(
-      { _id: blogId },
-      {
-        deleted: true,
-        deletedAt: new Date(),
-      },
-    );
-
-    res.status(200).json({
-      message: "Xóa blog thành công",
-    });
-  } catch (error) {
-    console.log("Lỗi khi gọi delete blog", error);
-    res.status(500).json({
-      message: "Lỗi hệ thống",
-    });
-  }
-};

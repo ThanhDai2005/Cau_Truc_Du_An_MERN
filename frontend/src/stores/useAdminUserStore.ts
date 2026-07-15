@@ -37,7 +37,7 @@ export const useAdminUserStore = create<AdminUserStore>((set) => ({
     }
   },
 
-  getUserDetail: async (userId: string) => {
+  getUserDetail: async (userId) => {
     try {
       set({ loading: true });
       const response = await adminUserService.getDetail(userId);

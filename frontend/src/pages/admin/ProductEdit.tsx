@@ -470,7 +470,7 @@ const ProductEdit = () => {
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => navigate("/admin/products")}
+                onClick={() => navigate(-1)}
                 className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-colors"
               >
                 Hủy

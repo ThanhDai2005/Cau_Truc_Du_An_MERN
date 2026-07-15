@@ -8,7 +8,7 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.roleId?.permissions.includes("dashboard_view")) {
+    if (user) {
       navigate("/admin/dashboard", { replace: true });
     }
   }, [user, navigate]);

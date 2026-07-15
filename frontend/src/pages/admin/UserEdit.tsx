@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAdminUserStore } from "@/stores/useAdminUserStore";
-import { useRoleStore } from "@/stores/useRoleStore";
+import { useAdminRoleStore } from "@/stores/useAdminRoleStore";
 import { toast } from "sonner";
 
 const userEditSchema = z
@@ -48,7 +48,7 @@ const UserEdit = () => {
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { getUserDetail, updateUser, loading } = useAdminUserStore();
-  const { roles, fetchRoles } = useRoleStore();
+  const { roles, fetchRoles } = useAdminRoleStore();
   const [submitting, setSubmitting] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(true);
 
@@ -71,13 +71,14 @@ const UserEdit = () => {
       try {
         setLoadingDetail(true);
         const user = await getUserDetail(userId);
+        const roleIdValue = typeof user.roleId === "object" && user.roleId ? user.roleId._id : "";
         reset({
           displayName: user.displayName,
           email: user.email,
           phone: user.phone,
           password: "",
           confirmPassword: "",
-          roleId: user?.roleId?._id,
+          roleId: roleIdValue,
           status: user.status,
           address: user.address || "",
         });
@@ -103,17 +104,20 @@ const UserEdit = () => {
         email: string;
         phone: string;
         password?: string;
-        roleId: string | null;
+        roleId?: string;
         status: "active" | "inactive";
         address: string;
       } = {
         displayName: data.displayName,
         email: data.email,
         phone: data.phone,
-        roleId: data.roleId || null,
         status: data.status,
         address: data.address || "",
       };
+
+      if (data.roleId) {
+        updateData.roleId = data.roleId;
+      }
 
       if (data.password && data.password.length > 0) {
         updateData.password = data.password;
@@ -334,7 +338,7 @@ const UserEdit = () => {
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
-                onClick={() => navigate("/admin/users")}
+                onClick={() => navigate(-1)}
                 className="px-6 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-colors"
               >
                 Hủy

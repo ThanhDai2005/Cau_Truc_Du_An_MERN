@@ -20,7 +20,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useAdminUserStore } from "@/stores/useAdminUserStore";
-import { useRoleStore } from "@/stores/useRoleStore";
+import { useAdminRoleStore } from "@/stores/useAdminRoleStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -49,7 +49,10 @@ const UserManagement = () => {
     deleteItem,
   } = useAdminUserStore();
 
-  const { roles, fetchRoles } = useRoleStore();
+  const { roles, fetchRoles } = useAdminRoleStore();
+
+  const showSkeleton = loading && users.length === 0;
+  const showOverlay = loading && users.length > 0;
 
   const updateURL = (newParams: Record<string, string>) => {
     const params = Object.fromEntries(searchParams.entries());
@@ -172,17 +175,14 @@ const UserManagement = () => {
     (u) => u.status === "inactive",
   );
 
+  const isSuperAdmin = (user) => {
+    return user?.roleId && user?.roleId?.title === "Super Admin";
+  };
+
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       // Exclude Super Admin users from bulk selection
-      const selectableUsers = users.filter(
-        (item) =>
-          !(
-            item.roleId &&
-            typeof item.roleId === "object" &&
-            item.roleId.title === "Super Admin"
-          ),
-      );
+      const selectableUsers = users.filter((item) => !isSuperAdmin(item));
       setSelectedItems(selectableUsers.map((item) => item._id));
     } else {
       setSelectedItems([]);
@@ -195,15 +195,6 @@ const UserManagement = () => {
     } else {
       setSelectedItems([...selectedItems, id]);
     }
-  };
-
-  // Helper function to check if user is Super Admin
-  const isSuperAdmin = (user: any) => {
-    return (
-      user.roleId &&
-      typeof user.roleId === "object" &&
-      user.roleId.title === "Super Admin"
-    );
   };
 
   return (
@@ -333,247 +324,292 @@ const UserManagement = () => {
             <h2 className="text-[18px] font-bold text-gray-900">Danh sách</h2>
           </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-[#b51c00]" />
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-[12px] text-gray-500 bg-[#f1f5f9] uppercase font-bold border-b border-gray-200 tracking-wider">
-                    <tr>
-                      <th scope="col" className="p-4 w-12">
-                        <div className="flex items-center">
-                          <input
-                            type="checkbox"
-                            className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
-                            onChange={handleSelectAll}
-                            checked={
-                              selectedItems.length === users.length &&
-                              users.length > 0
-                            }
-                          />
-                        </div>
-                      </th>
-                      <th scope="col" className="px-6 py-4">
-                        STT
-                      </th>
-                      <th scope="col" className="px-6 py-4 text-center">
-                        Ảnh đại diện
-                      </th>
-                      <th scope="col" className="px-6 py-4">
-                        Tên đầy đủ
-                      </th>
-                      <th scope="col" className="px-6 py-4">
-                        Email
-                      </th>
-                      <th scope="col" className="px-6 py-4 text-center">
-                        SĐT
-                      </th>
-                      <th scope="col" className="px-6 py-4 text-center">
-                        Vai trò
-                      </th>
-                      <th scope="col" className="px-6 py-4 text-center">
-                        Trạng thái
-                      </th>
-                      <th scope="col" className="px-6 py-4 text-center">
-                        Thao tác
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.length > 0 ? (
-                      users.map((item, index) => {
-                        const isSuperAdminUser = isSuperAdmin(item);
-                        return (
-                          <tr
-                            key={item._id}
-                            className="bg-white border-b border-gray-50 hover:bg-[#f8fafc] transition-colors group"
-                          >
-                            <td className="p-4">
-                              <div className="flex items-center">
-                                <input
-                                  type="checkbox"
-                                  className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  checked={selectedItems.includes(item._id)}
-                                  onChange={() => handleSelectItem(item._id)}
-                                  disabled={isSuperAdminUser}
-                                />
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 font-medium text-gray-900">
-                              {(currentPage - 1) * limit + index + 1}
-                            </td>
-                            <td className="px-6 py-4 flex justify-center">
-                              {item.avatarUrl ? (
-                                <img
-                                  src={item.avatarUrl}
-                                  alt={item.displayName}
-                                  className="w-12 h-12 rounded-full object-cover border border-gray-100 bg-gray-50 shadow-sm"
-                                />
-                              ) : (
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b51c00] to-[#8e1400] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                                  {item.displayName.charAt(0).toUpperCase()}
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 font-semibold text-gray-900">
-                              {item.displayName}
-                            </td>
-                            <td className="px-6 py-4 text-gray-600 font-medium">
-                              {item.email}
-                            </td>
-                            <td className="px-6 py-4 text-center font-medium text-gray-700">
-                              {item.phone}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              {item.roleId ? (
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#dbeafe] text-[#2563eb]">
-                                  {typeof item.roleId === "object"
-                                    ? item.roleId.title
-                                    : "N/A"}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400 text-xs">
-                                  Khách hàng
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              {item.status === "active" ? (
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#d1fae5] text-[#15803d]">
-                                  Hoạt động
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#fee2e2] text-[#b91c1c]">
-                                  Khóa
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center justify-center gap-2">
-                                {isSuperAdminUser ? (
-                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-[6px]">
-                                    <Lock className="w-3.5 h-3.5 text-amber-600" />
-                                    <span className="text-xs font-bold text-amber-700">
-                                      Protected
-                                    </span>
-                                  </div>
-                                ) : item.status === "active" ? (
-                                  <>
-                                    <button
-                                      onClick={() =>
-                                        navigate(`/admin/user/edit/${item._id}`)
-                                      }
-                                      className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
-                                    >
-                                      <Pencil className="w-3 h-3" />
-                                      Sửa
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        handleChangeStatus(item._id, "inactive")
-                                      }
-                                      className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                      Khóa
-                                    </button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <button
-                                      onClick={() =>
-                                        handleChangeStatus(item._id, "active")
-                                      }
-                                      className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
-                                    >
-                                      <RotateCcw className="w-3 h-3" />
-                                      Khôi phục
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteItem(item._id)}
-                                      className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                    >
-                                      <Trash2 className="w-3 h-3" />
-                                      Xóa vĩnh viễn
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={9}
-                          className="px-6 py-12 text-center text-gray-500"
-                        >
-                          Không tìm thấy tài khoản nào.
+          <div className="relative">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-[12px] text-gray-500 bg-[#f1f5f9] uppercase font-bold border-b border-gray-200 tracking-wider">
+                  <tr>
+                    <th scope="col" className="p-4 w-12">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
+                          onChange={handleSelectAll}
+                          checked={
+                            selectedItems.length === users.length &&
+                            users.length > 0
+                          }
+                        />
+                      </div>
+                    </th>
+                    <th scope="col" className="px-6 py-4">
+                      STT
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-center">
+                      Ảnh đại diện
+                    </th>
+                    <th scope="col" className="px-6 py-4">
+                      Tên đầy đủ
+                    </th>
+                    <th scope="col" className="px-6 py-4">
+                      Email
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-center">
+                      SĐT
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-center">
+                      Vai trò
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-center">
+                      Trạng thái
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-center">
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {showSkeleton ? (
+                    // Skeleton rows on first load
+                    Array.from({ length: limit }).map((_, index) => (
+                      <tr
+                        key={index}
+                        className="animate-pulse bg-white border-b border-gray-50"
+                      >
+                        <td className="p-4">
+                          <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-gray-200 rounded w-8"></div>
+                        </td>
+                        <td className="px-6 py-4 flex justify-center">
+                          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-gray-200 rounded w-32"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-gray-200 rounded w-40"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-gray-200 rounded w-24 mx-auto"></div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="h-6 bg-gray-200 rounded-md w-20 mx-auto"></div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="h-6 bg-gray-200 rounded-md w-20 mx-auto"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2 justify-center">
+                            <div className="h-7 bg-gray-200 rounded w-16"></div>
+                            <div className="h-7 bg-gray-200 rounded w-16"></div>
+                          </div>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* PAGINATION */}
-              <div className="flex flex-col md:flex-row items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
-                <div className="flex items-center gap-2 mb-4 md:mb-0">
-                  <span className="text-sm text-gray-500">Số lượng mục</span>
-                  <select
-                    value={limit}
-                    onChange={(e) => {
-                      updateURL({ limit: e.target.value, page: "1" });
-                    }}
-                    className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#b51c00] focus:border-[#b51c00] px-3 py-1.5 outline-none cursor-pointer"
-                  >
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() =>
-                      updateURL({ page: (currentPage - 1).toString() })
-                    }
-                    disabled={currentPage === 1}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    &lt;
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => updateURL({ page: page.toString() })}
-                        className={`w-8 h-8 flex items-center justify-center rounded-lg border font-semibold text-sm transition-colors ${
-                          currentPage === page
-                            ? "border-[#b51c00] bg-[#b51c00] text-white"
-                            : "border-gray-200 text-gray-600 hover:text-[#b51c00] hover:border-[#b51c00]"
-                        }`}
+                    ))
+                  ) : users.length > 0 ? (
+                    users.map((item, index) => {
+                      const isSuperAdminUser = isSuperAdmin(item);
+                      return (
+                        <tr
+                          key={item._id}
+                          className="bg-white border-b border-gray-50 hover:bg-[#f8fafc] transition-colors group"
+                        >
+                          <td className="p-4">
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 bg-white border-gray-300 rounded focus:ring-blue-500 cursor-pointer accent-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                checked={selectedItems.includes(item._id)}
+                                onChange={() => handleSelectItem(item._id)}
+                                disabled={isSuperAdminUser}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 font-medium text-gray-900">
+                            {(currentPage - 1) * limit + index + 1}
+                          </td>
+                          <td className="px-6 py-4 flex justify-center">
+                            {item.avatarUrl ? (
+                              <img
+                                src={item.avatarUrl}
+                                alt={item.displayName}
+                                className="w-12 h-12 rounded-full object-cover border border-gray-100 bg-gray-50 shadow-sm"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b51c00] to-[#8e1400] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                                {item.displayName.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 font-semibold text-gray-900">
+                            {item.displayName}
+                          </td>
+                          <td className="px-6 py-4 text-gray-600 font-medium">
+                            {item.email}
+                          </td>
+                          <td className="px-6 py-4 text-center font-medium text-gray-700">
+                            {item.phone}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            {item.roleId && typeof item.roleId === "object" ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#dbeafe] text-[#2563eb]">
+                                {item.roleId.title}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 text-xs">
+                                Khách hàng
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            {item.status === "active" ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#d1fae5] text-[#15803d]">
+                                Hoạt động
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-bold bg-[#fee2e2] text-[#b91c1c]">
+                                Khóa
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center gap-2">
+                              {isSuperAdminUser ? (
+                                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-[6px]">
+                                  <Lock className="w-3.5 h-3.5 text-amber-600" />
+                                  <span className="text-xs font-bold text-amber-700">
+                                    Protected
+                                  </span>
+                                </div>
+                              ) : item.status === "active" ? (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/admin/user/edit/${item._id}`)
+                                    }
+                                    className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                    Sửa
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "inactive")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Khóa
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "active")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Khôi phục
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteItem(item._id)}
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Xóa vĩnh viễn
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={9}
+                        className="px-6 py-12 text-center text-gray-500"
                       >
-                        {page}
-                      </button>
-                    ),
+                        Không tìm thấy tài khoản nào.
+                      </td>
+                    </tr>
                   )}
-                  <button
-                    onClick={() =>
-                      updateURL({ page: (currentPage + 1).toString() })
-                    }
-                    disabled={currentPage === totalPages}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    &gt;
-                  </button>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Overlay spinner for subsequent loads */}
+            {showOverlay && (
+              <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10 rounded-lg">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-7 h-7 animate-spin text-[#b51c00]" />
+                  <span className="text-sm font-semibold text-gray-600">
+                    Đang tải...
+                  </span>
                 </div>
               </div>
-            </>
+            )}
+          </div>
+
+          {/* PAGINATION */}
+          {users.length > 0 && (
+            <div className="flex flex-col md:flex-row items-center justify-between px-6 py-4 border-t border-gray-100 bg-white">
+              <div className="flex items-center gap-2 mb-4 md:mb-0">
+                <span className="text-sm text-gray-500">Số lượng mục</span>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    updateURL({ limit: e.target.value, page: "1" });
+                  }}
+                  className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-[#b51c00] focus:border-[#b51c00] px-3 py-1.5 outline-none cursor-pointer"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() =>
+                    updateURL({ page: (currentPage - 1).toString() })
+                  }
+                  disabled={currentPage === 1}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  &lt;
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => updateURL({ page: page.toString() })}
+                      className={`w-8 h-8 flex items-center justify-center rounded-lg border font-semibold text-sm transition-colors ${
+                        currentPage === page
+                          ? "border-[#b51c00] bg-[#b51c00] text-white"
+                          : "border-gray-200 text-gray-600 hover:text-[#b51c00] hover:border-[#b51c00]"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
+                <button
+                  onClick={() =>
+                    updateURL({ page: (currentPage + 1).toString() })
+                  }
+                  disabled={currentPage === totalPages}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-[#b51c00] hover:border-[#b51c00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  &gt;
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

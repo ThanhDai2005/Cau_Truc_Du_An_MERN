@@ -427,8 +427,7 @@ export interface AdminUserStore {
   ) => Promise<void>;
   getUserDetail: (userId: string) => Promise<User>;
   createUser: (data: {
-    firstName: string;
-    lastName: string;
+    displayName: string;
     phone: string;
     password: string;
     email: string;
@@ -439,8 +438,7 @@ export interface AdminUserStore {
   updateUser: (
     userId: string,
     data: {
-      firstName?: string;
-      lastName?: string;
+      displayName?: string;
       phone?: string;
       email?: string;
       roleId?: string;
@@ -493,4 +491,28 @@ export interface AdminOrderStore {
     },
   ) => Promise<Order>;
   clearCurrentOrder: () => void;
+}
+
+export interface AdminRoleStore {
+  roles: Role[];
+  currentRole: Role | null;
+  permissions: Array<{ group: string; value: string; label: string }>;
+  loading: boolean;
+  totalPages: number;
+
+  fetchRoles: (
+    keyword?: string,
+    page?: number,
+    limit?: number,
+  ) => Promise<void>;
+  getRoleDetail: (roleId: string) => Promise<void>;
+  createRole: (data: { title: string; description?: string }) => Promise<void>;
+  updateRole: (
+    roleId: string,
+    data: { title?: string; description?: string },
+  ) => Promise<void>;
+  deleteRole: (roleId: string) => Promise<void>;
+  fetchPermissions: () => Promise<void>;
+  updatePermissions: (roleId: string, permissions: string[]) => Promise<void>;
+  clearCurrentRole: () => void;
 }

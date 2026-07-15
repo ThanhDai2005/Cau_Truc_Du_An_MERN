@@ -6,7 +6,11 @@ import { requirePermission } from "../middlewares/permission.middleware.js";
 
 router.get("/", requirePermission("accounts_view"), controller.list);
 
-router.get("/:userId", requirePermission("accounts_view"), controller.getDetail);
+router.get(
+  "/:userId",
+  requirePermission("accounts_view"),
+  controller.getDetail,
+);
 
 router.post("/", requirePermission("accounts_create"), controller.create);
 
@@ -26,12 +30,6 @@ router.patch(
   "/change-multi",
   requirePermission("accounts_edit"),
   controller.changeMulti,
-);
-
-router.patch(
-  "/delete/:userId",
-  requirePermission("accounts_delete"),
-  controller.softDelete,
 );
 
 router.delete(

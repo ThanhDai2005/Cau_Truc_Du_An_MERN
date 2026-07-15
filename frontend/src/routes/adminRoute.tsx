@@ -19,12 +19,14 @@ import PromotionManagement from "@/pages/admin/PromotionManagement";
 import PromotionCreate from "@/pages/admin/PromotionCreate";
 import PromotionEdit from "@/pages/admin/PromotionEdit";
 import UserManagement from "@/pages/admin/UserManagement";
+import UserCreate from "@/pages/admin/UserCreate";
+import UserEdit from "@/pages/admin/UserEdit";
 import OrderManagement from "@/pages/admin/OrderManagement";
 import OrderDetail from "@/pages/admin/OrderDetail";
 import PermissionManagement from "@/pages/admin/PermissionManagement";
 import RoleManagement from "@/pages/admin/RoleManagement";
-import UserCreate from "@/pages/admin/UserCreate";
-import UserEdit from "@/pages/admin/UserEdit";
+import RoleEdit from "@/pages/admin/RoleEdit";
+import RoleCreate from "@/pages/admin/RoleCreate";
 
 const adminRoute = {
   path: "/admin",
@@ -134,6 +136,14 @@ const adminRoute = {
             {
               path: "roles",
               element: <RoleManagement />,
+            },
+            {
+              path: "role/create",
+              element: <RoleCreate />,
+            },
+            {
+              path: "role/edit/:roleId",
+              element: <RoleEdit />,
             },
           ],
         },

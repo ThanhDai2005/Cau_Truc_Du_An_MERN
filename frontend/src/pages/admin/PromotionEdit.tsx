@@ -453,7 +453,7 @@ const PromotionEdit = () => {
           <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => navigate("/admin/promotions")}
+              onClick={() => navigate(-1)}
               className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-[20px] font-semibold text-sm hover:bg-gray-100 transition-colors active:scale-95"
               disabled={loading}
             >

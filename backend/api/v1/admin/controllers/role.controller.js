@@ -3,6 +3,7 @@ import Role from "../../../../models/role.model.js";
 // [GET] /api/v1/admin/role
 export const list = async (req, res) => {
   try {
+    const keyword = req.query.keyword || "";
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -10,6 +11,13 @@ export const list = async (req, res) => {
     const filter = {
       deleted: false,
     };
+
+    if (keyword) {
+      filter.$or = [
+        { title: { $regex: keyword, $options: "i" } },
+        { description: { $regex: keyword, $options: "i" } },
+      ];
+    }
 
     const [data, totalItems] = await Promise.all([
       Role.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
@@ -30,10 +38,38 @@ export const list = async (req, res) => {
   }
 };
 
+// [GET] /api/v1/admin/role/detail/:roleId
+export const getDetail = async (req, res) => {
+  try {
+    const roleId = req.params.roleId;
+
+    const role = await Role.findOne({
+      _id: roleId,
+      deleted: false,
+    });
+
+    if (!role) {
+      return res.status(404).json({
+        message: "Vai trò không tồn tại",
+      });
+    }
+
+    res.status(200).json({
+      message: "Lấy chi tiết vai trò thành công",
+      data: role,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi getDetail role", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
 // [POST] /api/v1/admin/role
 export const create = async (req, res) => {
   try {
-    const { title, description, permissions } = req.body;
+    const { title, description } = req.body;
 
     if (!title) {
       return res.status(400).json({
@@ -51,7 +87,6 @@ export const create = async (req, res) => {
     const createdRole = await Role.create({
       title: title,
       description: description || "",
-      permissions: permissions || [],
     });
 
     res.status(201).json({
@@ -70,9 +105,9 @@ export const create = async (req, res) => {
 export const update = async (req, res) => {
   try {
     const roleId = req.params.roleId;
-    const { title, description, permissions } = req.body;
+    const { title, description } = req.body;
 
-    if (!title && !description && !permissions) {
+    if (!title && !description) {
       return res.status(400).json({
         message: "Không có dữ liệu để cập nhật",
       });
@@ -106,7 +141,6 @@ export const update = async (req, res) => {
       {
         title: title,
         description: description,
-        permissions: permissions,
       },
       { new: true },
     );
@@ -124,7 +158,7 @@ export const update = async (req, res) => {
 };
 
 // [PATCH] /api/v1/admin/role/delete/:roleId
-export const softDelete = async (req, res) => {
+export const deleteItem = async (req, res) => {
   try {
     const roleId = req.params.roleId;
 
@@ -172,6 +206,32 @@ export const getPermissions = async (req, res) => {
       { group: "Quản lý danh mục", value: "categories_edit", label: "Sửa" },
       { group: "Quản lý danh mục", value: "categories_delete", label: "Xóa" },
 
+      { group: "Quản lý bài viết", value: "blogs_view", label: "Xem" },
+      { group: "Quản lý bài viết", value: "blogs_create", label: "Thêm" },
+      { group: "Quản lý bài viết", value: "blogs_edit", label: "Sửa" },
+      { group: "Quản lý bài viết", value: "blogs_delete", label: "Xóa" },
+
+      {
+        group: "Quản lý danh mục bài viết",
+        value: "blog_categories_view",
+        label: "Xem",
+      },
+      {
+        group: "Quản lý danh mục bài viết",
+        value: "blog_categories_create",
+        label: "Thêm",
+      },
+      {
+        group: "Quản lý danh mục bài viết",
+        value: "blog_categories_edit",
+        label: "Sửa",
+      },
+      {
+        group: "Quản lý danh mục bài viết",
+        value: "blog_categories_delete",
+        label: "Xóa",
+      },
+
       { group: "Quản lý vai trò", value: "roles_view", label: "Xem" },
       { group: "Quản lý vai trò", value: "roles_create", label: "Thêm" },
       { group: "Quản lý vai trò", value: "roles_edit", label: "Sửa" },
@@ -206,6 +266,49 @@ export const getPermissions = async (req, res) => {
     });
   } catch (error) {
     console.log("Lỗi khi gọi getPermissions", error);
+    res.status(500).json({
+      message: "Lỗi hệ thống",
+    });
+  }
+};
+
+// [PATCH] /api/v1/admin/role/:roleId/permissions
+export const updatePermissions = async (req, res) => {
+  try {
+    const roleId = req.params.roleId;
+    const { permissions } = req.body;
+
+    if (!permissions || !Array.isArray(permissions)) {
+      return res.status(400).json({
+        message: "Dữ liệu quyền không hợp lệ",
+      });
+    }
+
+    const existedRole = await Role.findOne({
+      _id: roleId,
+      deleted: false,
+    });
+
+    if (!existedRole) {
+      return res.status(404).json({
+        message: "Vai trò không tồn tại",
+      });
+    }
+
+    const updatedRole = await Role.findOneAndUpdate(
+      { _id: roleId },
+      {
+        permissions: permissions,
+      },
+      { new: true },
+    );
+
+    res.status(200).json({
+      message: "Cập nhật quyền thành công",
+      data: updatedRole,
+    });
+  } catch (error) {
+    console.log("Lỗi khi gọi updatePermissions", error);
     res.status(500).json({
       message: "Lỗi hệ thống",
     });
