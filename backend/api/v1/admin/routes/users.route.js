@@ -32,7 +32,7 @@ router.patch(
   controller.changeMulti,
 );
 
-router.delete(
+router.patch(
   "/delete-item/:userId",
   requirePermission("accounts_delete"),
   controller.deleteItem,

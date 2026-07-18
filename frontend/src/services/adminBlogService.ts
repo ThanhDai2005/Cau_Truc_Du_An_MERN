@@ -77,7 +77,7 @@ export const adminBlogService = {
   },
 
   deleteItem: async (blogId: string) => {
-    const response = await adminApi.delete(`/admin/blog/delete/${blogId}`);
+    const response = await adminApi.patch(`/admin/blog/delete/${blogId}`);
     return response.data;
   },
 };

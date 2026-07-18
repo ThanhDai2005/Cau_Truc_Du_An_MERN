@@ -18,6 +18,7 @@ import {
   Pencil,
   RotateCcw,
   Image,
+  EyeOff,
 } from "lucide-react";
 import { useAdminBlogStore } from "@/stores/useAdminBlogStore";
 import { useAdminBlogCategoryStore } from "@/stores/useAdminBlogCategoryStore";
@@ -28,6 +29,8 @@ import {
   confirmRestore,
   confirmPermanentDelete,
 } from "@/lib/sweetalert";
+import { hasPermission } from "@/lib/permissions";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 
 const BlogManagement = () => {
   const navigate = useNavigate();
@@ -39,6 +42,7 @@ const BlogManagement = () => {
   const limit = parseInt(searchParams.get("limit") || "10");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+  const { user } = useAdminAuthStore();
   const {
     blogs,
     totalPages,
@@ -53,6 +57,11 @@ const BlogManagement = () => {
 
   const showSkeleton = loading && blogs.length === 0;
   const showOverlay = loading && blogs.length > 0;
+
+  const canView = hasPermission(user, "blogs_view");
+  const canCreate = hasPermission(user, "blogs_create");
+  const canEdit = hasPermission(user, "blogs_edit");
+  const canDelete = hasPermission(user, "blogs_delete");
 
   const updateURL = (newParams: Record<string, string>) => {
     const params = Object.fromEntries(searchParams.entries());
@@ -74,16 +83,20 @@ const BlogManagement = () => {
   };
 
   useEffect(() => {
-    fetchBlogCategories("", "active", 1, 100);
-  }, [fetchBlogCategories]);
+    if (canView) {
+      fetchBlogCategories("", "active", 1, 100);
+    }
+  }, [fetchBlogCategories, canView]);
 
   useEffect(() => {
-    const categorySlug =
-      categoryFilter !== "all"
-        ? blogCategories.find((c) => c._id === categoryFilter)?.slug || ""
-        : "";
-    const status = statusFilter !== "all" ? statusFilter : "";
-    fetchBlogs(searchTerm, categorySlug, status, currentPage, limit);
+    if (canView) {
+      const categorySlug =
+        categoryFilter !== "all"
+          ? blogCategories.find((c) => c._id === categoryFilter)?.slug || ""
+          : "";
+      const status = statusFilter !== "all" ? statusFilter : "";
+      fetchBlogs(searchTerm, categorySlug, status, currentPage, limit);
+    }
   }, [
     currentPage,
     limit,
@@ -91,6 +104,7 @@ const BlogManagement = () => {
     categoryFilter,
     statusFilter,
     fetchBlogs,
+    canView,
   ]);
 
   const refetchBlogs = async () => {
@@ -106,6 +120,11 @@ const BlogManagement = () => {
     blogId: string,
     status: "active" | "inactive",
   ) => {
+    if (!canEdit) {
+      toast.error("Bạn không có quyền chỉnh sửa bài viết");
+      return;
+    }
+
     const result =
       status === "active"
         ? await confirmRestore(
@@ -113,8 +132,8 @@ const BlogManagement = () => {
             "Bài viết sẽ được chuyển về trạng thái hoạt động",
           )
         : await confirmDelete(
-            "Xóa bài viết?",
-            "Bài viết sẽ chuyển sang trạng thái ngưng hoạt động",
+            "Ẩn bài viết?",
+            "Bài viết sẽ chuyển sang trạng thái ẩn và không hiển thị",
           );
 
     if (!result.isConfirmed) return;
@@ -129,6 +148,11 @@ const BlogManagement = () => {
   };
 
   const handleDeleteItem = async (blogId: string) => {
+    if (!canDelete) {
+      toast.error("Bạn không có quyền xóa bài viết");
+      return;
+    }
+
     const result = await confirmPermanentDelete(
       "Xóa vĩnh viễn?",
       "Hành động này không thể hoàn tác! Bài viết sẽ bị xóa vĩnh viễn khỏi hệ thống.",
@@ -153,6 +177,16 @@ const BlogManagement = () => {
       return;
     }
 
+    if (type === "delete-all" && !canDelete) {
+      toast.error("Bạn không có quyền xóa bài viết");
+      return;
+    }
+
+    if ((type === "active" || type === "inactive") && !canEdit) {
+      toast.error("Bạn không có quyền chỉnh sửa bài viết");
+      return;
+    }
+
     let result;
     if (type === "active") {
       result = await confirmRestore(
@@ -161,8 +195,8 @@ const BlogManagement = () => {
       );
     } else if (type === "inactive") {
       result = await confirmDelete(
-        "Xóa nhiều bài viết?",
-        `Bạn đang chuyển ${selectedItems.length} bài viết sang ngưng hoạt động`,
+        "Ẩn nhiều bài viết?",
+        `Bạn đang ẩn ${selectedItems.length} bài viết`,
       );
     } else {
       result = await confirmPermanentDelete(
@@ -203,6 +237,45 @@ const BlogManagement = () => {
       setSelectedItems([...selectedItems, id]);
     }
   };
+
+  if (!canView) {
+    return (
+      <div className="bg-[#f7f9fb] min-h-screen pb-6 flex flex-col">
+        <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10 shrink-0">
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  href="/admin/dashboard"
+                  className="font-medium text-gray-500"
+                >
+                  Admin
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-bold text-[#b51c00]">
+                  Quản lý bài viết
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Không có quyền truy cập
+            </h2>
+            <p className="text-gray-600">
+              Bạn không có quyền xem trang này. Vui lòng liên hệ quản trị viên.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#f7f9fb] min-h-screen pb-12">
@@ -285,28 +358,28 @@ const BlogManagement = () => {
 
             {/* Right: Actions */}
             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-              {hasInactiveSelected && (
+              {canEdit && hasInactiveSelected && (
                 <button
                   onClick={() => handleBulkAction("active")}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffc1cc] text-[#c2185b] rounded-[20px] font-semibold text-sm hover:bg-[#ffadc0] transition-colors active:scale-95 whitespace-nowrap"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  Khôi phục mục đã chọn
+                  Khôi phục đã chọn
                 </button>
               )}
 
-              {hasActiveSelected && (
+              {canEdit && hasActiveSelected && (
                 <button
                   onClick={() => handleBulkAction("inactive")}
                   disabled={selectedItems.length === 0}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-[20px] font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Xóa mục đã chọn
+                  <EyeOff className="w-4 h-4" />
+                  Ẩn bài viết đã chọn
                 </button>
               )}
 
-              {hasInactiveSelected && (
+              {canDelete && hasInactiveSelected && (
                 <button
                   onClick={() => handleBulkAction("delete-all")}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#fee2e2] text-[#991b1b] rounded-[20px] font-semibold text-sm hover:bg-[#fecaca] transition-colors active:scale-95 whitespace-nowrap"
@@ -316,13 +389,15 @@ const BlogManagement = () => {
                 </button>
               )}
 
-              <button
-                onClick={() => navigate("/admin/blog/create")}
-                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Thêm bài viết
-              </button>
+              {canCreate && (
+                <button
+                  onClick={() => navigate("/admin/blog/create")}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" />
+                  Thêm bài viết
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -467,43 +542,51 @@ const BlogManagement = () => {
                           <div className="flex items-center justify-center gap-2">
                             {item.status === "active" ? (
                               <>
-                                <button
-                                  onClick={() =>
-                                    navigate(`/admin/blog/edit/${item._id}`)
-                                  }
-                                  className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
-                                >
-                                  <Pencil className="w-3 h-3" />
-                                  Sửa
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleChangeStatus(item._id, "inactive")
-                                  }
-                                  className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  Xóa
-                                </button>
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/admin/blog/edit/${item._id}`)
+                                    }
+                                    className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                    Sửa
+                                  </button>
+                                )}
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "inactive")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <EyeOff className="w-3 h-3" />
+                                    Ẩn bài viết
+                                  </button>
+                                )}
                               </>
                             ) : (
                               <>
-                                <button
-                                  onClick={() =>
-                                    handleChangeStatus(item._id, "active")
-                                  }
-                                  className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                  Khôi phục
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteItem(item._id)}
-                                  className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  Xóa vĩnh viễn
-                                </button>
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "active")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Khôi phục
+                                  </button>
+                                )}
+                                {canDelete && (
+                                  <button
+                                    onClick={() => handleDeleteItem(item._id)}
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Xóa vĩnh viễn
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>

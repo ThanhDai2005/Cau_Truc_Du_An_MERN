@@ -36,7 +36,7 @@ router.patch(
   controller.changeMulti,
 );
 
-router.delete(
+router.patch(
   "/delete/:blogCategoryId",
   requirePermission("blog_categories_delete"),
   controller.deleteItem,

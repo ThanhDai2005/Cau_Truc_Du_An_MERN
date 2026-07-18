@@ -351,6 +351,11 @@ export const changeMulti = async (req, res) => {
         break;
 
       case "delete-all":
+        if (!req.user.roleId.permissions.includes("products_delete")) {
+          return res.status(403).json({
+            message: "Bạn không có quyền xóa sản phẩm",
+          });
+        }
         await Product.updateMany(
           { _id: { $in: ids }, deleted: false },
           {
@@ -377,7 +382,7 @@ export const changeMulti = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/product/delete/:productId
+// [PATCH] /api/v1/admin/product/delete/:productId
 export const deleteItem = async (req, res) => {
   try {
     const productId = req.params.productId;

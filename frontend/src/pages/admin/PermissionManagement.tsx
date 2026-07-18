@@ -12,6 +12,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAdminRoleStore } from "@/stores/useAdminRoleStore";
 import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 import { toast } from "sonner";
+import { hasPermission } from "@/lib/permissions";
 
 const PermissionManagement = () => {
   const { user } = useAdminAuthStore();
@@ -30,13 +31,8 @@ const PermissionManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
-  const hasPermission = (permission: string) => {
-    if (!user || !user.roleId || typeof user.roleId === "string") return false;
-    return user.roleId.permissions?.includes(permission) || false;
-  };
-
-  const canView = hasPermission("roles_view");
-  const canManagePermissions = hasPermission("roles_permissions");
+  const canView = hasPermission(user, "roles_view");
+  const canManagePermissions = hasPermission(user, "roles_permissions");
 
   useEffect(() => {
     if (canView) {
@@ -52,7 +48,7 @@ const PermissionManagement = () => {
   }, [selectedRoleId, getRoleDetail, canView]);
 
   useEffect(() => {
-    if (currentRole) {
+    if (currentRole && currentRole._id === selectedRoleId) {
       setSelectedPermissions(currentRole.permissions || []);
     }
   }, [currentRole]);
@@ -119,7 +115,6 @@ const PermissionManagement = () => {
 
     try {
       await updatePermissions(selectedRoleId, selectedPermissions);
-      toast.success("Cập nhật quyền thành công");
     } catch (error) {
       toast.error(error?.response?.data?.message || "Cập nhật quyền thất bại");
     }
@@ -127,7 +122,7 @@ const PermissionManagement = () => {
 
   if (!canView) {
     return (
-      <div className="bg-[#f7f9fb] min-h-screen pb-6 font-['Inter'] flex flex-col">
+      <div className="bg-[#f7f9fb] min-h-screen pb-6 flex flex-col">
         <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10 shrink-0">
           <SidebarTrigger />
           <Separator orientation="vertical" className="h-4" />
@@ -165,7 +160,7 @@ const PermissionManagement = () => {
   }
 
   return (
-    <div className="bg-[#f7f9fb] min-h-screen pb-6 font-['Inter'] flex flex-col">
+    <div className="bg-[#f7f9fb] min-h-screen pb-6 flex flex-col">
       <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10 shrink-0">
         <SidebarTrigger />
         <Separator orientation="vertical" className="h-4" />
@@ -199,7 +194,10 @@ const PermissionManagement = () => {
             <div className="flex flex-col gap-3 w-full md:w-[350px]">
               <select
                 value={selectedRoleId}
-                onChange={(e) => setSelectedRoleId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedPermissions([]);
+                  setSelectedRoleId(e.target.value);
+                }}
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#b51c00] focus:border-[#b51c00] bg-white cursor-pointer font-medium text-gray-800 shadow-sm"
               >
                 <option value="">Chọn vai trò...</option>

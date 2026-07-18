@@ -256,6 +256,11 @@ export const changeMulti = async (req, res) => {
         break;
 
       case "delete-all":
+        if (!req.user.roleId.permissions.includes("categories_delete")) {
+          return res.status(403).json({
+            message: "Bạn không có quyền xóa danh mục",
+          });
+        }
         await Category.updateMany(
           { _id: { $in: ids }, deleted: false },
           {
@@ -286,7 +291,7 @@ export const changeMulti = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/category/delete/:categoryId
+// [PATCH] /api/v1/admin/category/delete/:categoryId
 export const deleteItem = async (req, res) => {
   try {
     const categoryId = req.params.categoryId;

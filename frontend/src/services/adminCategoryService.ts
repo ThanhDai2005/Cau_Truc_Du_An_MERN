@@ -48,7 +48,7 @@ export const adminCategoryService = {
   },
 
   deleteItem: async (categoryId: string) => {
-    const response = await adminApi.delete(`/admin/category/delete/${categoryId}`);
+    const response = await adminApi.patch(`/admin/category/delete/${categoryId}`);
     return response.data;
   },
 };

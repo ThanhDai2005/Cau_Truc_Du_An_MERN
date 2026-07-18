@@ -42,7 +42,7 @@ router.patch(
   controller.changeMulti,
 );
 
-router.delete(
+router.patch(
   "/delete/:blogId",
   requirePermission("blogs_delete"),
   controller.deleteItem,

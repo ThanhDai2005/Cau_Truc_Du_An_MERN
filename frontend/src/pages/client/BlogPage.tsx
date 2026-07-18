@@ -121,20 +121,22 @@ const BlogPage = () => {
           {/* Loading State - Chỉ hiện khi ở trang 1 */}
           {loading && currentPage === 1 && (
             <div className="space-y-10">
-              <div className="animate-pulse">
-                <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-lg">
-                  <div className="w-full h-full bg-gray-200" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                    <div className="inline-block px-3 py-1.5 bg-gray-300 rounded-full w-28 h-6 mb-4" />
-                    <div className="h-9 md:h-12 bg-gray-300 rounded-lg w-4/5 mb-4" />
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-gray-300 rounded-full" />
-                      <div className="h-4 bg-gray-300 rounded w-40" />
+              {selectedCategorySlug === "" && (
+                <div className="animate-pulse">
+                  <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-lg">
+                    <div className="w-full h-full bg-gray-200" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
+                      <div className="inline-block px-3 py-1.5 bg-gray-300 rounded-full w-28 h-6 mb-4" />
+                      <div className="h-9 md:h-12 bg-gray-300 rounded-lg w-4/5 mb-4" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 bg-gray-300 rounded-full" />
+                        <div className="h-4 bg-gray-300 rounded w-40" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, idx) => (

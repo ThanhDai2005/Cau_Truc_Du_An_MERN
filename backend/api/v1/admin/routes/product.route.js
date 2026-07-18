@@ -46,7 +46,7 @@ router.patch(
   controller.changeMulti,
 );
 
-router.delete(
+router.patch(
   "/delete/:productId",
   requirePermission("products_delete"),
   controller.deleteItem,

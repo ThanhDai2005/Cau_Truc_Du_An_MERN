@@ -357,6 +357,11 @@ export const changeMulti = async (req, res) => {
         );
         break;
       case "delete-all":
+        if (!req.user.roleId.permissions.includes("accounts_delete")) {
+          return res.status(403).json({
+            message: "Bạn không có quyền xóa tài khoản",
+          });
+        }
         await User.deleteMany({
           _id: { $in: ids },
           deleted: true,
@@ -375,7 +380,7 @@ export const changeMulti = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/users/delete-item/:userId
+// [PATCH] /api/v1/admin/users/delete-item/:userId
 export const deleteItem = async (req, res) => {
   try {
     const userId = req.params.userId;

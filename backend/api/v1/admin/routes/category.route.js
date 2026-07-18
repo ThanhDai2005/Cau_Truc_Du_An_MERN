@@ -24,7 +24,7 @@ router.patch(
   controller.changeMulti,
 );
 
-router.delete(
+router.patch(
   "/delete/:categoryId",
   requirePermission("categories_delete"),
   controller.deleteItem,

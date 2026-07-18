@@ -78,7 +78,7 @@ export const adminPromotionService = {
   },
 
   deleteItem: async (promotionId: string) => {
-    const response = await adminApi.delete(`/admin/promotion/delete/${promotionId}`);
+    const response = await adminApi.patch(`/admin/promotion/delete/${promotionId}`);
     return response.data;
   },
 };

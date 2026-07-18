@@ -397,6 +397,11 @@ export const changeMulti = async (req, res) => {
         break;
 
       case "delete-all":
+        if (!req.user.roleId.permissions.includes("blogs_delete")) {
+          return res.status(403).json({
+            message: "Bạn không có quyền xóa bài viết",
+          });
+        }
         await Blog.updateMany(
           { _id: { $in: ids }, deleted: false },
           {
@@ -423,7 +428,7 @@ export const changeMulti = async (req, res) => {
   }
 };
 
-// [DELETE] /api/v1/admin/blog/delete/:blogId
+// [PATCH] /api/v1/admin/blog/delete/:blogId
 export const deleteItem = async (req, res) => {
   try {
     const blogId = req.params.blogId;

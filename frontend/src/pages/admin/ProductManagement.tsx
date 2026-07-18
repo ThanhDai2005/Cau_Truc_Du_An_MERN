@@ -10,7 +10,15 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Trash2,
+  Loader2,
+  Pencil,
+  RotateCcw,
+  PauseCircle,
+} from "lucide-react";
 import { useAdminProductStore } from "@/stores/useAdminProductStore";
 import { useAdminCategoryStore } from "@/stores/useAdminCategoryStore";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +28,8 @@ import {
   confirmRestore,
   confirmPermanentDelete,
 } from "@/lib/sweetalert";
+import { hasPermission } from "@/lib/permissions";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 
 const ProductManagement = () => {
   const navigate = useNavigate();
@@ -31,6 +41,7 @@ const ProductManagement = () => {
   const limit = parseInt(searchParams.get("limit") || "10");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+  const { user } = useAdminAuthStore();
   const {
     products,
     totalPages,
@@ -45,6 +56,11 @@ const ProductManagement = () => {
 
   const showSkeleton = loading && products.length === 0;
   const showOverlay = loading && products.length > 0;
+
+  const canView = hasPermission(user, "products_view");
+  const canCreate = hasPermission(user, "products_create");
+  const canEdit = hasPermission(user, "products_edit");
+  const canDelete = hasPermission(user, "products_delete");
 
   const updateURL = (newParams: Record<string, string>) => {
     const params = Object.fromEntries(searchParams.entries());
@@ -66,24 +82,28 @@ const ProductManagement = () => {
   };
 
   useEffect(() => {
-    fetchCategories("", "active", 1, 100);
-  }, [fetchCategories]);
+    if (canView) {
+      fetchCategories("", "active", 1, 100);
+    }
+  }, [fetchCategories, canView]);
 
   useEffect(() => {
-    const categorySlug =
-      categoryFilter !== "all"
-        ? categories.find((c) => c._id === categoryFilter)?.slug || ""
-        : "";
-    const status = statusFilter !== "all" ? statusFilter : "";
-    fetchProducts(searchTerm, categorySlug, status, currentPage, limit);
+    if (canView) {
+      const categorySlug =
+        categoryFilter !== "all"
+          ? categories.find((c) => c._id === categoryFilter)?.slug || ""
+          : "";
+      const status = statusFilter !== "all" ? statusFilter : "";
+      fetchProducts(searchTerm, categorySlug, status, currentPage, limit);
+    }
   }, [
     currentPage,
     limit,
     searchTerm,
     categoryFilter,
-    categories,
     statusFilter,
     fetchProducts,
+    canView,
   ]);
 
   const refetchProducts = async () => {
@@ -99,6 +119,11 @@ const ProductManagement = () => {
     productId: string,
     status: "active" | "inactive",
   ) => {
+    if (!canEdit) {
+      toast.error("Bạn không có quyền chỉnh sửa sản phẩm");
+      return;
+    }
+
     const result =
       status === "active"
         ? await confirmRestore(
@@ -106,8 +131,8 @@ const ProductManagement = () => {
             "Sản phẩm sẽ được chuyển về trạng thái hoạt động",
           )
         : await confirmDelete(
-            "Xóa sản phẩm?",
-            "Sản phẩm sẽ chuyển sang trạng thái ngưng hoạt động",
+            "Ngưng bán sản phẩm?",
+            "Sản phẩm sẽ chuyển sang trạng thái ngưng bán",
           );
 
     if (!result.isConfirmed) return;
@@ -122,6 +147,11 @@ const ProductManagement = () => {
   };
 
   const handleDeleteItem = async (productId: string) => {
+    if (!canDelete) {
+      toast.error("Bạn không có quyền xóa sản phẩm");
+      return;
+    }
+
     const result = await confirmPermanentDelete(
       "Xóa vĩnh viễn?",
       "Hành động này không thể hoàn tác! Sản phẩm sẽ bị xóa vĩnh viễn khỏi hệ thống.",
@@ -146,6 +176,16 @@ const ProductManagement = () => {
       return;
     }
 
+    if (type === "delete-all" && !canDelete) {
+      toast.error("Bạn không có quyền xóa sản phẩm");
+      return;
+    }
+
+    if ((type === "active" || type === "inactive") && !canEdit) {
+      toast.error("Bạn không có quyền chỉnh sửa sản phẩm");
+      return;
+    }
+
     let result;
     if (type === "active") {
       result = await confirmRestore(
@@ -154,8 +194,8 @@ const ProductManagement = () => {
       );
     } else if (type === "inactive") {
       result = await confirmDelete(
-        "Xóa nhiều sản phẩm?",
-        `Bạn đang chuyển ${selectedItems.length} sản phẩm sang ngưng hoạt động`,
+        "Ngưng bán nhiều sản phẩm?",
+        `Bạn đang ngưng bán ${selectedItems.length} sản phẩm`,
       );
     } else {
       result = await confirmPermanentDelete(
@@ -198,6 +238,45 @@ const ProductManagement = () => {
       setSelectedItems([...selectedItems, id]);
     }
   };
+
+  if (!canView) {
+    return (
+      <div className="bg-[#f7f9fb] min-h-screen pb-6 flex flex-col">
+        <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10 shrink-0">
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  href="/admin/dashboard"
+                  className="font-medium text-gray-500"
+                >
+                  Admin
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-bold text-[#b51c00]">
+                  Quản lý sản phẩm
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Không có quyền truy cập
+            </h2>
+            <p className="text-gray-600">
+              Bạn không có quyền xem trang này. Vui lòng liên hệ quản trị viên.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#f7f9fb] min-h-screen pb-12">
@@ -280,28 +359,28 @@ const ProductManagement = () => {
 
             {/* Right: Actions */}
             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-              {hasInactiveSelected && (
+              {canEdit && hasInactiveSelected && (
                 <button
                   onClick={() => handleBulkAction("active")}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffc1cc] text-[#c2185b] rounded-[20px] font-semibold text-sm hover:bg-[#ffadc0] transition-colors active:scale-95 whitespace-nowrap"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  Khôi phục mục đã chọn
+                  Khôi phục đã chọn
                 </button>
               )}
 
-              {hasActiveSelected && (
+              {canEdit && hasActiveSelected && (
                 <button
                   onClick={() => handleBulkAction("inactive")}
                   disabled={selectedItems.length === 0}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-[20px] font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Xóa mục đã chọn
+                  <PauseCircle className="w-4 h-4" />
+                  Ngưng bán đã chọn
                 </button>
               )}
 
-              {hasInactiveSelected && (
+              {canDelete && hasInactiveSelected && (
                 <button
                   onClick={() => handleBulkAction("delete-all")}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#fee2e2] text-[#991b1b] rounded-[20px] font-semibold text-sm hover:bg-[#fecaca] transition-colors active:scale-95 whitespace-nowrap"
@@ -311,13 +390,15 @@ const ProductManagement = () => {
                 </button>
               )}
 
-              <button
-                onClick={() => navigate("/admin/product/create")}
-                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Thêm sản phẩm
-              </button>
+              {canCreate && (
+                <button
+                  onClick={() => navigate("/admin/product/create")}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" />
+                  Thêm sản phẩm
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -468,43 +549,53 @@ const ProductManagement = () => {
                           <div className="flex items-center justify-center gap-2">
                             {item.status === "active" ? (
                               <>
-                                <button
-                                  onClick={() =>
-                                    navigate(`/admin/product/edit/${item._id}`)
-                                  }
-                                  className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
-                                >
-                                  <Pencil className="w-3 h-3" />
-                                  Sửa
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleChangeStatus(item._id, "inactive")
-                                  }
-                                  className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  Xóa
-                                </button>
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      navigate(
+                                        `/admin/product/edit/${item._id}`,
+                                      )
+                                    }
+                                    className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                    Sửa
+                                  </button>
+                                )}
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "inactive")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <PauseCircle className="w-3 h-3" />
+                                    Ngưng bán
+                                  </button>
+                                )}
                               </>
                             ) : (
                               <>
-                                <button
-                                  onClick={() =>
-                                    handleChangeStatus(item._id, "active")
-                                  }
-                                  className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                  Khôi phục
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteItem(item._id)}
-                                  className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  Xóa vĩnh viễn
-                                </button>
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "active")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    Khôi phục
+                                  </button>
+                                )}
+                                {canDelete && (
+                                  <button
+                                    onClick={() => handleDeleteItem(item._id)}
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Xóa vĩnh viễn
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>

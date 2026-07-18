@@ -51,7 +51,7 @@ export const adminBlogCategoryService = {
   },
 
   deleteItem: async (blogCategoryId: string) => {
-    const response = await adminApi.delete(
+    const response = await adminApi.patch(
       `/admin/blog-category/delete/${blogCategoryId}`,
     );
     return response.data;

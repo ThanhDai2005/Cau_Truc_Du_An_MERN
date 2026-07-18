@@ -333,6 +333,11 @@ export const changeMulti = async (req, res) => {
         break;
 
       case "delete-all":
+        if (!req.user.roleId.permissions.includes("promotions_delete")) {
+          return res.status(403).json({
+            message: "Bạn không có quyền xóa khuyến mãi",
+          });
+        }
         await Promotion.deleteMany({
           _id: { $in: ids },
           deleted: true,

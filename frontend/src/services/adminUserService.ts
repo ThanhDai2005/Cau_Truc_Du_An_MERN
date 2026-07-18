@@ -73,7 +73,7 @@ export const adminUserService = {
   },
 
   deleteItem: async (userId: string) => {
-    const response = await adminAxios.delete(
+    const response = await adminAxios.patch(
       `/admin/users/delete-item/${userId}`,
     );
     return response.data;

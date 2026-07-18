@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw } from "lucide-react";
+import { Search, Plus, Trash2, Loader2, Pencil, RotateCcw, PauseCircle } from "lucide-react";
 import { useAdminCategoryStore } from "@/stores/useAdminCategoryStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -19,6 +19,8 @@ import {
   confirmRestore,
   confirmPermanentDelete,
 } from "@/lib/sweetalert";
+import { hasPermission } from "@/lib/permissions";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 
 const ProductCategoryManagement = () => {
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ const ProductCategoryManagement = () => {
   const limit = parseInt(searchParams.get("limit") || "10");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+  const { user } = useAdminAuthStore();
   const {
     categories,
     totalPages,
@@ -41,6 +44,11 @@ const ProductCategoryManagement = () => {
 
   const showSkeleton = loading && categories.length === 0;
   const showOverlay = loading && categories.length > 0;
+
+  const canView = hasPermission(user, "categories_view");
+  const canCreate = hasPermission(user, "categories_create");
+  const canEdit = hasPermission(user, "categories_edit");
+  const canDelete = hasPermission(user, "categories_delete");
 
   const updateURL = (newParams: Record<string, string>) => {
     const params = Object.fromEntries(searchParams.entries());
@@ -61,9 +69,11 @@ const ProductCategoryManagement = () => {
   };
 
   useEffect(() => {
-    const status = statusFilter !== "all" ? statusFilter : "";
-    fetchCategories(searchTerm, status, currentPage, limit);
-  }, [currentPage, limit, searchTerm, statusFilter, fetchCategories]);
+    if (canView) {
+      const status = statusFilter !== "all" ? statusFilter : "";
+      fetchCategories(searchTerm, status, currentPage, limit);
+    }
+  }, [currentPage, limit, searchTerm, statusFilter, fetchCategories, canView]);
 
   const refetchCategories = async () => {
     const status = statusFilter !== "all" ? statusFilter : "";
@@ -74,6 +84,11 @@ const ProductCategoryManagement = () => {
     categoryId: string,
     status: "active" | "inactive",
   ) => {
+    if (!canEdit) {
+      toast.error("Bạn không có quyền chỉnh sửa danh mục");
+      return;
+    }
+
     const result =
       status === "active"
         ? await confirmRestore(
@@ -81,7 +96,7 @@ const ProductCategoryManagement = () => {
             "Danh mục sẽ được chuyển về trạng thái hoạt động",
           )
         : await confirmDelete(
-            "Xóa danh mục?",
+            "Ngưng hoạt động danh mục?",
             "Danh mục sẽ chuyển sang trạng thái ngưng hoạt động",
           );
 
@@ -97,6 +112,11 @@ const ProductCategoryManagement = () => {
   };
 
   const handleDeleteItem = async (categoryId: string) => {
+    if (!canDelete) {
+      toast.error("Bạn không có quyền xóa danh mục");
+      return;
+    }
+
     const result = await confirmPermanentDelete(
       "Xóa vĩnh viễn?",
       "Hành động này không thể hoàn tác! Danh mục sẽ bị xóa vĩnh viễn khỏi hệ thống.",
@@ -121,6 +141,16 @@ const ProductCategoryManagement = () => {
       return;
     }
 
+    if (type === "delete-all" && !canDelete) {
+      toast.error("Bạn không có quyền xóa danh mục");
+      return;
+    }
+
+    if ((type === "active" || type === "inactive") && !canEdit) {
+      toast.error("Bạn không có quyền chỉnh sửa danh mục");
+      return;
+    }
+
     let result;
     if (type === "active") {
       result = await confirmRestore(
@@ -129,8 +159,8 @@ const ProductCategoryManagement = () => {
       );
     } else if (type === "inactive") {
       result = await confirmDelete(
-        "Xóa nhiều danh mục?",
-        `Bạn đang chuyển ${selectedItems.length} danh mục sang ngưng hoạt động`,
+        "Ngưng hoạt động nhiều danh mục?",
+        `Bạn đang ngưng hoạt động ${selectedItems.length} danh mục`,
       );
     } else {
       result = await confirmPermanentDelete(
@@ -175,6 +205,45 @@ const ProductCategoryManagement = () => {
       setSelectedItems([...selectedItems, id]);
     }
   };
+
+  if (!canView) {
+    return (
+      <div className="bg-[#f7f9fb] min-h-screen pb-6 flex flex-col">
+        <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-10 shrink-0">
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  href="/admin/dashboard"
+                  className="font-medium text-gray-500"
+                >
+                  Admin
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-bold text-[#b51c00]">
+                  Quản lý danh mục sản phẩm
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Không có quyền truy cập
+            </h2>
+            <p className="text-gray-600">
+              Bạn không có quyền xem trang này. Vui lòng liên hệ quản trị viên.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#f7f9fb] min-h-screen pb-12">
@@ -242,28 +311,28 @@ const ProductCategoryManagement = () => {
 
             {/* Right: Actions */}
             <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-              {hasInactiveSelected && (
+              {canEdit && hasInactiveSelected && (
                 <button
                   onClick={() => handleBulkAction("active")}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffc1cc] text-[#c2185b] rounded-[20px] font-semibold text-sm hover:bg-[#ffadc0] transition-colors active:scale-95 whitespace-nowrap"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  Khôi phục mục đã chọn
+                  Khôi phục đã chọn
                 </button>
               )}
 
-              {hasActiveSelected && (
+              {canEdit && hasActiveSelected && (
                 <button
                   onClick={() => handleBulkAction("inactive")}
                   disabled={selectedItems.length === 0}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#ffdad6] text-[#ba1a1a] rounded-[20px] font-semibold text-sm hover:bg-[#ffb4a5] transition-colors active:scale-95 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Xóa mục đã chọn
+                  <PauseCircle className="w-4 h-4" />
+                  Ngưng hoạt động đã chọn
                 </button>
               )}
 
-              {hasInactiveSelected && (
+              {canDelete && hasInactiveSelected && (
                 <button
                   onClick={() => handleBulkAction("delete-all")}
                   className="flex items-center justify-center gap-2 px-5 py-2 bg-[#fee2e2] text-[#991b1b] rounded-[20px] font-semibold text-sm hover:bg-[#fecaca] transition-colors active:scale-95 whitespace-nowrap"
@@ -273,13 +342,15 @@ const ProductCategoryManagement = () => {
                 </button>
               )}
 
-              <button
-                onClick={() => navigate("/admin/product-category/create")}
-                className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Thêm danh mục
-              </button>
+              {canCreate && (
+                <button
+                  onClick={() => navigate("/admin/product-category/create")}
+                  className="flex items-center justify-center gap-2 px-5 py-2 bg-[#b51c00] text-white rounded-[20px] font-semibold text-sm hover:bg-[#8e1400] shadow-sm shadow-red-500/20 transition-all active:scale-95 whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" />
+                  Thêm danh mục
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -405,45 +476,53 @@ const ProductCategoryManagement = () => {
                           <div className="flex items-center justify-center gap-2">
                             {item.status === "active" ? (
                               <>
-                                <button
-                                  onClick={() =>
-                                    navigate(
-                                      `/admin/product-category/edit/${item._id}`,
-                                    )
-                                  }
-                                  className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
-                                >
-                                  <Pencil className="w-3 h-3" />
-                                  Sửa
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleChangeStatus(item._id, "inactive")
-                                  }
-                                  className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  Xóa
-                                </button>
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      navigate(
+                                        `/admin/product-category/edit/${item._id}`,
+                                      )
+                                    }
+                                    className="px-3 py-1.5 border border-[#22c55e] text-[#16a34a] rounded-[6px] text-xs font-bold hover:bg-[#f0fdf4] transition-colors flex items-center gap-1"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                    Sửa
+                                  </button>
+                                )}
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "inactive")
+                                    }
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <PauseCircle className="w-3 h-3" />
+                                    Ngưng hoạt động
+                                  </button>
+                                )}
                               </>
                             ) : (
                               <>
-                                <button
-                                  onClick={() =>
-                                    handleChangeStatus(item._id, "active")
+                                {canEdit && (
+                                  <button
+                                    onClick={() =>
+                                      handleChangeStatus(item._id, "active")
                                   }
                                   className="px-3 py-1.5 border border-[#ec4899] text-[#db2777] rounded-[6px] text-xs font-bold hover:bg-[#fdf2f8] transition-colors flex items-center gap-1"
                                 >
                                   <RotateCcw className="w-3 h-3" />
                                   Khôi phục
                                 </button>
-                                <button
-                                  onClick={() => handleDeleteItem(item._id)}
-                                  className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                  Xóa vĩnh viễn
-                                </button>
+                                )}
+                                {canDelete && (
+                                  <button
+                                    onClick={() => handleDeleteItem(item._id)}
+                                    className="px-3 py-1.5 border border-[#ef4444] text-[#dc2626] rounded-[6px] text-xs font-bold hover:bg-[#fef2f2] transition-colors flex items-center gap-1"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Xóa vĩnh viễn
+                                  </button>
+                                )}
                               </>
                             )}
                           </div>

@@ -12,8 +12,10 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Search, Eye, Loader2, Calendar } from "lucide-react";
 import { useAdminOrderStore } from "@/stores/useAdminOrderStore";
+import { useAdminAuthStore } from "@/stores/useAdminAuthStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { hasPermission } from "@/lib/permissions";
 
 const OrderManagement = () => {
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ const OrderManagement = () => {
   const limit = parseInt(searchParams.get("limit") || "10");
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
+  const { user } = useAdminAuthStore();
   const {
     orders,
     totalPages,
@@ -38,6 +41,9 @@ const OrderManagement = () => {
 
   const showSkeleton = loading && orders.length === 0;
   const showOverlay = loading && orders.length > 0;
+
+  const canView = hasPermission(user, "orders_view");
+  const canEdit = hasPermission(user, "orders_edit");
 
   const updateURL = (newParams: Record<string, string>) => {
     const params = Object.fromEntries(searchParams.entries());
@@ -61,15 +67,17 @@ const OrderManagement = () => {
   };
 
   useEffect(() => {
-    const filters: any = {};
-    if (orderStatusFilter !== "all") filters.orderStatus = orderStatusFilter;
-    if (paymentStatusFilter !== "all")
-      filters.paymentStatus = paymentStatusFilter;
-    if (searchTerm) filters.search = searchTerm;
-    if (startDate) filters.startDate = startDate;
-    if (endDate) filters.endDate = endDate;
+    if (canView) {
+      const filters: any = {};
+      if (orderStatusFilter !== "all") filters.orderStatus = orderStatusFilter;
+      if (paymentStatusFilter !== "all")
+        filters.paymentStatus = paymentStatusFilter;
+      if (searchTerm) filters.search = searchTerm;
+      if (startDate) filters.startDate = startDate;
+      if (endDate) filters.endDate = endDate;
 
-    fetchOrders(currentPage, limit, filters);
+      fetchOrders(currentPage, limit, filters);
+    }
   }, [
     currentPage,
     limit,
@@ -78,6 +86,7 @@ const OrderManagement = () => {
     paymentStatusFilter,
     startDate,
     endDate,
+    canView,
   ]);
 
   const handleClearFilters = () => {
@@ -168,6 +177,11 @@ const OrderManagement = () => {
       return;
     }
 
+    if (!canEdit) {
+      toast.error("Bạn không có quyền chỉnh sửa đơn hàng");
+      return;
+    }
+
     try {
       setUpdatingOrderId(orderId);
       await updateOrderStatus(orderId, { orderStatus: newStatus });
@@ -188,6 +202,45 @@ const OrderManagement = () => {
       setUpdatingOrderId(null);
     }
   };
+
+  if (!canView) {
+    return (
+      <div className="bg-[#f7f9fb] min-h-screen pb-6 flex flex-col">
+        <header className="flex items-center h-16 gap-2 bg-white border-b border-gray-100 px-4 sticky top-0 z-20 shrink-0">
+          <SidebarTrigger />
+          <Separator orientation="vertical" className="h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink
+                  href="/admin/dashboard"
+                  className="font-medium text-gray-500"
+                >
+                  Admin
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="font-bold text-[#b51c00]">
+                  Quản lý đơn hàng
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Không có quyền truy cập
+            </h2>
+            <p className="text-gray-600">
+              Bạn không có quyền xem trang này. Vui lòng liên hệ quản trị viên.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#f7f9fb] min-h-screen pb-12 font-['Inter']">
@@ -391,7 +444,7 @@ const OrderManagement = () => {
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               Đang lưu...
                             </div>
-                          ) : (
+                          ) : canEdit ? (
                             <select
                               value={order.orderStatus}
                               onChange={(e) =>
@@ -421,6 +474,12 @@ const OrderManagement = () => {
                                 </option>
                               ))}
                             </select>
+                          ) : (
+                            <span
+                              className={`inline-flex items-center px-3 py-1.5 rounded-md border text-xs font-bold ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+                            >
+                              {statusConfig.label}
+                            </span>
                           )}
                         </td>
 

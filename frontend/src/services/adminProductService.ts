@@ -83,7 +83,7 @@ export const adminProductService = {
   },
 
   deleteItem: async (productId: string) => {
-    const response = await adminApi.delete(`/admin/product/delete/${productId}`);
+    const response = await adminApi.patch(`/admin/product/delete/${productId}`);
     return response.data;
   },
 };
