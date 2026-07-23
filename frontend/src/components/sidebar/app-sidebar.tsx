@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   FileText,
   Home,
+  MessageSquare,
   ShieldCheck,
   ShoppingCart,
   Tag,
@@ -116,6 +117,19 @@ const data = {
           title: "Quản lý vai trò",
           url: "/admin/roles",
           permission: "roles_view",
+        },
+      ],
+    },
+    {
+      title: "Quản Lý Chat",
+      url: "#",
+      icon: MessageSquare,
+      permission: "chats_view",
+      items: [
+        {
+          title: "Tư vấn khách hàng",
+          url: "/admin/chats",
+          permission: "chats_view",
         },
       ],
     },

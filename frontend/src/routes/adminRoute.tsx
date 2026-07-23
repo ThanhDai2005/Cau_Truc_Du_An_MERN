@@ -27,6 +27,7 @@ import PermissionManagement from "@/pages/admin/PermissionManagement";
 import RoleManagement from "@/pages/admin/RoleManagement";
 import RoleEdit from "@/pages/admin/RoleEdit";
 import RoleCreate from "@/pages/admin/RoleCreate";
+import ChatManagement from "@/pages/admin/ChatManagement";
 
 const adminRoute = {
   path: "/admin",
@@ -144,6 +145,10 @@ const adminRoute = {
             {
               path: "role/edit/:roleId",
               element: <RoleEdit />,
+            },
+            {
+              path: "chats",
+              element: <ChatManagement />,
             },
           ],
         },

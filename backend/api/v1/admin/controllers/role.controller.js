@@ -196,20 +196,15 @@ export const deleteItem = async (req, res) => {
 export const getPermissions = async (req, res) => {
   try {
     const permissions = [
-      { group: "Quản lý sản phẩm", value: "products_view", label: "Xem" },
-      { group: "Quản lý sản phẩm", value: "products_create", label: "Thêm" },
-      { group: "Quản lý sản phẩm", value: "products_edit", label: "Sửa" },
-      { group: "Quản lý sản phẩm", value: "products_delete", label: "Xóa" },
-
       { group: "Quản lý danh mục", value: "categories_view", label: "Xem" },
       { group: "Quản lý danh mục", value: "categories_create", label: "Thêm" },
       { group: "Quản lý danh mục", value: "categories_edit", label: "Sửa" },
       { group: "Quản lý danh mục", value: "categories_delete", label: "Xóa" },
 
-      { group: "Quản lý bài viết", value: "blogs_view", label: "Xem" },
-      { group: "Quản lý bài viết", value: "blogs_create", label: "Thêm" },
-      { group: "Quản lý bài viết", value: "blogs_edit", label: "Sửa" },
-      { group: "Quản lý bài viết", value: "blogs_delete", label: "Xóa" },
+      { group: "Quản lý sản phẩm", value: "products_view", label: "Xem" },
+      { group: "Quản lý sản phẩm", value: "products_create", label: "Thêm" },
+      { group: "Quản lý sản phẩm", value: "products_edit", label: "Sửa" },
+      { group: "Quản lý sản phẩm", value: "products_delete", label: "Xóa" },
 
       {
         group: "Quản lý danh mục bài viết",
@@ -232,23 +227,10 @@ export const getPermissions = async (req, res) => {
         label: "Xóa",
       },
 
-      { group: "Quản lý vai trò", value: "roles_view", label: "Xem" },
-      { group: "Quản lý vai trò", value: "roles_create", label: "Thêm" },
-      { group: "Quản lý vai trò", value: "roles_edit", label: "Sửa" },
-      { group: "Quản lý vai trò", value: "roles_delete", label: "Xóa" },
-      {
-        group: "Quản lý vai trò",
-        value: "roles_permissions",
-        label: "Phân quyền",
-      },
-
-      { group: "Quản lý tài khoản", value: "accounts_view", label: "Xem" },
-      { group: "Quản lý tài khoản", value: "accounts_create", label: "Thêm" },
-      { group: "Quản lý tài khoản", value: "accounts_edit", label: "Sửa" },
-      { group: "Quản lý tài khoản", value: "accounts_delete", label: "Xóa" },
-
-      { group: "Quản lý đơn hàng", value: "orders_view", label: "Xem" },
-      { group: "Quản lý đơn hàng", value: "orders_edit", label: "Sửa" },
+      { group: "Quản lý bài viết", value: "blogs_view", label: "Xem" },
+      { group: "Quản lý bài viết", value: "blogs_create", label: "Thêm" },
+      { group: "Quản lý bài viết", value: "blogs_edit", label: "Sửa" },
+      { group: "Quản lý bài viết", value: "blogs_delete", label: "Xóa" },
 
       { group: "Quản lý khuyến mãi", value: "promotions_view", label: "Xem" },
       {
@@ -258,6 +240,27 @@ export const getPermissions = async (req, res) => {
       },
       { group: "Quản lý khuyến mãi", value: "promotions_edit", label: "Sửa" },
       { group: "Quản lý khuyến mãi", value: "promotions_delete", label: "Xóa" },
+
+      { group: "Quản lý tài khoản", value: "accounts_view", label: "Xem" },
+      { group: "Quản lý tài khoản", value: "accounts_create", label: "Thêm" },
+      { group: "Quản lý tài khoản", value: "accounts_edit", label: "Sửa" },
+      { group: "Quản lý tài khoản", value: "accounts_delete", label: "Xóa" },
+
+      { group: "Quản lý đơn hàng", value: "orders_view", label: "Xem" },
+      { group: "Quản lý đơn hàng", value: "orders_edit", label: "Sửa" },
+
+      {
+        group: "Quản lý vai trò",
+        value: "roles_permissions",
+        label: "Phân quyền",
+      },
+
+      { group: "Quản lý vai trò", value: "roles_view", label: "Xem" },
+      { group: "Quản lý vai trò", value: "roles_create", label: "Thêm" },
+      { group: "Quản lý vai trò", value: "roles_edit", label: "Sửa" },
+      { group: "Quản lý vai trò", value: "roles_delete", label: "Xóa" },
+
+      { group: "Quản lý Chat", value: "chats_view", label: "Chat khách hàng" },
     ];
 
     res.status(200).json({

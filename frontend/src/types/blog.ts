@@ -13,9 +13,15 @@ export interface Blog {
   } | null;
   featured: boolean;
   relatedProducts?: Product[];
-  publishedAt: string;
+  status: "active" | "inactive";
+  publishedAt: string | null;
   authorId: {
+    _id: string;
     displayName: string;
     avatarUrl?: string;
   };
+  deleted: boolean;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

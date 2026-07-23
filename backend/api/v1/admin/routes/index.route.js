@@ -11,6 +11,7 @@ import promotionRoute from "./promotion.route.js";
 import blogRoute from "./blog.route.js";
 import uploadRoute from "./upload.route.js";
 import blogCategoryRoute from "./blogCategory.route.js";
+import chatRoute from "./chat.route.js";
 
 export const adminV1Routes = (app) => {
   const version = "/api/v1/admin";
@@ -38,4 +39,6 @@ export const adminV1Routes = (app) => {
   app.use(version + "/upload", requireAuth, uploadRoute);
 
   app.use(version + "/blog-category", requireAuth, blogCategoryRoute);
+
+  app.use(version + "/chat", requireAuth, chatRoute);
 };

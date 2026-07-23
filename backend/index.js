@@ -4,7 +4,8 @@ dotenv.config();
 import connect from "./config/database.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
+import { createServer } from "node:http";
+import { initSocket } from "./socket/index.js";
 import { adminV1Routes } from "./api/v1/admin/routes/index.route.js";
 import { clientV1Routes } from "./api/v1/client/routes/index.route.js";
 import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
@@ -26,11 +27,14 @@ app.use(cookieParser());
 
 app.use("/api/v1", apiLimiter);
 
+const server = createServer(app);
+initSocket(server);
+
 adminV1Routes(app);
 clientV1Routes(app);
 
 connect().then(() => {
-  app.listen(port, () => {
+  server.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
   });
 });

@@ -21,10 +21,12 @@ export interface Order {
   userId: string;
   items: OrderItem[];
   shippingAddress: ShippingAddress;
-  paymentMethod: "COD" | "VNPAY" | "MOMO" | "STRIPE";
+  paymentMethod: "COD" | "VNPAY" | "MOMO";
   paymentStatus: "Pending" | "Paid" | "Failed" | "Refunded";
   orderStatus: "Pending" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
   shippingFee: number;
+  promotionId?: string | null;
+  discountAmount: number;
   totalAmount: number;
   hasReviewed: boolean;
   createdAt: string;
@@ -41,6 +43,6 @@ export interface CreateOrderData {
     phone: string;
     address: string;
   };
-  paymentMethod: "COD" | "VNPAY" | "MOMO" | "STRIPE";
+  paymentMethod: "COD" | "VNPAY" | "MOMO";
   promotionId?: string;
 }

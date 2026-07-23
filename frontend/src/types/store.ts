@@ -7,6 +7,8 @@ import type { ApplyPromotionResponse, Promotion } from "./promotion";
 import type { Review } from "./review";
 import type { BlogCategory } from "./blogCategory";
 import type { Blog } from "./blog";
+import type { Socket } from "socket.io-client";
+import type { Conversation, Message } from "./chat";
 
 export interface AuthState {
   accessToken: string | null;
@@ -163,6 +165,39 @@ export interface ReviewState {
   ) => Promise<void>;
   loadMoreReviews: (productId: string, limit?: number) => Promise<void>;
   resetReviews: () => void;
+}
+
+export interface ChatState {
+  messages: Message[];
+  conversationId: string | null;
+  conversationStatus: string | null;
+  isLoading: boolean;
+  isTyping: boolean;
+  typingUser: "bot" | "staff" | null;
+  unreadCount: number;
+  isWidgetOpen: boolean;
+
+  loadHistory: () => void;
+  sendMessage: (message: string) => void;
+  requestHuman: () => void;
+  addMessage: (message: Message) => void;
+  setTyping: (isTyping: boolean, user: "bot" | "staff" | null) => void;
+  setUnreadCount: (count: number) => void;
+  setWidgetOpen: (open: boolean) => void;
+  clearMessages: () => void;
+}
+
+export interface SocketState {
+  socket: Socket | null;
+  isConnected: boolean;
+  connect: (
+    token?: string,
+    guestInfo?: { name: string; phone: string },
+  ) => void;
+  disconnect: () => void;
+  emit: (event: string, data?: any) => void;
+  on: (event: string, handler: (data: any) => void) => void;
+  off: (event: string, handler?: (data: any) => void) => void;
 }
 
 export interface AdminAuthState {
@@ -515,4 +550,36 @@ export interface AdminRoleStore {
   fetchPermissions: () => Promise<void>;
   updatePermissions: (roleId: string, permissions: string[]) => Promise<void>;
   clearCurrentRole: () => void;
+}
+
+export interface AdminChatState {
+  conversations: Conversation[];
+  selectedConversationId: string | null;
+  messages: Message[];
+  conversationLoading: boolean;
+  messageLoading: boolean;
+  isTyping: boolean;
+  typingUser: "client" | "bot" | null;
+
+  loadConversations: () => void;
+  selectConversation: (conversationId: string) => void;
+  sendMessage: (conversationId: string, message: string) => void;
+  closeConversation: (conversationId: string) => void;
+  addMessage: (conversationId: string, message: Message) => void;
+  addNewConversation: (conversation: Conversation) => void;
+  updateConversationStatus: (
+    conversationId: string,
+    status: "bot" | "waiting_human" | "human_active" | "closed",
+  ) => void;
+  setTyping: (isTyping: boolean, user: "client" | "bot" | null) => void;
+}
+
+export interface AdminSocketState {
+  socket: Socket | null;
+  isConnected: boolean;
+  connect: (token: string) => void;
+  disconnect: () => void;
+  emit: (event: string, data?: any) => void;
+  on: (event: string, handler: (data: any) => void) => void;
+  off: (event: string, handler?: (data: any) => void) => void;
 }
